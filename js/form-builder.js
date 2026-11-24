@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, noPalette: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
     /* fb-subform-v1 (2026-11-20): a grid column that holds fields — the „form inside a form”, opened in
        the row's detail row; only a column (no palette entry, no field of its own) */
-    subform: { label: "Sub-formular", icon: "icon-page-child", category: "repeat", paletteReason: "Se adaugă ca o coloană a unei grile: Editează grila › + Coloană", desc: "Câmpuri într-o secțiune a rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
+    subform: { label: "Sub-formular", icon: "icon-list-bullets", category: "repeat", paletteReason: "Se adaugă ca o coloană a unei grile: Editează grila › + Coloană", desc: "Câmpuri într-o secțiune a rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
     file: { label: "Fișier", icon: "icon-attachment", category: "files", desc: "Încărcare PDF, imagini", span: 12, fixed: true, tabs: INPUT_TABS, defaults: () => ({ fileTypes: ["PDF", "JPG", "PNG"], maxSizeMb: 10, maxFiles: 1, validation: { message: i18n() } }) },
     mdocs: { label: "Document din MDocs", icon: "icon-cloud-upload", category: "files", desc: "Alege din MDocs sau încarcă", span: 12, fixed: true, tabs: CHOICE_TABS, defaults: () => ({ docType: "" }) },
     section: { label: "Secțiune", icon: "icon-templates", category: "structure", desc: "Grupează câmpurile, cu titlu", structural: true },
@@ -229,13 +229,54 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "cadastral", span: 6, label: "Cod cadastral", kind: "text", required: false, visible: true, source: "MConnect · SRRE · verificat în timp real", noDefault: true,
       facts: [["Registru", "SRRE prin MConnect"], ["Completează", "Țară, Raion/Municipiu, Orașul/Comuna, Sector, Stradă, Casă, Bloc, Apartament/Oficiu — doar citire"], ["Jurnal", "Fiecare interogare (MLog)"]] },
   ];
-  const addressConfig = (field) => ADDRESS_PARTS.map((part) => {
-    const saved = (field.addressConfig || []).find((item) => item.key === part.key) || {};
-    return { ...part, visible: saved.visible ?? part.visible, required: saved.required ?? part.required, defaultValue: saved.defaultValue ?? part.defaultValue ?? "", span: SPANS.includes(Number(saved.span)) ? Number(saved.span) : part.span };
-  });
-  const setAddressPart = (field, key, updates) => {
-    const config = addressConfig(field).map((part) => (part.key === key ? { ...part, ...updates } : part));
-    field.addressConfig = config.map(({ key: k, visible, required, defaultValue, span }) => ({ key: k, visible, required: visible ? required : false, defaultValue, span }));
+  /* adr-grid-v1 (user 2026-11-24: „exactly as a simple editable grid”): `field.addressParts` = the parts ON THE CANVAS, in
+     canvas order — [{ uid, key, required, defaultValue, span }]; a part not on it is not in the form (US-54 AC-04) and is
+     addable again from the window's library. A form saved before (legacy `addressConfig`, visible flags, fixed order) is
+     read in the catalogue order with its visible parts — never rewritten on read (the draft would look changed).
+     uid = the key for the first copy, „key-2”… for a duplicate (the grid allows duplicates; the FO shows a part once,
+     so a copy is an error until it is deleted — fieldChecks). */
+  const partDef = (key) => ADDRESS_PARTS.find((part) => part.key === key);
+  function addressPlaced(field) {
+    const raw = Array.isArray(field.addressParts)
+      ? field.addressParts
+      : ADDRESS_PARTS.map((part) => {
+        const saved = (field.addressConfig || []).find((item) => item.key === part.key) || {};
+        return { uid: part.key, key: part.key, visible: saved.visible ?? part.visible, required: saved.required ?? part.required, defaultValue: saved.defaultValue ?? part.defaultValue ?? "", span: saved.span ?? part.span };
+      }).filter((part) => part.visible);
+    const seen = {};
+    return raw.filter((entry) => partDef(entry.key)).map((entry) => {
+      const def = partDef(entry.key);
+      seen[entry.key] = (seen[entry.key] || 0) + 1;
+      return { ...def, uid: entry.uid || entry.key, visible: true, required: Boolean(entry.required ?? def.required), defaultValue: entry.defaultValue ?? def.defaultValue ?? "", span: SPANS.includes(Number(entry.span)) ? Number(entry.span) : def.span, copy: seen[entry.key] > 1 };
+    });
+  }
+  const writePlaced = (field, list) => {
+    field.addressParts = list.map(({ uid: id, key, required, defaultValue, span }) => ({ uid: id, key, required: Boolean(required), defaultValue: defaultValue ?? "", span }));
+    delete field.addressConfig;
+  };
+  const freePartUid = (list, key) => { let n = 1; let id = key; while (list.some((part) => part.uid === id)) { n += 1; id = `${key}-${n}`; } return id; };
+  /* the catalogue view (the panel's „Componentele adresei” rows, the FO): every part once, visible = on the canvas, the
+     props of its first copy */
+  const addressConfig = (field) => {
+    const placed = addressPlaced(field);
+    return ADDRESS_PARTS.map((part) => placed.find((item) => item.uid === part.key) || placed.find((item) => item.key === part.key) || { ...part, uid: part.key, visible: false, required: false, defaultValue: part.defaultValue ?? "" });
+  };
+  /* one part by uid (or the first copy of a key): visible false = off the canvas (every copy of the key), visible true =
+     back on it (at the end), else its props */
+  const setAddressPart = (field, id, updates) => {
+    const list = addressPlaced(field);
+    let at = list.findIndex((part) => part.uid === id);
+    if (at < 0) at = list.findIndex((part) => part.key === id);
+    if (updates.visible === false) { if (at >= 0) writePlaced(field, list.filter((part) => part.key !== list[at].key)); return; }
+    if (at < 0) {
+      if (updates.visible !== true || !partDef(id)) return;
+      const def = partDef(id);
+      list.push({ ...def, uid: freePartUid(list, id), required: def.required, defaultValue: def.defaultValue ?? "", span: def.span });
+    } else {
+      const { visible, ...rest } = updates;
+      list[at] = { ...list[at], ...rest };
+    }
+    writePlaced(field, list);
   };
 
   /* ------------------------------------------------------- text validation presets (US-30) */
@@ -582,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (field.type === "info") { if (!tr(field.text).trim()) push(T_GEN, "text", "Completează textul notei."); return; }
     if (field.type === "callout") { if (!tr(field.title).trim() && !tr(field.text).trim()) push(T_GEN, "text", "Completează titlul sau textul notei."); return; }
     if (field.type === "separator") return;
+    if (field.type === "address") addressPlaced(field).filter((part) => part.copy).forEach((part) => push(T_GEN, `addr.copy.${part.uid}`, partCopyError(part), "error", "Parte duplicată"));
     if (!tr(field.label).trim()) push(T_GEN, "label", "Completează eticheta (RO).");
     if (!field.key) push(T_GEN, "key", "Completează cheia câmpului.");
     else if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(field.key) || field.key.length > 60) push(T_GEN, "key", "Cheia: litere latine și cifre, începe cu o literă, maximum 60.");
@@ -932,13 +974,15 @@ document.addEventListener("DOMContentLoaded", () => {
       case "address": {
         const config = addressConfig(field);
         const parts = {};
-        config.forEach((part) => { if (part.key !== "sector" && part.key !== "cadastral") parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) }; });
+        config.forEach((part) => { if (part.key !== "cadastral") parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) }; });
         const cadastral = config.find((part) => part.key === "cadastral");
         /* Telefon / Email = the FO phone and email fields of the address (not from SRRE, always editable — US-54 AC-17) */
         const contact = (key, extra) => { const part = config.find((item) => item.key === key); return part.visible ? { id: `${base.id}-${key}`, label: part.label, required: Boolean(part.required), span: part.span, ...extra } : null; };
         /* fb-win-v1: the part widths set in the address window (12-column grid, „span” per part) */
         const spans = Object.fromEntries(config.map((part) => [part.key, part.span]));
-        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, spans, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts(),
+        /* adr-grid-v1: the FO follows the canvas order (each part once — a duplicate copy is an error, not a second field) */
+        const order = [...new Set(addressPlaced(field).map((part) => part.key))];
+        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, spans, order, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts(),
           phone: contact("phone", { placeholder: "60 000 000", countryCodes: [{ flag: "🇲🇩", code: "+373" }] }), email: contact("email", { type: "email", placeholder: "adresa@exemplu.md" }) };
       }
       default: return base;
@@ -1353,7 +1397,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="e-permits-builder__subs e-permits-builder__subs--bare" role="group" aria-label="Părțile adresei „${esc(fieldName(field))}”" data-fb-address-chips>
         <span class="e-permits-builder__subs-label" aria-hidden="true">Părți</span>
-        ${addressConfig(field).filter((part) => part.visible).map((part) => `<span class="e-permits-builder__sub e-permits-builder__sub--static" data-fb-address-chip="${part.key}"><span data-cell-tooltip>${esc(part.label)}</span>${part.required ? requiredMark() : ""}<span class="e-permits-builder__sub-type">${esc(PART_TYPE[part.kind] || "Text")}</span></span>`).join("")}
+        ${addressPlaced(field).map((part) => `<span class="e-permits-builder__sub e-permits-builder__sub--static" data-fb-address-chip="${part.uid}"><span data-cell-tooltip>${esc(part.label)}</span>${part.required ? requiredMark() : ""}<span class="e-permits-builder__sub-type">${esc(PART_TYPE[part.kind] || "Text")}</span></span>`).join("")}
       </div>`;
   }
   function emptyContainerHtml(field) {
@@ -1384,7 +1428,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>`;
   function cardPreviewHtml(field, { window: inWindow = false } = {}) {
     const t = field.type;
-    if (t === "address") return `${tokensHtml(addressConfig(field).filter((part) => part.visible).map((part) => [part.label, part.required]))}${inWindow ? "" : windowButtonHtml(field)}`;
+    if (t === "address") return `${tokensHtml(addressPlaced(field).map((part) => [part.label, part.required]))}${inWindow ? "" : windowButtonHtml(field)}`;
     if (t === "contact") {
       const parts = field.contactParts || CONTACT_PARTS_DEFAULT;
       return tokensHtml(CONTACT_PARTS.filter(([key]) => parts[key]?.visible).map(([key, label]) => [label, parts[key]?.required]));
@@ -1536,27 +1580,28 @@ document.addEventListener("DOMContentLoaded", () => {
         ${fixedChild(child) && inGrid ? "" : `<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-gb-resize></button>`}
       </article>`;
   }
-  /* an address part in the address window: the same card — kind tag · n/12 · „Ascunde”, label + red star, grey preview.
-     adr-hide-v1 (user 2026-11-24): a HIDDEN part keeps its place + width — dimmed label, preview without fill, a neutral
-     Small tag „Ascunsă”, and the eye button turns into „Afișează” (same spot, same key) */
+  /* adr-grid-v1 (user 2026-11-24 „exactly as a simple editable grid”): an address part in the address window = THE grid
+     column card (childCardHtml markup) — grip + drag, short type tag, n/12, ⧉ Duplică / 🗑 Șterge, label + red star, grey
+     preview, the width handle; a duplicate copy gets the error foot. `data-gb-part` = its uid. */
   const PART_PREVIEW = { country: "Republica Moldova", district: "Selectează raionul", locality: "Selectează localitatea", sector: "Selectează sectorul", street: "Selectează strada", postalCode: "MD-0000", phone: "60 000 000", email: "adresa@exemplu.md", house: "Nr.", floor: "0", block: "Nr.", stair: "Scara", apartment: "Numărul ap.", cadastral: "Ex.: 0100510.123" };
+  const PART_KIND_TAG = { "listă": "Listă", text: "Text", "număr": "Număr" };
+  const partCopyError = (part) => (part.copy ? `„${part.label}” apare de mai multe ori. În formular apare o singură dată — șterge copia.` : "");
   function addressPartCardHtml(part, selectedKey) {
-    const selected = selectedKey === part.key;
+    const selected = selectedKey === part.uid;
     const list = part.kind === "listă";
-    const off = !part.visible;
-    const toggle = off
-      ? `<button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Afișează: ${esc(part.label)}" data-tooltip-label="Afișează" data-gb-show-part="${part.key}">${icon("icon-eye-open", 16)}</button>`
-      : `<button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Ascunde: ${esc(part.label)}" data-tooltip-label="Ascunde" data-gb-hide-part="${part.key}">${icon("icon-eye-slash", 16)}</button>`;
+    const tag = PART_KIND_TAG[part.kind] || "Text";
+    const error = partCopyError(part);
     return `
-      <article class="e-permits-builder__field e-permits-gridb__cell e-permits-gridb__part${off ? " is-part-hidden" : ""}${selected ? " is-selected" : ""}" data-gb-part="${part.key}" data-span="${part.span}" tabindex="0" aria-describedby="gb-part-hint" aria-label="${esc(`${part.label}: ${part.kind}, ${part.span} din 12${off ? ", ascunsă" : part.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}`)}">
+      <article class="e-permits-builder__field e-permits-gridb__cell${selected ? " is-selected" : ""}${error ? " has-issue" : ""}" data-gb-cell="${part.uid}" data-gb-part="${part.uid}" data-span="${part.span}" tabindex="0" draggable="true" aria-describedby="gb-col-hint" aria-label="${esc(`${tag}: ${part.label}, ${part.span} din 12${part.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}${error ? `, eroare: ${error}` : ""}`)}">
         <div class="e-permits-builder__field-tools">
           <div class="e-permits-builder__field-meta">
-            <em class="e-permits-builder__tag e-permits-builder__tag--strong">${esc(list ? "Listă" : part.kind === "număr" ? "Număr" : "Text")}</em>
+            <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
+            <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-tooltip-text="${esc(part.kind)}">${esc(tag)}</em>
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${part.span}/12</em>
-            ${off ? window.GEAPTag?.html("Ascunsă", "neutral", { attrs: "data-gb-part-hidden-tag" }) || "" : ""}
           </div>
           <div class="e-permits-builder__field-actions">
-            ${toggle}
+            <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Duplică: ${esc(part.label)}" data-tooltip-label="Duplică" data-gb-act="duplicate" data-id="${part.uid}">${icon("icon-copy", 16)}</button>
+            <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge: ${esc(part.label)}" data-tooltip-label="Șterge" data-gb-act="delete" data-id="${part.uid}">${icon("icon-delete", 16)}</button>
           </div>
         </div>
         <div class="e-permits-builder__field-body">
@@ -1568,9 +1613,14 @@ document.addEventListener("DOMContentLoaded", () => {
             ${list ? icon("icon-chevron-bottom") : part.key === "cadastral" ? icon("icon-search") : ""}
           </div>
         </div>
+        ${error ? `
+        <div class="e-permits-builder__field-foot">
+          <em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(error)}">${icon("icon-warning-filled", 16)}Copie</em>
+        </div>` : ""}
         <button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-gb-resize></button>
       </article>`;
   }
+
 
   function sectionHtml(section, index, total) {
     const selected = state.sel.kind === "section" && state.sel.id === section.id;
@@ -2175,11 +2225,20 @@ document.addEventListener("DOMContentLoaded", () => {
      the cascade and the default value. The crumb goes back to the address (nothing selected = the address panel). */
   function addressPartPanelHtml(found, key) {
     const { step, section, field } = found;
-    const part = addressConfig(field).find((item) => item.key === key);
+    const placed = addressPlaced(field);
+    const index = placed.findIndex((item) => item.uid === key);
+    const part = placed[index];
     if (!part) return "";
+    /* adr-grid-v1: the column panel's ⋮ — Duplică · Mută la stânga / la dreapta · Șterge (on the canvas = in the form) */
+    const items = [
+      { label: "Duplică", icon: "copy", attrs: `data-fb-part-act="duplicate" data-id="${part.uid}" data-field="${field.id}"` },
+      ...(index > 0 ? [{ label: "Mută la stânga", icon: "arrow-left", attrs: `data-fb-part-act="up" data-id="${part.uid}" data-field="${field.id}"` }] : []),
+      ...(index < placed.length - 1 ? [{ label: "Mută la dreapta", icon: "arrow-right", attrs: `data-fb-part-act="down" data-id="${part.uid}" data-field="${field.id}"` }] : []),
+      { label: "Șterge partea", icon: "delete", danger: true, attrs: `data-fb-part-act="delete" data-id="${part.uid}" data-field="${field.id}"` },
+    ];
     const span = part.span;
     const width = widthPicker({
-      prop: `addrspan.${part.key}`,
+      prop: `addrspan.${part.uid}`,
       value: span,
       total: 12,
       options: SPANS.map((value, i) => [value, value - (SPANS[i - 1] || 0), `${value}/12`, `${value} din 12 coloane — ${SPAN_TEXT[value]}`]),
@@ -2187,12 +2246,12 @@ document.addEventListener("DOMContentLoaded", () => {
       caption: `<strong>${span}/12</strong> · ${SPAN_CAPTION[span] || ""}`,
     });
     return `
-      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", fieldName(field)], title: part.label, chip: `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${esc(part.kind)}</em>`, back: { kind: "field", id: field.id, label: `Adresa „${fieldName(field)}”` } })}
+      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", fieldName(field)], title: part.label, chip: `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${esc(part.kind)}</em>`, menu: ui().renderStackMenu?.(items, part.label) || "", back: { kind: "field", id: field.id, label: `Adresa „${fieldName(field)}”` } })}
       <div class="e-permits-builder__panel-scroll" data-fb-panel-scroll>
-        ${group("Afișare", `
+        ${group("Completare", `
+          ${part.copy ? errorHtml(partCopyError(part)) : ""}
           <div class="e-permits-check-options">
-            ${ui().renderCheckOption?.({ label: "Vizibil", checked: part.visible, attrs: `data-address-visible="${part.key}"` }) || ""}
-            ${ui().renderCheckOption?.({ label: "Obligatoriu", required: true, checked: part.required, disabled: !part.visible, reason: "Partea este ascunsă.", attrs: `data-address-required="${part.key}"` }) || ""}
+            ${ui().renderCheckOption?.({ label: "Obligatoriu", required: true, checked: part.required, attrs: `data-address-required="${part.uid}"` }) || ""}
           </div>`)}
         ${group("Lățime", width, { id: "width", info: "Câte din cele 12 coloane ale rândului ocupă partea. Pe telefon, toată lățimea." })}
         ${group("Date", `
@@ -2200,7 +2259,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${part.facts ? sourceFacts(part.facts.map(([dt, dd]) => [dt, esc(dd)])) : ""}
           ${part.parent ? `<p class="e-permits-builder__part-cascade">${icon("icon-arrow-right", 16)}<span>Se filtrează după <strong>${esc(part.parent)}</strong></span></p>` : ""}
           ${part.note ? `<p class="e-permits-fo-field__hint">${esc(part.note)}</p>` : ""}
-          ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.key}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.key}"` }))}`)}
+          ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.uid}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.uid}"` }))}`)}
       </div>`;
   }
 
@@ -4023,11 +4082,98 @@ document.addEventListener("DOMContentLoaded", () => {
   function setPartSpan(fieldId, key, span) {
     const field = findField(fieldId)?.field;
     if (!field || field.type !== "address" || !SPANS.includes(span)) return;
-    if (addressConfig(field).find((part) => part.key === key)?.span === span) return;
+    if (addressPlaced(field).find((part) => part.uid === key)?.span === span) return;
     checkpoint(`addrspan:${fieldId}:${key}`);
     setAddressPart(field, key, { span });
     commit();
     announce(`Lățime ${span} din 12.`);
+  }
+
+  /* adr-grid-v1: the address parts on the window's canvas = the grid column actions (one undo step each; the selected part
+     follows; a deleted part goes back to the library — „Anulează” in the toast like a deleted column) */
+  const addressField = (fieldId) => { const field = findField(fieldId)?.field; return field?.type === "address" ? field : null; };
+  function addPart(fieldId, key, index = null) {
+    const field = addressField(fieldId);
+    const def = partDef(key);
+    if (!field || !def) return null;
+    checkpoint();
+    const list = addressPlaced(field);
+    const at = index == null ? list.length : Math.max(0, Math.min(index, list.length));
+    const part = { ...def, uid: freePartUid(list, key), required: def.required, defaultValue: def.defaultValue ?? "", span: def.span };
+    list.splice(at, 0, part);
+    writePlaced(field, list);
+    state.addrPart = part.uid;
+    commit();
+    announce(`Partea „${def.label}” a fost adăugată în adresă, poziția ${at + 1} din ${list.length}.${part.uid !== key ? " Este o copie: în formular apare o singură dată." : ""}`);
+    return part.uid;
+  }
+  function movePart(fieldId, id, delta, toIndex = null) {
+    const field = addressField(fieldId);
+    if (!field) return false;
+    const list = addressPlaced(field);
+    const index = list.findIndex((part) => part.uid === id);
+    if (index < 0) return false;
+    let to = toIndex == null ? index + delta : toIndex > index ? toIndex - 1 : toIndex;
+    to = Math.max(0, Math.min(to, list.length - 1));
+    if (to === index) { announce(delta < 0 ? "Este deja prima." : "Este deja ultima."); return false; }
+    checkpoint();
+    const [part] = list.splice(index, 1);
+    list.splice(to, 0, part);
+    writePlaced(field, list);
+    state.addrPart = id;
+    commit();
+    announce(`„${part.label}” este acum pe poziția ${to + 1} din ${list.length} în adresă.`);
+    return true;
+  }
+  function duplicatePart(fieldId, id) {
+    const field = addressField(fieldId);
+    if (!field) return null;
+    const list = addressPlaced(field);
+    const index = list.findIndex((part) => part.uid === id);
+    if (index < 0) return null;
+    checkpoint();
+    const copy = { ...list[index], uid: freePartUid(list, list[index].key) };
+    list.splice(index + 1, 0, copy);
+    writePlaced(field, list);
+    state.addrPart = copy.uid;
+    commit();
+    announce(`„${copy.label}” duplicată pe poziția ${index + 2}. În formular apare o singură dată — copia e marcată cu eroare.`);
+    return copy.uid;
+  }
+  function deletePart(fieldId, id) {
+    const field = addressField(fieldId);
+    if (!field) return;
+    const list = addressPlaced(field);
+    const index = list.findIndex((part) => part.uid === id);
+    if (index < 0) return;
+    checkpoint();
+    const [removed] = list.splice(index, 1);
+    writePlaced(field, list);
+    const next = list[index] || list[index - 1] || null;
+    state.addrPart = next ? next.uid : "";
+    commit();
+    announce(`Partea „${removed.label}” a fost ștearsă — nu mai apare în formular. O găsești din nou în bibliotecă. Ctrl + Z o readuce.`);
+    window.GEAPToast?.show({
+      type: "info",
+      message: `Partea „${removed.label}” a fost ștearsă.`,
+      action: {
+        label: "Anulează",
+        onClick: () => {
+          const owner = addressField(fieldId);
+          if (!owner) return;
+          const now = addressPlaced(owner);
+          if (now.some((part) => part.uid === id)) return;
+          checkpoint();
+          now.splice(Math.min(index, now.length), 0, removed);
+          writePlaced(owner, now);
+          state.addrPart = id;
+          commit();
+          announce(`„${removed.label}” a fost readusă.`);
+        },
+      },
+      duration: document.documentElement.dataset.demoLink ? 0 : 8000,
+      key: "fb-delete",
+    });
   }
 
   function setSpan(id, span, { announceIt = true } = {}) {
@@ -4593,6 +4739,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (addKid) { if (addKid.getAttribute("aria-disabled") !== "true") addChild(addKid.dataset.container, addKid.dataset.fbAddChild); return true; }
     const addFrom = event.target.closest("[data-fb-add-child-from]");
     if (addFrom) { const source = findField(addFrom.dataset.fbAddChildFrom)?.field; if (source) addChild(addFrom.dataset.container, source.type, null, { from: source }); return true; }
+    const partAct = event.target.closest("[data-fb-part-act]");
+    if (partAct) {
+      const { id, field: fieldId } = partAct.dataset;
+      const act = partAct.dataset.fbPartAct;
+      const focusPart = (which) => window.setTimeout(() => builder.querySelector(`[data-gb-part="${CSS.escape(which)}"]`)?.focus({ preventScroll: true }), 20);
+      if (act === "duplicate") { const copy = duplicatePart(fieldId, id); if (copy) focusPart(copy); }
+      else if (act === "delete") { deletePart(fieldId, id); if (state.addrPart) focusPart(state.addrPart); }
+      else if (act === "up" || act === "down") { if (movePart(fieldId, id, act === "up" ? -1 : 1)) focusPart(id); }
+      return true;
+    }
     const kidAct = event.target.closest("[data-fb-child-act]");
     if (kidAct) {
       const id = kidAct.dataset.id;
@@ -5272,7 +5428,7 @@ document.addEventListener("DOMContentLoaded", () => {
     select, addChild, moveChild, deleteChild, duplicateChild, runMenuAction, renderPanel, setMode,
     /* fb-win-v1: the editing window draws the same cards, resizes with the same handle, edits address parts */
     SPANS, SHORT_TAG, childCardHtml, addressPartCardHtml, childSpanOf, fixedChild, startResize, setChildSpan, setPartSpan,
-    addressConfig, isCaemGrid, libraryItemHtml, checkpoint, commit,
+    addressConfig, addressPlaced, ADDRESS_PARTS, addPart, movePart, duplicatePart, deletePart, isCaemGrid, libraryItemHtml, checkpoint, commit,
     setAddressPart(field, key, updates) { checkpoint(); setAddressPart(field, key, updates); commit(); },
     /* editing window (fb-win-v2, 2026-11-24): the window edits a DRAFT of the form (the form itself is hidden behind it) —
        draftBegin = the state to come back to; draftDiscard (Anulează) puts the form, the undo history and the dirty mark

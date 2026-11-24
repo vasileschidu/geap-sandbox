@@ -2354,13 +2354,14 @@
         "adr-07": adr({}, code("0100510.999")),
         /* AC-21: the invalid code corrected (typed, not sent yet) → the error is gone, the hint is back */
         "adr-07a": adr({}, async (h) => { await code("0100510.999")(h); await typeCode("0100510.123")(h); (await h.find(ADR)).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await h.wait(200); }),
-        /* US-54 in the CURRENT Form Designer (fb-win-v1 address window, 2026-11-24; the panel „Date” rows = adr-01…):
-           w1 the window — „Cod cadastral” is a part card, shown by default (AC-02 / AC-03) · w2 selected → its panel:
-           Vizibil ✓ + Obligatoriu ✱ (checkbox) + SRRE facts (Registru · Completează · Jurnal) · w3 Obligatoriu on → red star
-           on the card · w4 hidden from its card („Ascunde”) → stays IN PLACE dimmed + „Ascunsă”, eye = „Afișează” (AC-04;
-           adr-hide-v1, no left column) · w4a two parts of one row hidden (Telefon + Email) · w5 Previzualizare with
-           it hidden → no code field, search „Caută adresa” (AC-04) · w6 Previzualizare by default (code on, Telefon + Email).
-           BO desktop only. Scope for QA: .e-permits-gridb */
+        /* US-54 in the CURRENT Form Designer (fb-win-v1 address window; adr-grid-v1 2026-11-24 = the editable grid window):
+           w1 the window — library „Părțile adresei” left, the parts on the canvas as grid column cards (AC-02 / AC-03) ·
+           w2 Cod cadastral selected → its panel: Obligatoriu ✱ (checkbox) + width + SRRE facts · w3 Obligatoriu on → red star ·
+           w4 Cod cadastral deleted (🗑) → off the canvas = not in the form (AC-04), back as an addable library item ·
+           w4a Telefon dragged before Țară, frozen mid-drag (drop indicator) · w4b after the drop (Telefon first) ·
+           w4c Stradă duplicated → the copy carries the error (the FO shows a part once) · w5 Previzualizare with Cod cadastral
+           deleted → no code field, search „Caută adresa” (AC-04) · w5a Previzualizare after the reorder (Telefon first) ·
+           w6 Previzualizare by default. BO desktop only. Scope for QA: .e-permits-gridb */
         ...(() => {
           const W = ".e-permits-gridb:not([hidden])";
           const part = (key) => `${W} [data-gb-part='${key}']`;
@@ -2373,7 +2374,25 @@
             await h.wait(250);
             if (run) await run(h);
           } });
-          const hide = async (h) => { await h.click(`${part("cadastral")} [data-gb-hide-part]`); await h.wait(250); };
+          const hide = async (h) => { await h.click(`${part("cadastral")} [data-gb-act='delete']`); await h.wait(250); };
+          /* a real HTML5 drag of a part card over the gap before another card (dragstart + dragover, no drop = frozen) */
+          const dragPart = async (h, key, beforeKey) => {
+            const source = await h.find(part(key));
+            const target = await h.find(part(beforeKey));
+            const dt = new DataTransfer();
+            source.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: dt }));
+            const r = target.getBoundingClientRect();
+            const at = { clientX: r.left + 8, clientY: r.top + r.height / 2 };
+            target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, ...at }));
+            await h.wait(150);
+            return { dt, at, target };
+          };
+          const dropPart = async (h, key, beforeKey) => {
+            const { dt, at, target } = await dragPart(h, key, beforeKey);
+            target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, ...at }));
+            document.querySelector(part(key))?.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+            await h.wait(300);
+          };
           const preview = async (h) => { await h.click(`${W} [data-gb-mode='preview']`); await h.find(`${W} [data-gb-preview] [data-fo-cascade-address]`); await h.wait(300); };
           /* address-card-v1: the card on the form = the grid card's chip band of the visible parts + „Editează adresa” —
              w0 by default (Cod cadastral among the chips) · w0a Cod cadastral hidden (panel „Date” › Vizibil off) → no chip */
@@ -2384,12 +2403,12 @@
             "adr-w1": win(async (h) => { await h.scroll(part("cadastral")); }),
             "adr-w2": win(async (h) => { await h.click(part("cadastral")); await h.wait(250); }),
             "adr-w3": win(async (h) => { await h.click(part("cadastral")); await h.click(`${W} [data-address-required='cadastral']`); await h.wait(250); }),
-            "adr-w4": win(async (h) => { await hide(h); await h.scroll(part("cadastral")); }),
-            "adr-w4a": win(async (h) => {
-              for (const key of ["phone", "email"]) { await h.click(`${part(key)} [data-gb-hide-part]`); await h.wait(200); }
-              await h.scroll(part("email"));
-            }),
+            "adr-w4": win(async (h) => { await hide(h); await h.scroll(`${W} [data-gb-library] [data-gb-addr='cadastral']`); }),
+            "adr-w4a": win(async (h) => { await h.scroll(part("country")); await dragPart(h, "phone", "country"); }),
+            "adr-w4b": win(async (h) => { await h.scroll(part("country")); await dropPart(h, "phone", "country"); await h.scroll(part("phone")); }),
+            "adr-w4c": win(async (h) => { await h.click(`${part("street")} [data-gb-act='duplicate']`); await h.wait(250); await h.scroll(part("street-2")); }),
             "adr-w5": win(async (h) => { await hide(h); await preview(h); }),
+            "adr-w5a": win(async (h) => { await h.scroll(part("country")); await dropPart(h, "phone", "country"); await preview(h); }),
             "adr-w6": win(preview),
           };
         })(),

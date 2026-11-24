@@ -1234,6 +1234,108 @@
               </div>
               <p class="e-permits-fo-field__hint" id="${cadastralId}-message" data-fo-cadastral-code-hint></p>
             </div>` : "";
+      /* adr-grid-v1 (2026-11-24): the parts in the order of the Form Designer's address window (`field.order`, each part
+         once); without an order = the catalogue order. A sector off the canvas never appears (US-54 AC-04). */
+      const sectorOff = parts.sector?.visible === false;
+      const partHtml = {};
+      partHtml.country = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("country", 6)}"${hiddenAttr("country")}${reqAttr("country")}>
+              <label for="fo-casc-country-${uid}">Țara${star("country")}</label>
+              <div class="e-permits-fo-select e-permits-fo-select--address" data-fo-select data-fo-country-select>
+                <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list">
+                  <span class="e-permits-fo-country-flag" aria-hidden="true" data-fo-country-flag>🇲🇩</span>
+                  <span class="e-permits-fo-select__value" data-fo-select-value data-fo-address-part="country" data-placeholder="Moldova">Moldova</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+                <ul class="e-permits-fo-select__list" id="fo-casc-country-${uid}-list" role="listbox" aria-labelledby="fo-casc-country-${uid}" hidden>
+                  ${ADDRESS_COUNTRIES.map((c) => `<li class="e-permits-fo-select__option${c.name === "Moldova" ? " is-selected" : ""}" role="option" aria-selected="${c.name === "Moldova"}" data-value="${escapeFrontOfficeHtml(c.name)}" tabindex="-1">${escapeFrontOfficeHtml(c.name)}</li>`).join("")}
+                </ul>
+              </div>
+            </div>`;
+      partHtml.district = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("district", 6)}"${hiddenAttr("district")}${reqAttr("district")}>
+              <label>Raionul/Municipiul${star("district")}</label>
+              <div class="e-permits-fo-select" data-fo-cascade-select data-fo-cascade-raion>
+                <button class="e-permits-fo-select__button" id="${raionId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${raionId}-list">
+                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează raionul/municipiul</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+                <ul class="e-permits-fo-select__list" id="${raionId}-list" role="listbox" aria-labelledby="${raionId}" hidden>
+                  ${(field.districts || []).map((d) => `<li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(d.value)}" tabindex="-1">${escapeFrontOfficeHtml(d.value)}</li>`).join("")}
+                </ul>
+              </div>
+            </div>`;
+      partHtml.locality = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("locality", 6)}"${hiddenAttr("locality")}${reqAttr("locality")}>
+              <label>Orașul/Comuna${star("locality")}</label>
+              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-localitate>
+                <button class="e-permits-fo-select__button" id="${localitateId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${localitateId}-list" disabled>
+                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează mai întâi Raionul/Municipiul</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+                <ul class="e-permits-fo-select__list" id="${localitateId}-list" role="listbox" aria-labelledby="${localitateId}" hidden></ul>
+              </div>
+            </div>`;
+      partHtml.sector = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("sector", 6)}" ${sectorOff ? " hidden data-fo-part-hidden" : " data-fo-cascade-sector-field hidden"}>
+              <label>Sector</label>
+              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-sector>
+                <button class="e-permits-fo-select__button" id="${sectorId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${sectorId}-list" disabled>
+                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează sectorul</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+                <ul class="e-permits-fo-select__list" id="${sectorId}-list" role="listbox" aria-labelledby="${sectorId}" hidden></ul>
+              </div>
+            </div>`;
+      partHtml.street = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("street", 8)}"${hiddenAttr("street")}${reqAttr("street")}>
+              <label>Strada${star("street")}</label>
+              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-strada>
+                <button class="e-permits-fo-select__button" id="${stradaId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${stradaId}-list" disabled>
+                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează orașul/comuna mai întâi</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+                <ul class="e-permits-fo-select__list" id="${stradaId}-list" role="listbox" aria-labelledby="${stradaId}" hidden></ul>
+              </div>
+            </div>`;
+      partHtml.postalCode = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("postalCode", 4)}"${hiddenAttr("postalCode")}>
+              <label for="${uid}-postal">Codul Poștal</label>
+              <div class="e-permits-fo-input is-disabled">
+                <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
+              </div>
+            </div>`;
+      partHtml.house = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("house", 4)}"${hiddenAttr("house")}${reqAttr("house")}>
+              <label for="${uid}-house">Casa${star("house")}</label>
+              <div class="e-permits-fo-input"><input id="${uid}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
+            </div>`;
+      partHtml.block = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("block", 4)}"${hiddenAttr("block")}${reqAttr("block")}>
+              <label for="${uid}-block">Blocul${star("block")}</label>
+              <div class="e-permits-fo-input"><input id="${uid}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
+            </div>`;
+      partHtml.stair = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("stair", 4)}"${hiddenAttr("stair")}${reqAttr("stair")}>
+              <label for="${uid}-stair">Scara${star("stair")}</label>
+              <div class="e-permits-fo-input"><input id="${uid}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
+            </div>`;
+      partHtml.floor = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("floor", 4)}"${hiddenAttr("floor")}${reqAttr("floor")}>
+              <label for="${uid}-floor">Etajul${star("floor")}</label>
+              <div class="e-permits-fo-input"><input id="${uid}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
+            </div>`;
+      partHtml.apartment = `
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("apartment", 4)}"${hiddenAttr("apartment")}${reqAttr("apartment")}>
+              <label for="${uid}-apt">Apartamentul${star("apartment")}</label>
+              <div class="e-permits-fo-input"><input id="${uid}-apt" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
+            </div>`;
+      partHtml.cadastral = addressMode === "b" ? cadastralFieldHtml : "";
+      partHtml.phone = phoneHtml;
+      partHtml.email = emailHtml;
+      const DEFAULT_ORDER = ["cadastral", "country", "district", "locality", "sector", "street", "postalCode", "house", "block", "stair", "floor", "apartment", "phone", "email"];
+      const order = Array.isArray(field.order) && field.order.length ? [...field.order.filter((key) => key in partHtml), ...DEFAULT_ORDER.filter((key) => !field.order.includes(key))] : DEFAULT_ORDER;
+      const orderedParts = order.map((key) => partHtml[key] || "").join("");
       /* „Caută adresa” = the library search input (search icon + × clear, js/search.js); its one
          message slot under it holds the hint, then the lookup message (loading / success / error /
          warning); a visually hidden live region announces the outcome once */
@@ -1248,90 +1350,7 @@
             ${addressMode === "b" ? `<button type="button" class="btn btn-secondary btn-md e-permits-fo-cascade-address__code-toggle" aria-expanded="false" aria-controls="${cadastralId}-field" data-fo-cadastral-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg><span>Adaugă codul cadastral</span></button>` : ""}
           </div>
           <div class="e-permits-fo-address-details--smart e-permits-fo-cascade-address__grid">
-            ${addressMode === "b" ? cadastralFieldHtml : ""}
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("country", 6)}"${hiddenAttr("country")}${reqAttr("country")}>
-              <label for="fo-casc-country-${uid}">Țara${star("country")}</label>
-              <div class="e-permits-fo-select e-permits-fo-select--address" data-fo-select data-fo-country-select>
-                <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list">
-                  <span class="e-permits-fo-country-flag" aria-hidden="true" data-fo-country-flag>🇲🇩</span>
-                  <span class="e-permits-fo-select__value" data-fo-select-value data-fo-address-part="country" data-placeholder="Moldova">Moldova</span>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                </button>
-                <ul class="e-permits-fo-select__list" id="fo-casc-country-${uid}-list" role="listbox" aria-labelledby="fo-casc-country-${uid}" hidden>
-                  ${ADDRESS_COUNTRIES.map((c) => `<li class="e-permits-fo-select__option${c.name === "Moldova" ? " is-selected" : ""}" role="option" aria-selected="${c.name === "Moldova"}" data-value="${escapeFrontOfficeHtml(c.name)}" tabindex="-1">${escapeFrontOfficeHtml(c.name)}</li>`).join("")}
-                </ul>
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("district", 6)}"${hiddenAttr("district")}${reqAttr("district")}>
-              <label>Raionul/Municipiul${star("district")}</label>
-              <div class="e-permits-fo-select" data-fo-cascade-select data-fo-cascade-raion>
-                <button class="e-permits-fo-select__button" id="${raionId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${raionId}-list">
-                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează raionul/municipiul</span>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                </button>
-                <ul class="e-permits-fo-select__list" id="${raionId}-list" role="listbox" aria-labelledby="${raionId}" hidden>
-                  ${(field.districts || []).map((d) => `<li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(d.value)}" tabindex="-1">${escapeFrontOfficeHtml(d.value)}</li>`).join("")}
-                </ul>
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("locality", 6)}"${hiddenAttr("locality")}${reqAttr("locality")}>
-              <label>Orașul/Comuna${star("locality")}</label>
-              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-localitate>
-                <button class="e-permits-fo-select__button" id="${localitateId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${localitateId}-list" disabled>
-                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează mai întâi Raionul/Municipiul</span>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                </button>
-                <ul class="e-permits-fo-select__list" id="${localitateId}-list" role="listbox" aria-labelledby="${localitateId}" hidden></ul>
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("sector", 6)}" data-fo-cascade-sector-field hidden>
-              <label>Sector</label>
-              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-sector>
-                <button class="e-permits-fo-select__button" id="${sectorId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${sectorId}-list" disabled>
-                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează sectorul</span>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                </button>
-                <ul class="e-permits-fo-select__list" id="${sectorId}-list" role="listbox" aria-labelledby="${sectorId}" hidden></ul>
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("street", 8)}"${hiddenAttr("street")}${reqAttr("street")}>
-              <label>Strada${star("street")}</label>
-              <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-strada>
-                <button class="e-permits-fo-select__button" id="${stradaId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${stradaId}-list" disabled>
-                  <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează orașul/comuna mai întâi</span>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                </button>
-                <ul class="e-permits-fo-select__list" id="${stradaId}-list" role="listbox" aria-labelledby="${stradaId}" hidden></ul>
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("postalCode", 4)}"${hiddenAttr("postalCode")}>
-              <label for="${uid}-postal">Codul Poștal</label>
-              <div class="e-permits-fo-input is-disabled">
-                <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
-              </div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("house", 4)}"${hiddenAttr("house")}${reqAttr("house")}>
-              <label for="${uid}-house">Casa${star("house")}</label>
-              <div class="e-permits-fo-input"><input id="${uid}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("block", 4)}"${hiddenAttr("block")}${reqAttr("block")}>
-              <label for="${uid}-block">Blocul${star("block")}</label>
-              <div class="e-permits-fo-input"><input id="${uid}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("stair", 4)}"${hiddenAttr("stair")}${reqAttr("stair")}>
-              <label for="${uid}-stair">Scara${star("stair")}</label>
-              <div class="e-permits-fo-input"><input id="${uid}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("floor", 4)}"${hiddenAttr("floor")}${reqAttr("floor")}>
-              <label for="${uid}-floor">Etajul${star("floor")}</label>
-              <div class="e-permits-fo-input"><input id="${uid}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
-            </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("apartment", 4)}"${hiddenAttr("apartment")}${reqAttr("apartment")}>
-              <label for="${uid}-apt">Apartamentul${star("apartment")}</label>
-              <div class="e-permits-fo-input"><input id="${uid}-apt" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
-            </div>
-            ${phoneHtml}
-            ${emailHtml}
+            ${orderedParts}
           </div>
         </div>
       `;

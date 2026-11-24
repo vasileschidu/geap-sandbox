@@ -18,11 +18,12 @@
      left     grid / sub-form: „Bibliotecă de câmpuri” (search) filtered to the column types — Coloane simple · Coloane
               complexe (locked with the reason until one simple column — US-34 AC-06; nested grid / sub-form locked at
               level 3 — US-38) · Copie a unui câmp din formular; a sub-form level lists the field types. Click = append,
-              drag = insert. Address: NO left column (adr-hide-v1, 2026-11-24) — the parts are fixed and a hidden part
-              stays on the canvas in its place (dimmed, „Ascunsă”, eye = „Afișează”), so the canvas takes the space.
+              drag = insert. Address (adr-grid-v1, user 2026-11-24 „exactly as a simple editable grid”): the same library
+              lists „Părțile adresei” (Țară … Cod cadastral) — click = append, drag = insert, always addable like a type.
      centre   header strip „#1 <row name> · Rând de exemplu”, then ONE row as real field cards on the 12-column grid
               (gap 24): select, drag to reorder, the width handle with the guides (columns snap 3 · 4 · 6 · 12, sub-form
-              fields / address parts 3 · 4 · 6 · 8 · 12), ⧉ / 🗑 (address: „Ascunde” ⇄ „Afișează”); a dashed „+ Coloană” tile;
+              fields / address parts 3 · 4 · 6 · 8 · 12), ⧉ / 🗑 (address parts too — a part off the canvas is not in the
+              form, US-54 AC-04); a dashed „+ Coloană” / „+ Parte” tile;
               under a grid „Așa arată un rând salvat” + the saved line. A nested grid / sub-form card = its chips +
               „Editează grila / sub-formularul” → the same window one level deeper.
      right    the selected column / field / part; nothing selected = the grid's (address's) own settings.
@@ -96,8 +97,7 @@
         </section>
         <aside class="e-permits-builder__inspector e-permits-gridb__inspector" aria-label="Proprietăți" data-gb-inspector></aside>
       </div>
-      <p class="u-visually-hidden" id="gb-col-hint">Enter selectează, Alt + săgeată stânga sau dreapta mută, Shift + Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>
-      <p class="u-visually-hidden" id="gb-part-hint">Enter selectează partea, Alt + săgeată stânga sau dreapta schimbă lățimea, Delete o ascunde sau o afișează din nou.</p>`;
+      <p class="u-visually-hidden" id="gb-col-hint">Enter selectează, Alt + săgeată stânga sau dreapta mută, Shift + Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>`;
   }
 
   /* ------------------------------------------------------------------ topbar */
@@ -174,8 +174,27 @@
   const hit = (text) => { const q = norm(gb.query); return !q || norm(text).includes(q); };
   const norm = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const noResults = () => window.GEAPEmptyState?.noResults("Nimic găsit", { compact: true, bare: true }) || "";
+  /* adr-grid-v1: an address part in the library = the same library item (icon · name · kind + source), click / drag */
+  const PART_ICON = { phone: "icon-phone", email: "icon-envelope", cadastral: "icon-search" };
+  const PART_KIND = { "listă": "Listă", text: "Text", "număr": "Număr" };
+  const partIcon = (part) => PART_ICON[part.key] || (part.kind === "listă" ? "icon-chevron-bottom" : part.kind === "număr" ? "icon-hashtag" : "icon-text-bold");
+  const partDesc = (part) => [PART_KIND[part.kind] || "Text", part.source || part.note || ""].filter(Boolean).join(" · ");
+  function partItemHtml(part) {
+    return `
+      <button class="e-permits-builder__library-item" type="button" draggable="true" data-gb-addr="${part.key}">
+        <span>${I.icon(partIcon(part))}</span>
+        <strong>${I.esc(part.label)}</strong>
+        <em data-cell-tooltip>${I.esc(partDesc(part))}</em>
+      </button>`;
+  }
   function renderLibrary(cur) {
-    if (isAddress()) { refs.library.innerHTML = ""; return; } /* the address has no left column (CSS hides it) */
+    if (isAddress()) {
+      refs.libraryTitle.textContent = "Bibliotecă de câmpuri";
+      refs.library.closest("aside").setAttribute("aria-label", "Bibliotecă de câmpuri — părțile adresei");
+      const parts = I.ADDRESS_PARTS.filter((part) => hit(`${part.label} ${partDesc(part)}`));
+      refs.library.innerHTML = parts.length ? section("parts", "Părțile adresei", parts.map(partItemHtml).join("")) : noResults();
+      return;
+    }
     const level = I.levelOf(cur);
     const sub = cur.type === "subform";
     refs.libraryTitle.textContent = "Bibliotecă de câmpuri";
@@ -230,7 +249,7 @@
       host.innerHTML = `<div class="e-permits-gridb__empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({
         title: sub ? "Adaugă primul câmp" : "Adaugă prima coloană",
         text: sub ? "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului." : "Alege un tip din stânga sau trage-l aici. Coloanele complexe vin după o coloană simplă.",
-        icon: sub ? "page-child" : "dot-grid",
+        icon: sub ? "list-bullets" : "dot-grid",
         actionHtml: addMenuHtml(cur, sub ? "Câmp" : "Coloană"),
       }) || ""}</div>`;
       return;
@@ -269,18 +288,41 @@
     host.querySelector(".e-permits-gridb__saved .e-permits-fo-grid__line-actions")?.remove();
   }
 
-  /* the address window: EVERY part as a card on the 12-column grid (fixed order, no add, no drag); a hidden part keeps
-     its place + width, dimmed (adr-hide-v1) — the FO preview and the card on the form leave it out */
+  /* adr-grid-v1: the address window = the grid window — the parts ON the canvas as column cards (drag, width, ⧉, 🗑),
+     the „+ Parte” tile with the parts menu, the drop indicator; none left = the grid's empty state */
+  const partsMenuId = (field) => `gb-addparts-${field.id}`;
+  const partsMenuHtml = (field) => `
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="${partsMenuId(field)}" role="menu" aria-label="Adaugă o parte a adresei" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">
+          <li role="none" class="e-permits-builder__issues-head">Părțile adresei</li>
+          ${I.ADDRESS_PARTS.map((part) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-gb-addr="${part.key}">${I.icon(partIcon(part))}<span>${I.esc(part.label)}</span></button></li>`).join("")}
+        </ul>`;
+  const partsTrigger = (field, cls, label) => `<button class="${cls}" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${partsMenuId(field)}" data-stack-menu-trigger data-gb-add>${I.icon("icon-plus-small", 16)}<span>${I.esc(label)}</span></button>`;
   function drawAddress(host, field) {
-    const parts = I.addressConfig(field);
+    const parts = I.addressPlaced(field);
     const selKey = I.state.addrPart;
+    if (!parts.length) {
+      host.innerHTML = `<div class="e-permits-gridb__empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({
+        title: "Adaugă prima parte",
+        text: "Alege o parte din stânga sau trage-o aici. Doar părțile de aici apar în formular.",
+        icon: "dot-grid",
+        actionHtml: `<div class="e-permits-stack__menu-wrap e-permits-gridb__add">${partsTrigger(field, "btn btn-secondary btn-sm", "Parte")}${partsMenuHtml(field)}</div>`,
+      }) || ""}</div>`;
+      return;
+    }
     host.innerHTML = `
       <div class="e-permits-gridb__sheet" data-gb-sheet>
         ${hintHtml("o parte", !selKey)}
         ${stripHtml("", I.fieldName(field), "Adresă de exemplu")}
-        <div class="e-permits-builder__grid e-permits-gridb__grid" data-gb-grid>
+        <div class="e-permits-builder__grid e-permits-gridb__grid" data-gb-grid data-gb-fields>
           ${parts.map((part) => I.addressPartCardHtml(part, selKey)).join("")}
+          <div class="e-permits-gridb__add-cell" data-span="3">
+            <div class="e-permits-stack__menu-wrap e-permits-gridb__add">
+              ${partsTrigger(field, "e-permits-builder__sub-add e-permits-gridb__add-tile", "Parte")}
+            </div>
+          </div>
+          <span class="e-permits-gridb__drop" hidden data-gb-indicator></span>
         </div>
+        ${partsMenuHtml(field)}
       </div>`;
   }
 
@@ -550,7 +592,12 @@
     const cur = current();
     const drag = gb.drag;
     endDrag();
-    if (!drag || !cur || isAddress()) return;
+    if (!drag || !cur) return;
+    if (isAddress()) {
+      if (drag.kind === "addr") { const id = I.addPart(gb.topId, drag.key, index); if (id) focusCard(`[data-gb-part="${CSS.escape(id)}"]`); }
+      else if (drag.kind === "part" && I.movePart(gb.topId, drag.id, 0, index)) focusCard(`[data-gb-part="${CSS.escape(drag.id)}"]`);
+      return;
+    }
     if (drag.kind === "type") I.addChild(cur.id, drag.type, index);
     else if (drag.kind === "from") { const source = I.findField(drag.id)?.field; if (source) I.addChild(cur.id, source.type, index, { from: source }); }
     else if (drag.kind === "child" && I.moveChild(drag.id, 0, index)) focusCard(`[data-gb-col="${CSS.escape(drag.id)}"]`);
@@ -592,12 +639,8 @@
         return;
       }
       if (event.target.closest("[data-gb-drill], [data-gb-chip]")) return; /* the document handler */
-      /* address: the eye on a part card hides / shows it in place — a toggle: announced, no toast; focus stays on the eye */
-      const show = event.target.closest("[data-gb-show-part]");
-      if (show) { togglePart(show.dataset.gbShowPart, true, "button"); return; }
-      const hide = event.target.closest("[data-gb-hide-part]");
-      if (hide) { togglePart(hide.dataset.gbHidePart, false, "button"); return; }
       const act = event.target.closest("[data-gb-act]");
+      if (act && isAddress()) { partAct(act.dataset.gbAct, act.dataset.id); return; }
       if (act) {
         const id = act.dataset.id;
         if (act.dataset.gbAct === "duplicate") { I.duplicateChild(id); const sel = I.state.sel; if (sel.kind === "child") focusCard(`[data-gb-col="${CSS.escape(sel.id)}"]`); }
@@ -611,6 +654,9 @@
         I.addChild(current().id, type.dataset.gbType);
         return;
       }
+      /* an address part from the library or the „+ Parte” menu: appended, selected */
+      const addr = event.target.closest("[data-gb-addr]");
+      if (addr) { const id = I.addPart(gb.topId, addr.dataset.gbAddr); if (id) focusCard(`[data-gb-part="${CSS.escape(id)}"]`); return; }
       const from = event.target.closest("[data-gb-from]");
       if (from) { const source = I.findField(from.dataset.gbFrom)?.field; if (source) I.addChild(current().id, source.type, null, { from: source }); return; }
       if (I.runMenuAction(event)) return;
@@ -660,8 +706,10 @@
       const delta = event.key === "ArrowLeft" ? -1 : 1;
       if (node.dataset.gbPart) {
         const key = node.dataset.gbPart;
-        if (event.altKey && horizontal) { event.preventDefault(); stepWidth(node, delta); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); return; }
-        if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); togglePart(key, node.classList.contains("is-part-hidden"), "card"); return; }
+        if (event.altKey && event.shiftKey && horizontal) { event.preventDefault(); stepWidth(node, delta); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); return; }
+        if (event.altKey && horizontal) { event.preventDefault(); if (I.movePart(gb.topId, key, delta)) focusCard(`[data-gb-part="${CSS.escape(key)}"]`); return; }
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") { event.preventDefault(); partAct("duplicate", key); return; }
+        if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); partAct("delete", key); return; }
         if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectPart(key); }
         return;
       }
@@ -680,22 +728,23 @@
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); I.select("child", id); refocus(id); }
     });
     root.addEventListener("dragstart", (event) => {
-      if (isAddress()) { event.preventDefault(); return; }
-      const source = event.target.closest?.("[data-gb-type], [data-gb-from], [data-gb-col]");
-      if (!source || source.getAttribute("aria-disabled") === "true") return;
-      if (source.dataset.gbType) gb.drag = { kind: "type", type: source.dataset.gbType };
+      const source = event.target.closest?.("[data-gb-type], [data-gb-from], [data-gb-col], [data-gb-addr], [data-gb-part]");
+      if (!source || source.getAttribute("aria-disabled") === "true" || gb.mode !== "edit") return;
+      if (source.dataset.gbAddr) gb.drag = { kind: "addr", key: source.dataset.gbAddr };
+      else if (source.dataset.gbPart) gb.drag = { kind: "part", id: source.dataset.gbPart };
+      else if (source.dataset.gbType) gb.drag = { kind: "type", type: source.dataset.gbType };
       else if (source.dataset.gbFrom) gb.drag = { kind: "from", id: source.dataset.gbFrom };
       else gb.drag = { kind: "child", id: source.dataset.gbCol };
       if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = gb.drag.kind === "child" ? "move" : "copy";
-        try { event.dataTransfer.setData("text/plain", gb.drag.type || gb.drag.id); } catch { /* synthetic event */ }
+        event.dataTransfer.effectAllowed = gb.drag.kind === "child" || gb.drag.kind === "part" ? "move" : "copy";
+        try { event.dataTransfer.setData("text/plain", gb.drag.type || gb.drag.key || gb.drag.id); } catch { /* synthetic event */ }
       }
       source.classList.add("is-dragging");
     });
     refs.stage.addEventListener("dragover", (event) => {
       if (!gb.drag || gb.mode !== "edit") return;
       event.preventDefault();
-      if (event.dataTransfer) event.dataTransfer.dropEffect = gb.drag.kind === "child" ? "move" : "copy";
+      if (event.dataTransfer) event.dataTransfer.dropEffect = gb.drag.kind === "child" || gb.drag.kind === "part" ? "move" : "copy";
       showDrop(dropAt(event.clientX, event.clientY));
     });
     refs.stage.addEventListener("dragleave", (event) => { if (!refs.stage.contains(event.relatedTarget)) hideIndicator(); });
@@ -707,16 +756,12 @@
     root.addEventListener("dragend", endDrag);
     window.addEventListener("blur", () => { if (gb.drag) endDrag(); });
   }
-  /* hide / show a part IN PLACE (adr-hide-v1): the card stays at its spot + width, the selection does not move;
-     focus goes back to what was used — the card (Delete) or its eye button (now the opposite action) */
-  function togglePart(key, visible, from) {
-    const field = current();
-    const part = I.addressConfig(field).find((item) => item.key === key);
-    if (!part || part.visible === visible) return;
-    I.setAddressPart(field, key, { visible });
-    I.announce(visible ? `Partea „${part.label}” este afișată din nou.` : `Partea „${part.label}” este ascunsă. Rămâne pe loc; apasă ochiul ca s-o afișezi din nou.`);
-    const card = `[data-gb-part="${CSS.escape(key)}"]`;
-    focusCard(from === "button" ? `${card} ${visible ? "[data-gb-hide-part]" : "[data-gb-show-part]"}` : card);
+  /* adr-grid-v1: ⧉ / 🗑 / Ctrl + D / Delete on a part card = the column actions; focus follows like a column */
+  function partAct(act, key) {
+    if (act === "duplicate") { const id = I.duplicatePart(gb.topId, key); if (id) focusCard(`[data-gb-part="${CSS.escape(id)}"]`); return; }
+    I.deletePart(gb.topId, key);
+    const next = I.state.addrPart;
+    focusCard(next ? `[data-gb-part="${CSS.escape(next)}"]` : "[data-gb-add]");
   }
 
   function attach() {
