@@ -222,3 +222,16 @@
 [data-registry-kind^="arhivare"] .e-permits-empty-cell > .e-permits-empty:not(.e-permits-empty--bare) {
   left: 0;
 }
+
+/* ---- arh-pub-v1: the edit drawer's tab panel (Politică · Versiuni · Istoric); tabs → 24 → heading / content */
+.e-permits-arh-panel {
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-arh-panel > .e-permits-arh-section-note:first-child {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-arh-panel > .e-permits-arh-notices:first-child {
+  padding-top: var(--spacing-8, 8px);
+}

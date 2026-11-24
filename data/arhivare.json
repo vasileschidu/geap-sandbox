@@ -1,5 +1,5 @@
 {
- "_comment": "Feature 97300 Arhivarea, restaurarea și păstrarea dosarelor (arh-v1, 2026-11-23): policies (US-395…398), the archive state of the BO dossiers (US-399…406), destruction candidates (US-405…408), saved searches (US-402). Read by js/arhivare.js; the BO dossier rows come from the shell seed, the old (2015–2017) dossiers here are added to Registru Dosare (extraDossiers).",
+ "_comment": "Feature 97300 Arhivarea, restaurarea și păstrarea dosarelor (arh-v1, 2026-11-23): policies (US-395…398), the archive state of the BO dossiers (US-399…406), destruction candidates (US-405…408), saved searches (US-402). Read by js/arhivare.js; the BO dossier rows come from the shell seed, the old (2015–2017) dossiers here are added to Registru Dosare (extraDossiers). arh-pub-v1 (2026-11-24): a policy's own fields = the PUBLISHED version; `versions` = [{at, by, note, set}] (set = only the fields that differed from today's published values), `pending` = the saved, unpublished changes (only the changed fields); a policy without `versions` gets its v1 at load; `stare: Schiță` = saved, never published (not applied).",
  "today": "2026-11-23",
  "authorities": [
   {
@@ -204,7 +204,51 @@
    "aprobare": true,
    "stare": "Activ",
    "modificatDe": "Anastasia Cojocaru",
-   "modificatLa": "2026-10-08T14:05"
+   "modificatLa": "2026-11-20T10:15",
+   "versions": [
+    {
+     "at": "2026-07-01T09:30",
+     "by": "Ion Ceban",
+     "note": "Prima publicare a politicii ANSP pentru dosarul întreg.",
+     "set": {
+      "arhivare": {
+       "n": 60,
+       "u": "zile"
+      },
+      "pastrare": {
+       "n": 7,
+       "u": "ani"
+      }
+     }
+    },
+    {
+     "at": "2026-09-12T16:20",
+     "by": "Anastasia Cojocaru",
+     "note": "Păstrarea crescută la 10 ani, la cererea arhivei ANSP.",
+     "set": {
+      "arhivare": {
+       "n": 60,
+       "u": "zile"
+      }
+     }
+    },
+    {
+     "at": "2026-10-08T14:05",
+     "by": "Anastasia Cojocaru",
+     "note": "Arhivarea după 30 de zile, ca dosarele finalizate să nu mai încarce registrul.",
+     "set": {}
+    }
+   ],
+   "pending": {
+    "pastrare": {
+     "n": 12,
+     "u": "ani"
+    },
+    "anunt": {
+     "n": 90,
+     "u": "zile"
+    }
+   }
   },
   {
    "id": "POL-0006",
@@ -258,7 +302,26 @@
    "aprobare": true,
    "stare": "Activ",
    "modificatDe": "Ion Ceban",
-   "modificatLa": "2026-11-02T11:40"
+   "modificatLa": "2026-11-02T11:40",
+   "versions": [
+    {
+     "at": "2026-09-01T10:00",
+     "by": "Ion Ceban",
+     "note": "Prima publicare pentru serviciul cu păstrare îndelungată.",
+     "set": {
+      "pastrare": {
+       "n": 10,
+       "u": "ani"
+      }
+     }
+    },
+    {
+     "at": "2026-11-02T11:40",
+     "by": "Ion Ceban",
+     "note": "Anonimizare în loc de nimicire și păstrare 15 ani.",
+     "set": {}
+    }
+   ]
   },
   {
    "id": "POL-0008",
@@ -385,6 +448,33 @@
    "stare": "Activ",
    "modificatDe": "Anastasia Cojocaru",
    "modificatLa": "2026-10-27T15:00"
+  },
+  {
+   "id": "POL-0013",
+   "autoritate": "ANSA",
+   "serviciu": null,
+   "tipObiect": "Cerere",
+   "sursa": null,
+   "arhivare": {
+    "n": 6,
+    "u": "luni"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 5,
+    "u": "ani"
+   },
+   "actiune": "Anonimizare",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Schiță",
+   "modificatDe": "Ion Ceban",
+   "modificatLa": "2026-11-18T09:30"
   }
  ],
  "dossiers": {

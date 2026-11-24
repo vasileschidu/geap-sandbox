@@ -9,7 +9,8 @@
      · diffRows(a, b, rowsOf)      → [{ label, before, after }] for two configurations, rowsOf(config) = [[label, html]];
      · noteField(id, value, opts)  → the required „Ce s-a schimbat” textarea (library textarea + counter);
      · setModalError(field, msg)   → marks the note field in an open dialog (error message, aria-invalid, focus);
-     · publishBody / restoreBody   → the dialog bodies (one info / error notice with the version fact → changes → note).
+     · publishBody / restoreBody   → the dialog bodies (one info / error notice with the version fact → changes → note);
+                                     `effect` = who gets the new version (default „Utilizatorii BackOffice …”, arh-pub-v1).
    Every string is already escaped where it comes from the caller's rows (they are HTML cells of the passport blocks).
    ===================================================================================== */
 (function () {
@@ -71,22 +72,22 @@
   }
 
   /* publish: problems → error notice (the confirm is aria-disabled by the caller); otherwise the version fact */
-  function publishBody({ noun, problems = [], current = null, next = 1, changes = [], firstText = "", noteId, note = "", noteAttrs = "", placeholder = "", extraHtml = "" }) {
+  function publishBody({ noun, problems = [], current = null, next = 1, changes = [], firstText = "", noteId, note = "", noteAttrs = "", placeholder = "", extraHtml = "", effect = "Utilizatorii BackOffice văd noua versiune imediat după publicare." }) {
     const N = noun.charAt(0).toUpperCase() + noun.slice(1);
     return `
       ${problems.length
         ? U().renderNotice?.("error", `<strong>${esc(N)} nu se poate publica.</strong> ${problems.map(esc).join(" ")}`, { role: "alert" }) || ""
         : U().renderNotice?.("info", current
-          ? `<strong>Versiunea ${next} o înlocuiește pe versiunea ${esc(String(current))}.</strong> ${changes.length ? "Utilizatorii BackOffice văd noua versiune imediat după publicare." : "Configurația este aceeași ca în versiunea în vigoare."}`
+          ? `<strong>Versiunea ${next} o înlocuiește pe versiunea ${esc(String(current))}.</strong> ${changes.length ? esc(effect) : "Configurația este aceeași ca în versiunea în vigoare."}`
           : `<strong>Prima publicare: versiunea ${next}.</strong> ${firstText}`) || ""}
       ${!problems.length && changes.length ? changesList(changes) : ""}
       ${extraHtml}
       ${noteField(noteId, note, { attrs: noteAttrs, placeholder })}`;
   }
 
-  function restoreBody({ from, next, lost = false, changes = [], noteId, noteAttrs = "" }) {
+  function restoreBody({ from, next, lost = false, changes = [], noteId, noteAttrs = "", effect = "Utilizatorii BackOffice o văd imediat după restaurare." }) {
     return `
-      ${U().renderNotice?.(lost ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${from}.</strong> Utilizatorii BackOffice o văd imediat după restaurare.${lost ? " Modificările nepublicate se pierd." : ""}`) || ""}
+      ${U().renderNotice?.(lost ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${from}.</strong> ${esc(effect)}${lost ? " Modificările nepublicate se pierd." : ""}`) || ""}
       ${changes.length ? changesList(changes) : ""}
       ${noteField(noteId, "", { attrs: noteAttrs, placeholder: "De ce revii la această versiune" })}`;
   }

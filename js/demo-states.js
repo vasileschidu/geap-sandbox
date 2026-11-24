@@ -4855,6 +4855,11 @@
     const toggle = (id) => async (h) => { await menu(K, id)(h); await h.click(`[data-arh-toggle="${id}"]`); await h.find("#service-confirm-modal.is-active"); await h.wait(300); };
     const okConfirm = async (h) => { await h.click("#service-confirm-modal [data-service-confirm-ok]"); await h.wait(500); };
     const pick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${KC} [data-workplace-select-row="${id}"]`); await h.wait(150); } await h.wait(300); };
+    const modalA = "#case-action-modal.is-active";
+    const publish = async (h) => { await h.click(`${D} [data-arh-publish]`); await h.find(`${modalA} #arh-publish-note`); await h.wait(400); };
+    const tabTo = (tab) => async (h) => { await h.click(`${D} [data-arh-d-tab="${tab}"]`); await h.find(`${D} #arh-d-panel`); await h.wait(300); };
+    /* the Versiune column sits at the right of the wide table: scroll the row's version cell into view */
+    const pubCol = (id) => async (h) => { const c = await h.find(`${K} tr[data-workplace-row="${id}"] td[data-column="versiune"]`); c.scrollIntoView({ block: "center", inline: "center" }); await h.wait(300); await blur(h); };
     const fullForm = seq(choose("autoritate", "ANSP"), choose("serviciu", "003000519"), type("arhN", "45"), choose("eveniment", "finalizat"), type("pastN", "8"), chip("Nimicire"), type("anuntN", "30"));
     /* Registru Dosare */
     const ELIB = "D-2026-004704", ARH = "D-2026-004744", NIM = "D-2015-000412", ANUNT = "D-2016-001187", ANON = "D-2016-002201", VIEW = "D-2026-004736";
@@ -4900,6 +4905,20 @@
       "arh-05a": list(seq(toggle("POL-0005"), okConfirm, blur)),
       "arh-05b": list(toggle("POL-0008")),
       "arh-05c": list(seq(toggle("POL-0009"), okConfirm), { arhivare: "eroare" }),
+      /* arh-pub-v1 — versions + publishing (the widget / KPI flow): the list's Versiune column + „Modificări nepublicate”,
+         the pending-changes dialog, the publish dialog, the Versiuni tab, compare, restore, Istoric, a Schiță, first publish */
+      "arh-07": list(pubCol("POL-0005")),
+      "arh-07a": list(seq(pubCol("POL-0005"), async (h) => { await h.click(`${K} [data-arh-pending="POL-0005"]`); await h.find("#pending-changes-modal.is-active"); await h.wait(400); })),
+      "arh-07b": list(seq(edit("POL-0005"), publish)),
+      "arh-07c": list(seq(edit("POL-0005"), tabTo("versiuni"))),
+      "arh-07d": list(seq(edit("POL-0005"), tabTo("versiuni"), async (h) => { await h.click(`${D} [data-arh-cmp-open]`); await h.find(`${D} .e-permits-wid-compare`); await h.wait(300); })),
+      "arh-07e": list(seq(edit("POL-0005"), tabTo("versiuni"), async (h) => { await h.click(`${D} [data-arh-pver="1"]`); await h.find(`${modalA} [data-arh-pver-restore="1"]`); await h.click(`${modalA} [data-arh-pver-restore="1"]`); await h.find(`${modalA} #arh-restore-note`); await h.wait(400); })),
+      "arh-07f": list(seq(edit("POL-0005"), tabTo("versiuni"), async (h) => { await h.click(`${D} [data-arh-pver="1"]`); await h.find(`${modalA} [data-arh-pver-restore="1"]`); await h.wait(400); })),
+      "arh-07g": list(seq(edit("POL-0005"), tabTo("istoric"))),
+      "arh-07h": list(seq(edit("POL-0005"), publish, async (h) => { await h.click('[data-arh-confirm="publish"]'); await h.wait(300); })),
+      "arh-07i": list(seq(edit("POL-0005"), publish, async (h) => { await h.fill("#arh-publish-note", "Păstrare 12 ani și anunț cu 90 de zile înainte, la cererea arhivei ANSP.", { leave: false }); await h.click('[data-arh-confirm="publish"]'); await h.wait(600); }, pubCol("POL-0005"))),
+      "arh-07j": list(pubCol("POL-0013")),
+      "arh-07k": list(seq(create, fullForm, publish)),
       /* US-405 / US-407 — candidates: list, filter Anunțat, selection bar, confirm dialog, done, reject + reason error, row ⋮, empty */
       "arh-06": cands(),
       "arh-06a": cands(filters("arhivare-candidati", "arhivare-candidati", { stare: ["Anunțat"] })),

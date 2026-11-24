@@ -1,7 +1,7 @@
 /* =====================================================================================
    Arhivarea, restaurarea și păstrarea dosarelor (arh-v1, 2026-11-23) — Feature 97300, US-395…408.
    Data: data/arhivare.json (policies, archive state of the BO dossiers, old dossiers, candidates, saved searches);
-   the session's changes live in localStorage `e-permits-arhivare-v1` (a demo link starts clean).
+   the session's changes live in localStorage `e-permits-arhivare-v2` (a demo link starts clean).
 
    NO new engine, no new component:
      · Setări › „Politici de arhivare și păstrare” = the BO registry (`GEAPShellRegistries.arhivare`, nav `arhivare`) and the
@@ -16,6 +16,13 @@
        Nimicit / Toate), „Data arhivării”, facets Perioada deciziei / Perioada arhivării / Tip obiect, ⋮ Arhivează ·
        Restaurează · Obiecte arhivate · Versiuni, the read-only record card of an archived / destroyed dossier (minimal
        data), the automatic procedures' results as journal events; „Căutările mele” + „Salvează căutarea” on its toolbar.
+   Publishing (arh-pub-v1, 2026-11-24 — PO: „versiuni și publicare, ca și la alte configurări”) = the KPI / widget model
+   (components.md › „Every configuration object publishes the same way”), dialogs + diff from js/config-publish.js: a
+   policy's own value fields = the PUBLISHED version (the only one the procedures read), `p.pending` = the saved draft,
+   `p.versions[].config` = snapshots; „Salvează” keeps the draft, „Publică” = the shared publish dialog (required „Ce s-a
+   schimbat”) → version + 1; create ends with „Salvează ciorna” (Schiță, not applied) / „Publică”; the list's „Versiune”
+   column + the clickable „Modificări nepublicate” → the shell pending-changes dialog; the edit drawer's tabs Politică ·
+   Versiuni (compare, version window, restore with a note) · Istoric; (de)activation applies to the published version.
    UI copy speaks „tu” (Nu ai acces, Confirmi, Continui?, Introdu…).
    Demo switch ?arhivare= acordat · fara-arhiveaza · fara-restaureaza · gol · fara-candidati · eroare.
    ===================================================================================== */
@@ -44,7 +51,7 @@
   const NAV = "arhivare";
   const NAV_C = "arhivare-candidati";
   const TITLE = "Arhivare și păstrare";
-  const STORE_KEY = "e-permits-arhivare-v1";
+  const STORE_KEY = "e-permits-arhivare-v2"; /* v2 = arh-pub-v1 (versions, drafts) */
   /* AC texts, word for word */
   const T = {
     denied: "Nu ai acces la această secțiune.",
@@ -101,7 +108,7 @@
   function load() {
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
-      S.loading = fetch("data/arhivare.json?v=arh-v1", { cache: "no-store" }).then((r) => r.json()).then((json) => {
+      S.loading = fetch("data/arhivare.json?v=arh-pub-v1", { cache: "no-store" }).then((r) => r.json()).then((json) => {
         S.data = json;
         readStore();
         return json;
@@ -122,12 +129,41 @@
       saved: clone(d.savedSearches || []),
       seq: 0
     }, saved || {});
+    S.store.policies.forEach(normalise);
     return S.store;
   }
   const writeStore = () => { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(S.store)); } catch { /* private mode */ } };
   const policies = () => (S.data ? readStore().policies : []);
   const candidates = () => (S.data ? readStore().candidates : []);
   const policyOf = (id) => policies().find((p) => p.id === id) || null;
+
+  /* ---------------------------------------------------------------- versions + publishing (arh-pub-v1) */
+  const VKEYS = ["arhivare", "eveniment", "restaurare", "redare", "pastrare", "actiune", "anunt", "aprobare"];
+  const cfgOf = (x) => Object.fromEntries(VKEYS.map((k) => [k, x?.[k] ?? null]));
+  const same = (a, b) => JSON.stringify(cfgOf(a)) === JSON.stringify(cfgOf(b));
+  const lastVersion = (p) => p?.versions?.[p.versions.length - 1] || null;
+  const isDraftP = (p) => p?.stare === "Schiță";
+  const savedCfg = (p) => p.pending || cfgOf(p);
+  const unpublished = (p) => Boolean(p?.pending) && Boolean(lastVersion(p)) && !same(p.pending, cfgOf(p));
+  const histPush = (p, event, detail, { at = nowIso(), by = who().name, role = who().role } = {}) => { (p.history ||= []).unshift({ at, by, role, event, detail }); };
+  /* seed: `versions[].set` / `pending` = only the fields that differ from today's published values; a policy without
+     versions gets its v1; every version writes its publish into the Istoric (newest first) */
+  function normalise(p) {
+    if (!p || p.__norm) return;
+    const live = cfgOf(p);
+    if (!Array.isArray(p.versions)) p.versions = isDraftP(p) ? [] : [{ at: p.modificatLa, by: p.modificatDe, note: "Politica inițială.", set: {} }];
+    p.versions = p.versions.map((v, i) => (v.config ? v : { nr: i + 1, version: i + 1, type: i ? "Publicare" : "Prima publicare", note: v.note, at: v.at, by: v.by, config: { ...clone(live), ...clone(v.set || {}) } }));
+    if (p.pending) p.pending = { ...clone(live), ...clone(p.pending) };
+    if (!Array.isArray(p.history)) {
+      const role = "Administrator central";
+      p.history = [];
+      p.versions.forEach((v) => p.history.unshift({ at: v.at, by: v.by, role, event: v.nr === 1 ? "Prima publicare" : "Publicare", detail: `Versiunea ${v.version} · ${v.note}` }));
+      if (isDraftP(p)) p.history.unshift({ at: p.modificatLa, by: p.modificatDe, role, event: "Salvare ciornă", detail: "Politica nu a fost publicată încă." });
+      if (p.pending) p.history.unshift({ at: p.modificatLa, by: p.modificatDe, role, event: "Salvare modificări", detail: "Modificările așteaptă publicarea." });
+      if (p.stare === "Inactiv") p.history.unshift({ at: p.modificatLa, by: p.modificatDe, role, event: "Dezactivare", detail: "Politica nu se mai aplică la evaluările următoare." });
+    }
+    Object.defineProperty(p, "__norm", { value: true, enumerable: false });
+  }
   const authorities = () => S.data?.authorities || [];
   const services = () => S.data?.services || [];
   const autName = (code) => authorities().find((a) => a.code === code)?.name || code || "";
@@ -189,7 +225,7 @@
     ["nivel", "Nivel", 120], ["autoritate", "Autoritate", 128], ["serviciu", "Serviciu", 248], ["tip", "Tip obiect", 168],
     ["sursa", "Sursa obiectului", 152], ["arhivare", "Arhivare după", 136], ["eveniment", "Eveniment de pornire", 248],
     ["pastrare", "Păstrare în arhivă", 152], ["actiune", "Acțiune la expirarea păstrării", 200], ["anunt", "Anunț înainte de nimicire", 192],
-    ["aprobare", "Necesită aprobare", 152], ["stare", "Stare", 112], ["modificat", "Modificat de / Modificat la", 216]
+    ["aprobare", "Necesită aprobare", 152], ["stare", "Stare", 112], ["versiune", "Versiune", 184], ["modificat", "Modificat de / Modificat la", 216]
   ];
   const rowOf = (p) => ({
     id: p.id, p,
@@ -205,6 +241,9 @@
     anunt: p.pastrare ? durText(p.anunt) : "",
     aprobare: p.pastrare ? (p.aprobare === false ? "Nu" : "Da") : "",
     stare: p.stare,
+    /* the widget / KPI list's „Versiune”: the published version, the clickable „Modificări nepublicate” under it */
+    versiune: lastVersion(p) ? String(lastVersion(p).version) : "",
+    nepublicat: unpublished(p),
     modificat: p.modificatLa
   });
   const tabsOf = (active) => [
@@ -243,13 +282,17 @@
   }
   const policyMenu = (p) => {
     const items = [{ label: "Editează", icon: "edit", attrs: `data-arh-edit="${esc(p.id)}"` }];
-    /* US-398 AC-03/04/11: Dezactivează on active policies except the platform whole-dossier one; Activează on inactive ones */
-    if (p.stare === "Activ" && !isPlatformWhole(p)) items.push({ label: "Dezactivează", icon: "circle-x", danger: true, attrs: `data-arh-toggle="${esc(p.id)}"` });
-    if (p.stare !== "Activ") items.push({ label: "Activează", icon: "rotate-arrow", attrs: `data-arh-toggle="${esc(p.id)}"` });
+    /* US-398 AC-03/04/11: Dezactivează on active policies except the platform whole-dossier one; Activează on inactive ones;
+       a Schiță (never published) has nothing to (de)activate — the state applies to the published version */
+    if (isDraftP(p)) { /* only Editează */ }
+    else if (p.stare === "Activ" && !isPlatformWhole(p)) items.push({ label: "Dezactivează", icon: "circle-x", danger: true, attrs: `data-arh-toggle="${esc(p.id)}"` });
+    else if (p.stare !== "Activ") items.push({ label: "Activează", icon: "rotate-arrow", attrs: `data-arh-toggle="${esc(p.id)}"` });
     const html = A().renderRowActions?.({ menu: items, label: policyRef(p) }) || "";
     return html ? `<span class="e-permits-workplace__row-actions">${html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>` : "";
   };
   const cellText = (text) => (text ? `<span data-cell-tooltip="${esc(text)}">${esc(text)}</span>` : dash);
+  const twoLines = (top, meta) => `<span class="e-permits-workplace__date-stack"><span>${top}</span><span class="e-permits-workplace__date-meta">${meta}</span></span>`;
+  const pendingHtml = (p) => A().renderHeaderStatus?.("Modificări nepublicate", "warning", `data-arh-pending="${esc(p.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale politicii ${esc(policyRef(p))}"`) || "modificări nepublicate";
   const POLICY_TEXT = (row, key) => (key === "modificat" ? `${row.p.modificatDe} ${longDate(row.modificat)}` : String(row[key] ?? ""));
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
   window.GEAPShellRegistries[KIND] = {
@@ -266,6 +309,7 @@
     /* AC-08: Nivel, then Autoritate, then Serviciu */
     sortValue: (row, key) => (key === "nivel" ? `${LEVEL_RANK[row.nivel]}|${row.autoritate}|${row.serviciu}|${row.p.tipObiect ? 1 : 0}${row.tip}|${row.sursa}`
       : key === "modificat" ? row.modificat || ""
+      : key === "versiune" ? String(row.versiune || 0).padStart(4, "0")
       : key === "arhivare" || key === "pastrare" || key === "anunt" ? String(daysOf(key === "arhivare" ? row.p.arhivare : key === "pastrare" ? row.p.pastrare : row.p.anunt) ?? 999999).padStart(7, "0")
       : String(row[key] ?? "")),
     filterToken: (row, token) => token !== "tab:cand",
@@ -274,6 +318,7 @@
       switch (key) {
         case "actiuni": return policyMenu(p);
         case "stare": return tag(p.stare, p.stare === "Activ" ? "success" : "neutral");
+        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), pendingHtml(p)) : esc(row.versiune)) : twoLines(dash, "nepublicat");
         case "modificat": return A().renderDateTime?.(p.modificatLa, p.modificatDe) || esc(stamp(p.modificatLa));
         case "pastrare": return p.pastrare ? esc(row.pastrare) : `<span class="e-permits-arh-muted">Nelimitat</span>`;
         /* the authority's code, its full name in the tooltip (as the acts register) */
@@ -599,10 +644,7 @@
             <button class="modal-close" type="button" aria-label="Închide" data-arh-close>${icon("cross-large", 16)}</button>
           </header>
           <div class="drawer__body" data-arh-d-body></div>
-          <footer class="drawer__footer"><div class="modal-buttons">
-            <button class="btn btn-neutral btn-rounded" type="button" data-arh-close>Anulează</button>
-            <button class="btn btn-primary btn-rounded" type="button" data-arh-save>Salvează</button>
-          </div></footer>
+          <footer class="drawer__footer" data-arh-d-footer></footer>
         </aside>
       </div>`);
     drawer = document.querySelector("[data-arh-drawer]");
@@ -626,7 +668,7 @@
     const p = id ? policyOf(id) : null;
     if (mode === "edit" && !p) return;
     ensureDrawer();
-    D = { mode, id, v: p ? draftOf(p) : emptyDraft(), errors: {}, dup: false, error: false };
+    D = { mode, id, v: p ? draftOf({ ...p, ...savedCfg(p) }) : emptyDraft(), errors: {}, dup: false, error: false, tab: "politica", compare: null };
     D.initial = JSON.stringify(D.v);
     renderDrawer();
     drawer.querySelector("[data-arh-d-body]").scrollTop = 0;
@@ -722,13 +764,21 @@
     const notices = [
       D.dup && A().renderNotice?.("error", esc(T.duplicate), { role: "alert" }),
       D.error && A().renderNotice?.("error", esc(T.failed), { role: "alert" }),
-      edit && A().renderNotice?.("info", "Domeniul de aplicare nu se modifică după salvare. Modificările se aplică doar evaluărilor următoare: înregistrările deja arhivate își păstrează starea.")
+      edit && unpublished(p) && A().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Evaluările folosesc în continuare versiunea ${esc(String(lastVersion(p).version))}.`),
+      edit && isDraftP(p) && A().renderNotice?.("warning", "<strong>Politica nu este publicată.</strong> Se aplică evaluărilor doar după publicare."),
+      edit && A().renderNotice?.("info", "Domeniul de aplicare nu se modifică după salvare. Modificările se aplică doar evaluărilor următoare, după publicare: înregistrările deja arhivate își păstrează starea.")
     ].filter(Boolean).join("");
-    drawer.querySelector("[data-arh-d-body]").innerHTML = `
+    const form = `
       ${notices ? `<div class="e-permits-arh-notices">${notices}</div>` : ""}
       ${section("Domeniu de aplicare", scope)}
       ${section("Arhivare", archive)}
       ${section("Păstrare", keep, { note: ap ? `<div class="e-permits-arh-section-note">${A().renderInfoNote?.("Secțiunea «Păstrare» este inactivă pentru Act permisiv: actul permisiv nu se nimicește și nu se anonimizează.") || ""}</div>` : "" })}`;
+    /* arh-pub-v1: the edit drawer = tabs Politică · Versiuni · Istoric (the drawer tab strip of the tariff / request-type drawers) */
+    drawer.querySelector("[data-arh-d-body]").innerHTML = edit
+      ? `${drawerTabsHtml(p)}
+        <div class="e-permits-arh-panel" id="arh-d-panel" role="tabpanel" aria-labelledby="arh-d-tab-${D.tab}">${D.tab === "versiuni" ? versionsPane(p) : D.tab === "istoric" ? historyPane(p) : form}</div>`
+      : form;
+    syncFooter();
     if (focus) {
       const el = drawer.querySelector(focus);
       el?.focus();
@@ -751,10 +801,11 @@
       renderDrawer({ focus: `[data-arh-field="${key}"]` });
       return;
     }
-    if (hadErr) renderDrawer({ focus: `[data-arh-field="${key}"]` });
+    if (hadErr) renderDrawer({ focus: `[data-arh-field="${key}"]` }); else syncFooter();
   }
   function onDrawerChange(event) {
     const t = event.target;
+    if (t.dataset?.arhCmp && D?.compare) { D.compare[t.dataset.arhCmp] = t.value; renderDrawer({ focus: `#arh-cmp-${t.dataset.arhCmp}` }); return; }
     const key = t.dataset?.arhField;
     if (!key || !D) return;
     if (key === "redare" || key === "aprobare") { D.v[key] = t.checked; renderDrawer({ focus: `[data-arh-field="${key}"]` }); return; }
@@ -772,7 +823,21 @@
   function onDrawerClick(event) {
     const t = event.target;
     if (t.closest("[data-arh-close]")) { closeDrawer(); return; }
-    if (t.closest("[data-arh-save]")) { save(); return; }
+    const off = t.closest('[aria-disabled="true"]');
+    if (t.closest("[data-arh-save]")) { if (!off) save(); return; }
+    if (t.closest("[data-arh-publish]")) { if (!off) openPublish(); return; }
+    const tab = t.closest("[data-arh-d-tab]");
+    if (tab && D) { D.tab = tab.dataset.arhDTab; renderDrawer({ focus: `#arh-d-tab-${D.tab}` }); drawer.querySelector("[data-arh-d-body]").scrollTop = 0; return; }
+    if (t.closest("[data-arh-cmp-open]") && D) {
+      const p = policyOf(D.id);
+      const ch = compareChoices(p);
+      D.compare = unpublished(p) ? { a: String(lastVersion(p).nr), b: "draft" } : { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
+      renderDrawer({ focus: "#arh-cmp-a" });
+      return;
+    }
+    if (t.closest("[data-arh-cmp-close]") && D) { D.compare = null; renderDrawer({ focus: "[data-arh-cmp-open]" }); return; }
+    const view = t.closest("[data-arh-pver]");
+    if (view) { openPolVersion(view.dataset.arhPver); return; }
     const chip = t.closest("[data-arh-actiune]");
     if (chip && D && !chip.disabled) { D.v.actiune = chip.dataset.arhActiune; delete D.errors.actiune; renderDrawer({ focus: `[data-arh-actiune="${chip.dataset.arhActiune}"]` }); }
   }
@@ -792,15 +857,17 @@
     return !Object.keys(e).length;
   }
   const dur = (n, u) => (String(n).trim() ? { n: Number(n), u } : null);
-  function save() {
-    if (!D) return;
-    if (!who().has) { A().showShellToast?.(T.forbidden, "error"); return; }
+  /* the drawer's values after validation (errors / duplicate / failure rendered in the drawer) — null when blocked */
+  function collect() {
+    if (!D) return null;
+    if (!who().has) { A().showShellToast?.(T.forbidden, "error"); return null; }
     D.dup = false; D.error = false;
     if (!validate()) {
+      if (D.tab !== "politica") D.tab = "politica";
       renderDrawer();
       const first = drawer.querySelector('[aria-invalid="true"], .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-field__error');
       (first?.matches("input, button") ? first : first?.closest(".e-permits-fo-field")?.querySelector("input, button"))?.focus();
-      return;
+      return null;
     }
     const v = D.v;
     const ret = hasRetention(v);
@@ -809,28 +876,243 @@
       pastrare: ret ? dur(v.pastN, v.pastU) : null, actiune: ret ? v.actiune : null, anunt: ret ? dur(v.anuntN, v.anuntU) : null, aprobare: ret ? v.aprobare : null
     };
     const scope = D.mode === "edit" ? policyOf(D.id) : { autoritate: v.autoritate || null, serviciu: v.serviciu || null, tipObiect: v.tipObiect || null, sursa: v.tipObiect ? v.sursa || null : null };
-    /* US-396 AC-15: one policy per scope, active or inactive */
-    if (D.mode === "create" && policies().some((p) => sameScope(p, scope))) { D.dup = true; renderDrawer(); drawer.querySelector("[data-arh-d-body]").scrollTop = 0; return; }
-    if (demo.has("eroare")) { D.error = true; renderDrawer(); drawer.querySelector("[data-arh-d-body]").scrollTop = 0; return; }
+    /* US-396 AC-15: one policy per scope, active, inactive or Schiță */
+    if (D.mode === "create" && policies().some((p) => sameScope(p, scope))) { D.dup = true; D.tab = "politica"; renderDrawer(); drawer.querySelector("[data-arh-d-body]").scrollTop = 0; return null; }
+    if (demo.has("eroare")) { D.error = true; D.tab = "politica"; renderDrawer(); drawer.querySelector("[data-arh-d-body]").scrollTop = 0; return null; }
+    return { values, scope };
+  }
+  function createPolicy(scope, values, stare) {
+    const st = readStore();
+    const next = Math.max(0, ...policies().map((x) => Number(String(x.id).replace(/\D/g, "")) || 0)) + 1;
+    const p = { id: `POL-${pad(next).padStart(4, "0")}`, ...scope, ...values, stare, modificatDe: who().name, modificatLa: nowIso(), versions: [], history: [] };
+    normalise(p);
+    st.policies.push(p);
+    return p;
+  }
+  /* arh-pub-v1: „Salvează ciorna” (create → Schiță, not applied) / „Salvează” (edit → the saved, unpublished draft; the
+     published version keeps applying until „Publică”; a Schiță is written directly) */
+  function save() {
+    const got = collect();
+    if (!got) return;
+    const { values, scope } = got;
     const me = who();
     const at = nowIso();
     let p;
     if (D.mode === "create") {
-      const st = readStore();
-      const next = Math.max(0, ...policies().map((x) => Number(String(x.id).replace(/\D/g, "")) || 0)) + 1;
-      p = { id: `POL-${pad(next).padStart(4, "0")}`, ...scope, ...values, stare: "Activ", modificatDe: me.name, modificatLa: at };
-      st.policies.push(p);
-      audit("Creare politică", `${policyRef(p)} · ${summary(p)}`, "Politică de arhivare", p.id);
+      p = createPolicy(scope, values, "Schiță");
+      histPush(p, "Salvare ciornă", summary(p));
+      audit("Creare politică", `${policyRef(p)} · ciornă · ${summary(p)}`, "Politică de arhivare", p.id);
     } else {
       p = policyOf(D.id);
-      const before = summary(p);
-      Object.assign(p, values, { modificatDe: me.name, modificatLa: at });
-      audit("Modificare politică", `${policyRef(p)} · înainte: ${before} · după: ${summary(p)}`, "Politică de arhivare", p.id);
+      const before = summary({ ...p, ...savedCfg(p) });
+      if (isDraftP(p)) Object.assign(p, values);
+      else p.pending = same(values, cfgOf(p)) ? null : clone(values);
+      Object.assign(p, { modificatDe: me.name, modificatLa: at });
+      histPush(p, "Salvare modificări", `înainte: ${before} · după: ${summary({ ...p, ...values })}`);
+      audit("Modificare politică", `${policyRef(p)} · înainte: ${before} · după: ${summary({ ...p, ...values })}${isDraftP(p) ? "" : " · nepublicat"}`, "Politică de arhivare", p.id);
     }
     writeStore();
     closeDrawer(true);
     refreshList(KIND);
     A().showShellToast?.(T.saved, "success");
+  }
+
+  /* ---- Publică (the widget / KPI flow; dialog body = GEAPConfigPublish.publishBody) ---- */
+  const CP = () => window.GEAPConfigPublish || {};
+  const fmtDur = (d) => (d && d.n ? durText(d) : "");
+  /* the configuration as label / value rows (diff, version window) — labels = the drawer's field labels */
+  const cfgRows = (c) => {
+    const ret = Boolean(c.pastrare);
+    return [
+      ["Arhivare după", esc(fmtDur(c.arhivare) || "—")],
+      ["Eveniment de pornire", esc(EVENTS[c.eveniment] || "—")],
+      ["Durata restaurării pentru vizualizare", esc(fmtDur(c.restaurare) || "Moștenită")],
+      ["Păstrarea redării istorice", esc(c.redare === null || c.redare === undefined ? "Moștenită" : c.redare ? "Pornit" : "Oprit")],
+      ["Păstrare în arhivă", esc(ret ? fmtDur(c.pastrare) : "Nelimitat")],
+      ["Acțiune la expirarea păstrării", esc(ret ? c.actiune || "—" : "—")],
+      ["Anunț înainte de nimicire", esc(ret ? fmtDur(c.anunt) || "—" : "—")],
+      ["Necesită aprobare", esc(ret ? (c.aprobare === false ? "Nu" : "Da") : "—")]
+    ];
+  };
+  const diffRows = (a, b) => CP().diffRows?.(a, b, cfgRows) || [];
+  const scopeLine = (p) => `${scopeShort(p)} · ${tipLabel(p)}`;
+  let publishing = null;
+  function openPublish() {
+    const got = collect();
+    if (!got) return;
+    const p = D.mode === "edit" ? policyOf(D.id) : null;
+    const lv = lastVersion(p);
+    const next = (lv?.version || 0) + 1;
+    publishing = { mode: D.mode, id: D.id, ...got };
+    const changes = lv ? diffRows(lv.config, got.values) : [];
+    raise(true);
+    openModal({
+      kind: "arh-publish",
+      title: "Publicare politică",
+      subtitle: scopeLine(p || got.scope),
+      body: CP().publishBody?.({
+        noun: "politica", current: lv?.version, next, changes, noteId: "arh-publish-note", effect: "Evaluările următoare ale procedurilor de arhivare și de nimicire o folosesc imediat după publicare.",
+        firstText: "Se aplică evaluărilor următoare ale procedurilor de arhivare și de nimicire imediat după publicare.",
+        placeholder: "De ex. am mărit păstrarea în arhivă la 12 ani",
+        extraHtml: p && p.stare === "Inactiv" ? A().renderInfoNote?.("Politica este inactivă: versiunea publicată se aplică după ce o activezi.") || "" : ""
+      }) || "",
+      footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-arh-confirm="publish">Publică</button></div>'
+    });
+  }
+  function confirmPublish() {
+    if (!publishing) return;
+    const field = document.querySelector("#arh-publish-note");
+    const note = field?.value.trim() || "";
+    if (!note) { CP().setModalError?.(field, "Descrie ce s-a schimbat."); return; }
+    if (demo.has("eroare")) { closeModal(); raise(false); A().showShellToast?.(T.failed, "error"); publishing = null; return; }
+    const { mode, id, values, scope } = publishing;
+    const p = mode === "create" ? createPolicy(scope, values, "Activ") : policyOf(id);
+    if (!p) return;
+    const next = (lastVersion(p)?.version || 0) + 1;
+    const at = nowIso();
+    Object.assign(p, clone(values), { modificatDe: who().name, modificatLa: at });
+    p.pending = null;
+    if (isDraftP(p)) p.stare = "Activ";
+    p.versions.push({ nr: p.versions.length + 1, version: next, type: next === 1 ? "Prima publicare" : "Publicare", note, at, by: who().name, config: cfgOf(p) });
+    histPush(p, next === 1 ? "Prima publicare" : "Publicare", `Versiunea ${next} · ${note}`, { at });
+    audit("Publicare politică", `${policyRef(p)} · versiunea ${next} · ${note} · ${summary(p)}`, "Politică de arhivare", p.id);
+    writeStore();
+    publishing = null;
+    closeModal();
+    raise(false);
+    closeDrawer(true);
+    refreshList(KIND);
+    A().showShellToast?.(`Versiunea ${next} a politicii a fost publicată.`, "success");
+  }
+  /* the list's „Modificări nepublicate” → the shell pending-changes dialog; its „Publică” opens the policy + the dialog */
+  function openPending(id) {
+    const p = policyOf(id);
+    const lv = lastVersion(p);
+    if (!p || !lv || !p.pending) return;
+    const changes = diffRows(lv.config, p.pending).map((c) => ({ area: c.label, detail: `${c.before} → ${c.after}`, at: p.modificatLa || "", user: p.modificatDe || "", status: "Modificat" }));
+    A().openPendingChanges?.({ subject: `${scopeLine(p)} · față de versiunea ${lv.version}`, changes, onPublish: who().has ? () => { openDrawer("edit", id); openPublish(); } : null });
+  }
+
+  /* ---- tabs Versiuni · Istoric of the edit drawer (the widget / KPI tabs) ---- */
+  const TABS = [["politica", "Politică"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
+  const drawerTabsHtml = (p) => `
+    <div class="tabs tabs--sm e-permits-tariff__tabs" data-arh-d-tabs>
+      <div class="tab-buttons" role="tablist" aria-label="Politica de arhivare">
+        ${TABS.map(([id, label]) => {
+          const on = id === D.tab;
+          const n = id === "versiuni" ? p.versions.length : 0;
+          return `<button class="tab-button${on ? " active" : ""}" id="arh-d-tab-${id}" type="button" role="tab" aria-selected="${on}" aria-controls="arh-d-panel" tabindex="${on ? "0" : "-1"}" data-arh-d-tab="${id}"><span>${label}</span>${n ? A().renderPageHeaderTabCount?.(n) || "" : ""}</button>`;
+        }).join("")}
+      </div>
+    </div>`;
+  const versionOfP = (p, nr) => p?.versions.find((v) => String(v.nr) === String(nr)) || null;
+  function versionsPane(p) {
+    const cur = lastVersion(p);
+    const list = [...p.versions].reverse();
+    const n = p.versions.length;
+    const compareBtn = n + (unpublished(p) ? 1 : 0) > 1 && !D.compare ? `<button class="btn btn-secondary btn-sm" type="button" data-arh-cmp-open>${icon("history", 16)}<span>Compară versiuni</span></button>` : "";
+    const events = list.map((v) => ({ at: v.at, user: v.by, type: `Versiunea ${v.version}${v.nr === cur.nr ? " · curentă" : ""}${/^Restaurare/.test(v.type) ? ` · ${v.type.toLocaleLowerCase("ro")}` : ""}`, status: "Reușit", detail: v.note }));
+    return `
+      ${n ? `<div class="e-permits-arh-section-note">${A().renderInfoNote?.(`Evaluările folosesc doar ultima versiune publicată: <strong>${esc(String(cur.version))}</strong>. Fiecare publicare crește versiunea cu 1; restaurarea publică o versiune nouă cu configurația celei alese. Activarea și dezactivarea se aplică versiunii publicate.`) || ""}</div>` : ""}
+      ${window.GEAPEventTimeline?.html("Versiuni publicate", events, { meta: n ? plural(n, "versiune", "versiuni") : "", actionHtml: compareBtn, empty: "Politica nu a fost publicată încă.", openAttrs: (item, i) => `data-arh-pver="${list[i].nr}" aria-haspopup="dialog"` }) || ""}
+      ${D.compare && n ? compareHtml(p) : ""}`;
+  }
+  const compareChoices = (p) => [...[...p.versions].reverse().map((v) => [String(v.nr), `Versiunea ${v.version} · ${longDate(v.at)}${v.nr === lastVersion(p).nr ? " (curentă)" : ""}`, v.config]), ...(unpublished(p) ? [["draft", "Modificările nepublicate", p.pending]] : [])];
+  function compareHtml(p) {
+    const choices = compareChoices(p);
+    const pick = (key) => choices.find(([k]) => k === key) || choices[0];
+    const [ka, , ca] = pick(D.compare.a);
+    const [kb, , cb] = pick(D.compare.b);
+    const opts = choices.map(([k, l]) => [k, l]);
+    const changes = ka === kb ? [] : diffRows(ca, cb);
+    const cmpSelect = (which, label, value) => field(6, `
+      <label for="arh-cmp-${which}">${esc(label)}</label>
+      ${A().renderFoSelectControl?.({ id: `arh-cmp-${which}`, attrs: `data-arh-cmp="${which}"`, optionsHtml: optionsHtml(opts, value) }) || ""}`);
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-wid-compare" aria-labelledby="arh-compare-title">
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title" id="arh-compare-title">Compară versiuni</h2>
+          <div class="e-permits-passport__heading-tools"><button class="btn btn-neutral btn-sm" type="button" data-arh-cmp-close>Închide comparația</button></div>
+        </div>
+        <div class="e-permits-ntpl-card"><div class="e-permits-user-create__grid">${cmpSelect("a", "Versiunea de bază", ka)}${cmpSelect("b", "Comparată cu", kb)}</div></div>
+        ${ka === kb ? A().renderInfoNote?.("Alege două versiuni diferite.") || "" : changes.length ? CP().changesList?.(changes) || "" : A().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
+      </section>`;
+  }
+  function historyPane(p) {
+    const events = (p.history || []).slice(0, 100).map((h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: "Reușit", detail: h.detail || "" }));
+    return window.GEAPEventTimeline?.html("Istoric", events, { meta: events.length ? "Cele mai noi primele · Jurnalizat prin MLog" : "", empty: "Pentru această politică nu s-au înregistrat încă operații." }) || "";
+  }
+  /* the version window (Compară cu versiunea curentă · Restaurează · Închide) and the restore dialog — the widget dialogs */
+  function openPolVersion(nr) {
+    const p = D && policyOf(D.id);
+    const v = versionOfP(p, nr);
+    if (!v) return;
+    const isCurrent = v.nr === lastVersion(p).nr;
+    raise(true);
+    openModal({
+      kind: "arh-version",
+      title: `Versiunea ${v.version}${isCurrent ? " · curentă" : ""}`,
+      subtitle: scopeLine(p),
+      body: `
+        <div class="e-permits-dosar-profil__card">${[["Tipul modificării", esc(v.type)], ["Data", esc(stamp(v.at))], ["Autor", esc(v.by)], ["Ce s-a schimbat", esc(v.note)]].map((r) => G().detailRow?.(r) || "").join("")}</div>
+        ${A().renderPassportBlock?.("Configurația", cfgRows(v.config)) || ""}`,
+      footer: `<div class="modal-buttons">${isCurrent ? "" : `<button class="btn btn-neutral btn-rounded" type="button" data-arh-pver-compare="${v.nr}">Compară cu versiunea curentă</button>${who().has ? `<button class="btn btn-neutral btn-rounded" type="button" data-arh-pver-restore="${v.nr}">${icon("rotate-arrow")}<span>Restaurează</span></button>` : ""}`}<button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>`
+    });
+  }
+  let restoringP = null;
+  function openPolRestore(nr) {
+    const p = D && policyOf(D.id);
+    const v = versionOfP(p, nr);
+    if (!p || !v || !who().has) return;
+    restoringP = { id: p.id, nr: v.nr };
+    const next = lastVersion(p).version + 1;
+    raise(true);
+    openModal({
+      kind: "arh-restore",
+      title: `Restaurare versiune ${v.version}`,
+      subtitle: scopeLine(p),
+      body: CP().restoreBody?.({ from: v.version, next, lost: unpublished(p) || dirty(), changes: diffRows(lastVersion(p).config, v.config), noteId: "arh-restore-note", effect: "Evaluările următoare o folosesc imediat după restaurare." }) || "",
+      footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-arh-confirm="pol-restore">Restaurează</button></div>'
+    });
+  }
+  function confirmPolRestore() {
+    if (!restoringP) return;
+    const field = document.querySelector("#arh-restore-note");
+    const note = field?.value.trim() || "";
+    if (!note) { CP().setModalError?.(field, "Descrie ce s-a schimbat."); return; }
+    if (demo.has("eroare")) { closeModal(); raise(Boolean(drawer && !drawer.hidden)); A().showShellToast?.(T.failed, "error"); restoringP = null; return; }
+    const p = policyOf(restoringP.id);
+    const v = versionOfP(p, restoringP.nr);
+    const next = lastVersion(p).version + 1;
+    const at = nowIso();
+    Object.assign(p, clone(v.config), { modificatDe: who().name, modificatLa: at });
+    p.pending = null;
+    p.versions.push({ nr: p.versions.length + 1, version: next, type: `Restaurare (din versiunea ${v.version})`, note, at, by: who().name, config: clone(v.config) });
+    histPush(p, "Restaurarea unei versiuni", `Versiunea ${v.version} → versiunea ${next} · ${note}`, { at });
+    audit("Restaurare versiune politică", `${policyRef(p)} · versiunea ${v.version} → versiunea ${next} · ${note}`, "Politică de arhivare", p.id);
+    writeStore();
+    restoringP = null;
+    closeModal();
+    if (D && D.id === p.id) {
+      D.v = draftOf(p); D.initial = JSON.stringify(D.v); D.errors = {}; D.compare = null; D.tab = "versiuni";
+      renderDrawer();
+    }
+    raise(Boolean(drawer && !drawer.hidden));
+    refreshList(KIND);
+    A().showShellToast?.(`Versiunea ${v.version} a fost restaurată ca versiunea ${next}.`, "success");
+  }
+  function syncFooter() {
+    const foot = drawer?.querySelector("[data-arh-d-footer]");
+    if (!foot || !D) return;
+    const edit = D.mode === "edit";
+    const p = edit ? policyOf(D.id) : null;
+    const changed = dirty();
+    const canPub = !edit || changed || isDraftP(p) || unpublished(p);
+    foot.innerHTML = `<div class="modal-buttons">
+      <button class="btn btn-neutral btn-rounded" type="button" data-arh-close>Anulează</button>
+      <button class="btn ${edit ? "btn-secondary" : "btn-neutral"} btn-rounded" type="button" data-arh-save${edit && !changed ? ' aria-disabled="true" data-tooltip-reason="Nu există modificări de salvat."' : ""}>${edit ? "Salvează" : "Salvează ciorna"}</button>
+      <button class="btn btn-primary btn-rounded" type="button" data-arh-publish${canPub ? "" : ' aria-disabled="true" data-tooltip-reason="Versiunea publicată este la zi."'}>Publică</button>
+    </div>`;
   }
   const summary = (p) => [`Arhivare după ${durText(p.arhivare)}`, EVENTS[p.eveniment], p.restaurare ? `restaurare ${durText(p.restaurare)}` : "", p.redare === null || p.redare === undefined ? "" : `redare istorică ${p.redare ? "Pornit" : "Oprit"}`, p.pastrare ? `păstrare ${durText(p.pastrare)} · ${p.actiune} · anunț ${durText(p.anunt)} · aprobare ${p.aprobare === false ? "Nu" : "Da"}` : "păstrare nelimitată"].filter(Boolean).join(" · ");
 
@@ -845,8 +1127,9 @@
       if (demo.has("eroare")) { A().showShellToast?.(T.failed, "error"); return; } /* AC-15 */
       p.stare = off ? "Inactiv" : "Activ";
       Object.assign(p, { modificatDe: who().name, modificatLa: nowIso() });
+      histPush(p, off ? "Dezactivare" : "Activare", off ? `Versiunea ${lastVersion(p)?.version || "—"} nu se mai aplică la evaluările următoare.` : `Versiunea ${lastVersion(p)?.version || "—"} se aplică din nou la evaluările următoare.`);
       writeStore();
-      audit(off ? "Dezactivare politică" : "Activare politică", policyRef(p), "Politică de arhivare", p.id);
+      audit(off ? "Dezactivare politică" : "Activare politică", `${policyRef(p)} · versiunea publicată ${lastVersion(p)?.version || "—"}`, "Politică de arhivare", p.id);
       refreshList(KIND);
       A().showShellToast?.(off ? "Politica a fost dezactivată." : "Politica a fost activată.", "success");
     });
@@ -1570,9 +1853,17 @@
       else if (k === "cand-confirm") decideCandidates("confirm");
       else if (k === "cand-reject") decideCandidates("reject");
       else if (k === "save-search") confirmSaveSearch();
+      else if (k === "publish") confirmPublish();
+      else if (k === "pol-restore") confirmPolRestore();
       return;
     }
-    if (t.closest("#case-action-modal [data-case-close], #case-action-modal .modal-close")) { raise(Boolean(odrawer && !odrawer.hidden)); pendingCand = null; }
+    if (t.closest("#case-action-modal [data-case-close], #case-action-modal .modal-close")) { raise(Boolean((odrawer && !odrawer.hidden) || (drawer && !drawer.hidden))); pendingCand = null; publishing = null; restoringP = null; }
+    const pend = t.closest("[data-arh-pending]");
+    if (pend) { event.stopPropagation(); openPending(pend.dataset.arhPending); return; }
+    const pvc = t.closest("[data-arh-pver-compare]");
+    if (pvc && D) { const p = policyOf(D.id); D.compare = { a: pvc.dataset.arhPverCompare, b: String(lastVersion(p).nr) }; closeModal(); raise(true); renderDrawer({ focus: "#arh-cmp-a" }); return; }
+    const pvr = t.closest("[data-arh-pver-restore]");
+    if (pvr) { openPolRestore(pvr.dataset.arhPverRestore); return; }
     if (t.closest("[data-arh-oclose]")) { closeObjDrawer(); return; }
     const or = t.closest("[data-arh-obj-restore]");
     if (or) { openObjRestore(or.dataset.arhObjRestore); return; }
@@ -1588,6 +1879,16 @@
     if (ap) { if (!disabled) applySaved(ap.dataset.arhSavedApply); }
   });
   document.addEventListener("keydown", (event) => {
+    /* the drawer tab strip: ← → Home End (the library tabs) */
+    const tabBtn = event.target.closest?.("[data-arh-d-tab]");
+    if (tabBtn && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key) && D) {
+      event.preventDefault();
+      const ids = TABS.map(([id]) => id);
+      const i = ids.indexOf(D.tab);
+      D.tab = ids[event.key === "Home" ? 0 : event.key === "End" ? ids.length - 1 : (i + (event.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length];
+      renderDrawer({ focus: `#arh-d-tab-${D.tab}` });
+      return;
+    }
     if (event.key !== "Enter" && event.key !== " ") return;
     const doc = event.target.closest?.("[data-arh-doc-open]");
     const vr = event.target.matches?.("[data-arh-version]") ? event.target : null;
