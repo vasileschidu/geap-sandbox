@@ -11,7 +11,7 @@
      · policy create / edit = the ONE drawer (sections „Domeniu de aplicare” · „Arhivare” · „Păstrare”; durations = the
        value group with a trailing unit `.e-permits-doc-val` + `__mode--end`); activate / deactivate = askConfirm;
      · candidates: row checkboxes (only Anunțat + „Necesită aprobare” = Da, shell `rowSelectable`), the selection bar
-       „Confirmă nimicirea” (red) · „Respinge”, row ⋮ for one candidate; confirm / reject = the library dialog;
+       „Șterge” (red) · „Respinge”, row ⋮ for one candidate; confirm / reject = the library dialog;
      · Registru Dosare (js/registre.js hooks `window.GEAPArhivare`): column + facet „Starea înregistrării” (Activ / Arhivat /
        Nimicit / Toate), „Data arhivării”, facets Perioada deciziei / Perioada arhivării / Tip obiect, ⋮ Arhivează ·
        Restaurează · Obiecte arhivate · Versiuni, the read-only record card of an archived / destroyed dossier (minimal
@@ -369,7 +369,7 @@
   const candMenu = (row) => {
     if (!selectable(row)) return "";
     const html = A().renderRowActions?.({ menu: [
-      { label: "Confirmă nimicirea", icon: "delete", danger: true, attrs: `data-arh-cand-confirm="${esc(row.id)}"` },
+      { label: "Șterge", icon: "delete", danger: true, attrs: `data-arh-cand-confirm="${esc(row.id)}"` },
       { label: "Respinge", icon: "circle-x", attrs: `data-arh-cand-reject="${esc(row.id)}"` }
     ], label: `${row.dosar} ${row.tip}` }) || "";
     return html ? `<span class="e-permits-workplace__row-actions">${html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>` : "";
@@ -449,7 +449,7 @@
       toolbar.insertAdjacentHTML("afterend", window.GEAPSelectionBar.html({
         label: "Candidați selectați",
         actionsHtml: `<button class="btn btn-neutral btn-sm" type="button" data-arh-bulk="reject">${icon("circle-x", 16)}<span>Respinge</span></button>
-          <button class="btn btn-destructive btn-sm" type="button" data-arh-bulk="confirm">${icon("delete", 16)}<span>Confirmă nimicirea</span></button>`
+          <button class="btn btn-destructive btn-sm" type="button" data-arh-bulk="confirm">${icon("delete", 16)}<span>Șterge</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-arh-selection>"));
     }
   }
@@ -510,7 +510,7 @@
         title: `Confirmi nimicirea a ${n} ${n === 1 ? "înregistrare" : n >= 20 ? "de înregistrări" : "înregistrări"}? Acțiunea nu se poate anula.`,
         body: `${candSummary(rows)}
           ${A().renderInfoNote?.("La data planificată procedura automată nimicește sau anonimizează înregistrările, după „Acțiune la expirarea păstrării”. Actul permisiv nu se nimicește.") || ""}`,
-        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-destructive btn-rounded" type="button" data-arh-confirm="cand-confirm">Confirmă</button></div>`
+        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-destructive btn-rounded" type="button" data-arh-confirm="cand-confirm">Șterge</button></div>`
       });
       return;
     }
