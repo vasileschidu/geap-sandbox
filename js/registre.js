@@ -111,7 +111,7 @@
     Case: [
       ["Dosar", [["nr", "Nr. dosar", "text", 168], ["tip", "Tip solicitare", "enum", 140], ["serviciu", "Serviciu", "enum", 232], ["statut", "Statut dosar", "enum", 152], ["depus", "Data depunerii", "date", 160], ["termen", "Termen de examinare", "date", 176]]],
       ["Solicitant", [["solicitant", "Solicitant", "text", 208], ["companie", "Companie", "text", 208]]],
-      ["Responsabil", [["subdiviziune", "Autoritate / Subdiviziune", "enum", 196], ["actor", "Actor responsabil", "enum", 176], ["modDistribuire", "Mod distribuire", "enum", 140]]]
+      ["Responsabil", [["subdiviziune", "Autoritate / Subdiviziune", "enum", 196], ["actor", "Actor responsabil", "enum", 208], ["modDistribuire", "Mod distribuire", "enum", 140]]]
     ],
     Permit: [
       ["Act permisiv", [["nr", "Nr. act", "text", 168], ["denumire", "Denumire act", "enum", 264], ["tip", "Tip act", "enum", 140], ["status", "Status", "enum", 144], ["emis", "Data emiterii", "date", 160], ["valabil", "Valabil până la", "date", 168], ["dosar", "Nr. dosar", "text", 160]]],
@@ -516,7 +516,11 @@
       serviciu: (r) => `<span data-cell-tooltip="${esc(r.serviciu)}">${esc(r.serviciu)}</span>`,
       subdiviziune: (r) => stack(r.subdivision, r.authority),
       statut: (r) => tag(r.statut, caseTone(r)),
-      actor: (r) => stack(r.actor, r.distLine || r.actorRol, { subHtml: r.distHtml }),
+      /* dist-mode-v2: a real holder = the shared table person (avatar + name + „aleatoriu” / „manual · supervisor”), the
+         same cell as the Dosare list; „Nerepartizat” / „—” stay plain text */
+      actor: (r) => (r.actor && !["—", "Nerepartizat"].includes(r.actor) && A().renderTablePersonCell
+        ? A().renderTablePersonCell(r.actor, r.distHtml || esc(r.actorRol))
+        : stack(r.actor, r.distLine || r.actorRol, { subHtml: r.distHtml })),
       depus: (r) => dateTimeCell(r.depus),
       termen: (r) => (FINAL.includes(r.status) || r.status === "radiat" ? dateCell(r.termen) : untilCell(r.termen, true, caseToday()))
     },

@@ -22014,6 +22014,9 @@ document.addEventListener("DOMContentLoaded", () => {
       dossierStore: () => dossierDb,
       /* dist-mode-v1: the distribution record of a dossier, as list text / facet value */
       distListLine: (row) => distListLine(distRecordOf(row)), distListHtml: (row) => distListHtml(distRecordOf(row)), distModeLabel: (row) => distModeLabel(row),
+      /* dist-mode-v2 (2026-11-24): a person + distribution mode in ANY table cell = the Dosare list „Specialist” cell
+         (avatar xs · name 14 medium · second line 12/16 tertiary, the mode word medium base) — registries reuse it */
+      renderTablePersonCell: (name, subHtml = "") => renderTablePerson((dossierDb?.specialisti || []).find((p) => p.nume === name) || personFromName(name), subHtml ? { html: subHtml } : ""),
       /* US-255 (js/ghiseu.js „Dosare suspendate”): the suspension record of a case (reason, term, days left) */
       dosarSuspension, resumeSuspendedCase,
       /* registre-v2 (js/registre-admin.js): the menu redrawn after a publish / grant / deprecation (the active item

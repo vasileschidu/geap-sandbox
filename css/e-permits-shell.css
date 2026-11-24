@@ -2792,6 +2792,15 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* dist-mode-v2: in a narrow column the person cell stays inside the td — both lines end in an ellipsis (tooltip via
+   js/table-cells.js), never under the next column */
+td .e-permits-workplace__person {
+  max-width: 100%;
 }
 
 /* dist-mode-v1: the distribution method word („aleatoriu” / „manual”) one step bolder and darker (base text colour), same size */

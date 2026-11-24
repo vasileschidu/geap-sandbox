@@ -84,7 +84,7 @@
     {
      "key": "actor",
      "label": "Actor responsabil",
-     "width": 176,
+     "width": 208,
      "align": "left",
      "visible": true,
      "sortable": true,
