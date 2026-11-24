@@ -217,12 +217,17 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "locality", span: 6, label: "Orașul/Comuna", kind: "listă", required: true, visible: true, source: "GEAP_d_localitati · 1843 localități", parent: "Raion/Municipiu" },
     { key: "sector", span: 6, label: "Sector", kind: "listă", required: false, visible: false, parent: "Orașul/Comuna", note: "Apare doar când Orașul/Comuna = Chișinău." },
     { key: "street", span: 8, label: "Stradă", kind: "listă", required: true, visible: true, source: "GEAP_d_strazi · 493 străzi", parent: "Orașul/Comuna" },
+    /* US-54 data model (2026-11-24): Cod poștal (derived from the locality), Telefon and Email are parts of the component too */
+    { key: "postalCode", span: 4, label: "Cod poștal", kind: "text", required: false, visible: true, parent: "Orașul/Comuna", note: "Se completează din localitate.", noDefault: true },
     { key: "house", span: 4, label: "Casă", kind: "text", required: false, visible: true },
     { key: "floor", span: 4, label: "Etaj", kind: "număr", required: false, visible: true },
     { key: "block", span: 4, label: "Bloc", kind: "text", required: false, visible: true },
     { key: "stair", span: 4, label: "Scară", kind: "text", required: false, visible: true },
     { key: "apartment", span: 4, label: "Apartament/Oficiu", kind: "text", required: false, visible: true },
-    { key: "cadastral", span: 6, label: "Cod cadastral", kind: "text", required: false, visible: true, source: "MConnect · SRRE · verificat în timp real", noDefault: true },
+    { key: "phone", span: 6, label: "Telefon", kind: "text", required: false, visible: true, note: "Nu vine din SRRE: îl completează solicitantul." },
+    { key: "email", span: 6, label: "Email", kind: "text", required: false, visible: true, note: "Nu vine din SRRE: îl completează solicitantul." },
+    { key: "cadastral", span: 6, label: "Cod cadastral", kind: "text", required: false, visible: true, source: "MConnect · SRRE · verificat în timp real", noDefault: true,
+      facts: [["Registru", "SRRE prin MConnect"], ["Completează", "Țară, Raion/Municipiu, Orașul/Comuna, Sector, Stradă, Casă, Bloc, Apartament/Oficiu — doar citire"], ["Jurnal", "Fiecare interogare (MLog)"]] },
   ];
   const addressConfig = (field) => ADDRESS_PARTS.map((part) => {
     const saved = (field.addressConfig || []).find((item) => item.key === part.key) || {};
@@ -929,9 +934,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const parts = {};
         config.forEach((part) => { if (part.key !== "sector" && part.key !== "cadastral") parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) }; });
         const cadastral = config.find((part) => part.key === "cadastral");
+        /* Telefon / Email = the FO phone and email fields of the address (not from SRRE, always editable — US-54 AC-17) */
+        const contact = (key, extra) => { const part = config.find((item) => item.key === key); return part.visible ? { id: `${base.id}-${key}`, label: part.label, required: Boolean(part.required), span: part.span, ...extra } : null; };
         /* fb-win-v1: the part widths set in the address window (12-column grid, „span” per part) */
         const spans = Object.fromEntries(config.map((part) => [part.key, part.span]));
-        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, spans, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts() };
+        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, spans, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts(),
+          phone: contact("phone", { placeholder: "60 000 000", countryCodes: [{ flag: "🇲🇩", code: "+373" }] }), email: contact("email", { type: "email", placeholder: "adresa@exemplu.md" }) };
       }
       default: return base;
     }
@@ -1339,6 +1347,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join("")}
       </div>`;
   }
+  /* the same band for the address parts: name + red star + grey type caption (Listă / Text / Număr) */
+  const PART_TYPE = { "listă": "Listă", text: "Text", "număr": "Număr" };
+  function addressChipBandHtml(field) {
+    return `
+      <div class="e-permits-builder__subs e-permits-builder__subs--bare" role="group" aria-label="Părțile adresei „${esc(fieldName(field))}”" data-fb-address-chips>
+        <span class="e-permits-builder__subs-label" aria-hidden="true">Părți</span>
+        ${addressConfig(field).filter((part) => part.visible).map((part) => `<span class="e-permits-builder__sub e-permits-builder__sub--static" data-fb-address-chip="${part.key}"><span data-cell-tooltip>${esc(part.label)}</span>${part.required ? requiredMark() : ""}<span class="e-permits-builder__sub-type">${esc(PART_TYPE[part.kind] || "Text")}</span></span>`).join("")}
+      </div>`;
+  }
   function emptyContainerHtml(field) {
     const inGrid = field.type === "grid";
     return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Apasă „Editează grila” și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
@@ -1410,6 +1427,16 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-builder__field-body">
           ${cardLabelHtml(field)}
           ${kidsOf(field).length ? chipBandHtml(field) : `<p class="e-permits-fo-field__hint e-permits-builder__field-empty">Nicio coloană încă</p>`}
+          ${windowButtonHtml(field)}
+        </div>`;
+    }
+    /* address-card-v1 (user 2026-11-24): the address on the form = the grid card — the chip band of its VISIBLE parts
+       (hidden ones left out, „Cod cadastral” when shown), „Editează adresa” opens the address window */
+    if (t === "address") {
+      return `
+        <div class="e-permits-builder__field-body">
+          ${cardLabelHtml(field)}
+          ${addressChipBandHtml(field)}
           ${windowButtonHtml(field)}
         </div>`;
     }
@@ -1510,7 +1537,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </article>`;
   }
   /* an address part in the address window: the same card — kind tag · n/12 · „Ascunde”, label + red star, grey preview */
-  const PART_PREVIEW = { country: "Republica Moldova", district: "Selectează raionul", locality: "Selectează localitatea", sector: "Selectează sectorul", street: "Selectează strada", house: "Nr.", floor: "0", block: "Nr.", stair: "Scara", apartment: "Numărul ap.", cadastral: "Ex.: 0100510.123" };
+  const PART_PREVIEW = { country: "Republica Moldova", district: "Selectează raionul", locality: "Selectează localitatea", sector: "Selectează sectorul", street: "Selectează strada", postalCode: "MD-0000", phone: "60 000 000", email: "adresa@exemplu.md", house: "Nr.", floor: "0", block: "Nr.", stair: "Scara", apartment: "Numărul ap.", cadastral: "Ex.: 0100510.123" };
   function addressPartCardHtml(part, selectedKey) {
     const selected = selectedKey === part.key;
     const list = part.kind === "listă";
@@ -2163,6 +2190,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${group("Lățime", width, { id: "width", info: "Câte din cele 12 coloane ale rândului ocupă partea. Pe telefon, toată lățimea." })}
         ${group("Date", `
           ${part.source ? ui().renderInfoNote?.(`Sursă: ${esc(part.source)}`) || "" : ""}
+          ${part.facts ? sourceFacts(part.facts.map(([dt, dd]) => [dt, esc(dd)])) : ""}
           ${part.parent ? `<p class="e-permits-builder__part-cascade">${icon("icon-arrow-right", 16)}<span>Se filtrează după <strong>${esc(part.parent)}</strong></span></p>` : ""}
           ${part.note ? `<p class="e-permits-fo-field__hint">${esc(part.note)}</p>` : ""}
           ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.key}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.key}"` }))}`)}
@@ -2848,6 +2876,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const isOpen = open.has(part.key);
           const details = `
             ${part.source ? ui().renderInfoNote?.(`Sursă: ${esc(part.source)}`) || "" : ""}
+            ${part.facts ? sourceFacts(part.facts.map(([dt, dd]) => [dt, esc(dd)])) : ""}
             ${part.parent ? `<p class="e-permits-builder__part-cascade">${icon("icon-arrow-right", 16)}<span>Se filtrează după <strong>${esc(part.parent)}</strong></span></p>` : ""}
             ${part.note ? `<p class="e-permits-fo-field__hint">${esc(part.note)}</p>` : ""}
             ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.key}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.key}"` }))}`;

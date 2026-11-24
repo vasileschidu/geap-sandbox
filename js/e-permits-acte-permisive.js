@@ -1207,7 +1207,8 @@
       const addressMode = !cadastralOn ? "a" : cadastral.required ? "c" : "b";
       const reqAttr = (key) => ((parts[key]?.required ?? PART_REQUIRED[key]) ? ` data-fo-address-required="${key}"` : "");
       const searchHint = cadastralOn
-        ? "Caută o adresă salvată sau introdu un cod cadastral și alege „Caută codul cadastral” din listă."
+        /* US-54 AC-06 (2026-11-24: the AC text, in the „tu” form of the product copy) */
+        ? "Caută o adresă salvată sau introdu codul cadastral. La un cod cadastral, adresa se completează automat din Registrul de Stat al Bunurilor Imobile."
         : "Selectarea unei adrese existente pre-completează toate câmpurile";
       const searchId = `fo-casc-search-${uid}`;
       /* with „Cod cadastral” on, the search takes a code too — its label / placeholder say so */
@@ -1303,7 +1304,7 @@
                 <ul class="e-permits-fo-select__list" id="${stradaId}-list" role="listbox" aria-labelledby="${stradaId}" hidden></ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("postalCode", 4)}"${hiddenAttr("postalCode")}>
               <label for="${uid}-postal">Codul Poștal</label>
               <div class="e-permits-fo-input is-disabled">
                 <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
@@ -2170,6 +2171,15 @@
         else if (root.contains(document.activeElement)) document.activeElement.blur();
       }
 
+      /* US-54 AC-23: every SRRE request → the platform audit journal (code, result, time stamp) — the session journal
+         of js/event-timeline.js (`GEAPEventTimeline.journal()`); the prototype has no journal page to show it */
+      function journal(code, result, status = "Reușit") {
+        window.GEAPEventTimeline?.log?.(
+          { at: new Date().toISOString(), user: frontOfficeSelectedSubject?.name || "", type: "Solicitarea adresei din SRRE prin MConnect", status, detail: `Cod cadastral ${code} · ${result}` },
+          { module: "MConnect", objectType: "Cerere", objectId: "", related: [] }
+        );
+      }
+
       /* an explicit request (submit / Enter / the list's „Caută codul cadastral” row) — never on
          a typing pause or on blur. A submit re-runs even for the same code. */
       async function lookup(code, from = "search") {
@@ -2188,9 +2198,10 @@
         setBusy(false);
         const address = mode === "invalid" ? null : db.parcels?.[code];
         /* the registry does not answer at all → the alert above; this parcel has no address → AC-20 */
-        if (mode === "indisponibil") { release(); setStatus(null); setDown(true); return; }
-        if (address?.unavailable) { release(); setDown(false); setStatus("unavailable", from); return; }
-        if (!address) { release(); setDown(false); setStatus("invalid", from); return; }
+        if (mode === "indisponibil") { journal(code, "SRRE nu a răspuns", "Eșuat"); release(); setStatus(null); setDown(true); return; }
+        if (address?.unavailable) { journal(code, "Adresă indisponibilă", "Eșuat"); release(); setDown(false); setStatus("unavailable", from); return; }
+        if (!address) { journal(code, "Cod inexistent în SRRE", "Eșuat"); release(); setDown(false); setStatus("invalid", from); return; }
+        journal(code, "Adresă returnată");
         setDown(false);
         fill(address, code, db.postalCodes?.[address.locality] || "");
         setStatus("success", from);

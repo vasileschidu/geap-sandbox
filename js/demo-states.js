@@ -2352,6 +2352,42 @@
           await h.wait(200);
         }),
         "adr-07": adr({}, code("0100510.999")),
+        /* AC-21: the invalid code corrected (typed, not sent yet) → the error is gone, the hint is back */
+        "adr-07a": adr({}, async (h) => { await code("0100510.999")(h); await typeCode("0100510.123")(h); (await h.find(ADR)).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await h.wait(200); }),
+        /* US-54 in the CURRENT Form Designer (fb-win-v1 address window, 2026-11-24; the panel „Date” rows = adr-01…):
+           w1 the window — „Cod cadastral” is a part card, shown by default (AC-02 / AC-03) · w2 selected → its panel:
+           Vizibil ✓ + Obligatoriu ✱ (checkbox) + SRRE facts (Registru · Completează · Jurnal) · w3 Obligatoriu on → red star
+           on the card · w4 hidden from its card („Ascunde”) → listed in „Părți ascunse” (AC-04) · w5 Previzualizare with
+           it hidden → no code field, search „Caută adresa” (AC-04) · w6 Previzualizare by default (code on, Telefon + Email).
+           BO desktop only. Scope for QA: .e-permits-gridb */
+        ...(() => {
+          const W = ".e-permits-gridb:not([hidden])";
+          const part = (key) => `${W} [data-gb-part='${key}']`;
+          const win = (run) => ({ page: PP_FO, flow: "builder", ready: "[data-fb-ready]", run: async (h) => {
+            await h.click("[data-builder-component='address']");
+            const cardSel = `[data-builder-field][data-id='${window.GEAPFormBuilder.state.sel.id}']`;
+            await h.scroll(cardSel);
+            await h.click(`${cardSel} [data-gb-open]`);
+            await h.find(part("cadastral"));
+            await h.wait(250);
+            if (run) await run(h);
+          } });
+          const hide = async (h) => { await h.click(`${part("cadastral")} [data-gb-hide-part]`); await h.wait(250); };
+          const preview = async (h) => { await h.click(`${W} [data-gb-mode='preview']`); await h.find(`${W} [data-gb-preview] [data-fo-cascade-address]`); await h.wait(300); };
+          /* address-card-v1: the card on the form = the grid card's chip band of the visible parts + „Editează adresa” —
+             w0 by default (Cod cadastral among the chips) · w0a Cod cadastral hidden (panel „Date” › Vizibil off) → no chip */
+          const CARD = () => `[data-builder-field][data-id='${window.GEAPFormBuilder.state.sel.id}']`;
+          return {
+            "adr-w0": bld(async (h) => { await h.scroll(CARD()); }, { scroll: false }),
+            "adr-w0a": bld(async (h) => { await h.click("[data-address-visible='cadastral']"); await h.scroll(CARD()); }, { scroll: false }),
+            "adr-w1": win(async (h) => { await h.scroll(part("cadastral")); }),
+            "adr-w2": win(async (h) => { await h.click(part("cadastral")); await h.wait(250); }),
+            "adr-w3": win(async (h) => { await h.click(part("cadastral")); await h.click(`${W} [data-address-required='cadastral']`); await h.wait(250); }),
+            "adr-w4": win(hide),
+            "adr-w5": win(async (h) => { await hide(h); await preview(h); }),
+            "adr-w6": win(preview),
+          };
+        })(),
         "adr-08": adr({}, code("0100999.777")),
         "adr-09": adr({ codcadastral: "ascuns" }),
         "adr-09a": adr({ codcadastral: "obligatoriu" }),
@@ -2368,7 +2404,8 @@
           await h.scroll("[data-builder-preview-grid] [data-fo-cascade-address]");
         }, { scroll: false }),
         "adr-12a": bld(async (h) => {
-          await h.click("[data-address-required='cadastral']");
+          /* the labelled checkbox sits in the closed row body since fb-v3 — the row's ✱ chip is the same toggle */
+          await h.click("[data-address-required-chip='cadastral']");
           await h.click("[data-builder-mode='preview']");
           await h.scroll("[data-builder-preview-grid] [data-fo-cadastral-field]");
         }, { scroll: false }),

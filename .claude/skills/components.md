@@ -4462,8 +4462,9 @@ then read „sub câmpul în care a fost introdus codul”, not only „sub «Ca
   title „Caută codul cadastral «<code>»”, meta „în Registrul de Stat al Bunurilor Imobile”, active by
   default — click / Enter sends it and writes the code into „Cod cadastral”; the saved codes that start
   with the typed digits follow. Enter with the list closed sends too. Saved codes still show on focus
-  (empty field). The search keeps its live-filter behaviour (no submit). Search hint: „Căutați o adresă
-  salvată sau introduceți un cod cadastral și alegeți „Caută codul cadastral” din listă.”
+  (empty field). The search keeps its live-filter behaviour (no submit). Search hint (AC-06 text in the
+  „tu” form, 2026-11-24): „Caută o adresă salvată sau introdu codul cadastral. La un cod cadastral, adresa se completează
+  automat din Registrul de Stat al Bunurilor Imobile.”
 - **Sync**: a code typed / chosen in one field is written into the other (search × class state
   included); the search's × or a non-code address text empties the code; a saved address chosen
   in the search drops the code (`root.foCadastralRelease`).
@@ -4517,9 +4518,16 @@ then read „sub câmpul în care a fost introdus codul”, not only „sub «Ca
 - **Saved-codes list**: the FO address-search list (`.e-permits-fo-address-search__list` options,
   icon `icon-home-line`, title = code, meta = saved address); empty = `li.e-permits-fo-caem__empty`
   „Nu aveți coduri cadastrale salvate.”
-- **Builder parts** (`field.parts`, keyed `country/district/locality/street/house/floor/block/stair/apartment`):
-  `visible: false` → the field gets `hidden data-fo-part-hidden` (CSS `display:none`), `required` →
-  red star. The sector stays conditional (Chișinău). `field.searchLabel` (+ `field.required` star)
+- **Builder parts** (`field.parts`, keyed `country/district/locality/street/postalCode/house/floor/block/stair/apartment`;
+  `phone` / `email` → `field.phone` / `field.email`, the FO phone + email fields of the address — US-54 data model,
+  2026-11-24): `visible: false` → the field gets `hidden data-fo-part-hidden` (CSS `display:none`), `required` →
+  red star. The part model (`ADDRESS_PARTS`, js/form-builder.js) = Țară · Raion · Oraș · Sector · Stradă · Cod poștal
+  (derived) · Casă · Etaj · Bloc · Scară · Apartament · Telefon · Email · Cod cadastral; a part may carry `facts`
+  (Cod cadastral: Registru SRRE prin MConnect · Completează … — doar citire · Jurnal: fiecare interogare) = the
+  builder's `sourceFacts` list under its source note (part panel in the address window + the „Date” row). Each SRRE
+  request is written to the session audit journal (`GEAPEventTimeline.log`, AC-23; no journal page in the prototype).
+  Builder demo in the CURRENT designer: `adr-w1…w6` (address window: card, panel, Obligatoriu, hidden → „Părți
+  ascunse”, Previzualizare hidden / default). The sector stays conditional (Chișinău). `field.searchLabel` (+ `field.required` star)
   replaces the „Caută adresa” label — used by the preview for the component label.
 - **Form Builder** (2026-10-13): the Adresă component's canvas card AND Preview render through
   `cascadeAddressHtml` (via `toFo` → `GEAPFormRender.fieldHtml`) from its `addressConfig` (Vizibil,
@@ -5149,6 +5157,11 @@ address part resized (Casă 3/12, panel Lățime) · `15` address Previzualizare
 reorder · `06` lock tooltip · `07b` level 3 · `09` errors menu · `13` panel entry. Removed as duplicates: `fb-gb-02`
 (= win-02), `03` (= win-03), `07` (= win-07), `08` (= win-08), `10` (= win-09), `11` (= win-10), `12` (= win-11),
 `fb-row-10` (= win-03), `fb-row-12` / `fb-row-13` (chips are not clickable since chip-band-v2).
+**Address card on the form (address-card-v1, 2026-11-24, user):** the Adresă card = the grid card — label row, the same
+`.e-permits-builder__subs--bare` band (`addressChipBandHtml`: „Părți” + one `.e-permits-builder__sub--static` per VISIBLE
+part: name + red star + `.e-permits-builder__sub-type` Listă / Text / Număr; hidden parts left out, „Cod cadastral” when
+shown), then `windowButtonHtml` „Editează adresa” (pen) → the address window. Never real inputs on the canvas. Demo
+`adr-w0` (default) / `adr-w0a` (Cod cadastral hidden).
 
 **Row cards (row-cards-v1, 2026-11-20)** — states `fb-row-01` empty (boxed empty state) · `02` new row in its edit card
 (F09 „Produse alimentare depozitate”: Denumirea 6 · Cantitatea 3 · Unitatea de măsură 3 / 4 × Îngustă packaging) · `03`

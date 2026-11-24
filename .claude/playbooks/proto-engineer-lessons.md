@@ -4539,3 +4539,9 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-23 · arh-v1 QA: a BO registry with `selectable: false` still gets the shell's 2nd pinned column at `left: 43px` (made for the checkbox) → it slides over column 1 when a wide table scrolls (hover-audit „covered th”): pin only column 1 for that kind (copy the registre.css `reg-` block). hover-audit can hang on a state (0 CPU) — kill it, kill its orphan Chrome by port, rerun that state alone.
 - 2026-11-24 · fb-win-v2 (editing window Anulează / Salvează): the cheapest „draft” = keep editing the live form behind an inert window and snapshot on open — `draftBegin / draftDiscard / draftSave` in internals restore form + undo / redo + G.dirty exactly (cancel) or collapse the window's edits into ONE undo step (save). Never reuse `revertTo` for a cancel (it pushes an undo entry). Esc at the top level must call `cancel()` for the address window too (it returned early before).
 - 2026-11-24 · `sed -i` on macOS needs `-i ''` (a bare `-i 's/…/'` silently eats the script as the backup suffix and fails every file after the first); components.md regexes must not start mid-line-break („switch (the designer's)” spans two lines).
+- 2026-11-24 · US-54 verify (adr-us54-v1): after the Form Designer revert only ONE adr state broke (adr-12a: the labelled
+  „Obligatoriu” checkbox now sits in the CLOSED row body → use the row's ✱ chip `[data-address-required-chip]`). Capture the
+  whole prefix first (`capture.mjs --prefix adr- --wait 30000`, ~25 min for 55 states) and grep DEMO-ERROR before reading code.
+- 2026-11-24 · Address part model (`ADDRESS_PARTS`) lacked Cod poștal / Telefon / Email of the US data model → parts added;
+  Telefon / Email map to the FO `field.phone` / `field.email` in `toFo`, a part's `facts` = the builder `sourceFacts` list.
+  User: the Adresă card on the canvas = the grid card chip band (`addressChipBandHtml`, visible parts only) + „Editează adresa”.
