@@ -389,6 +389,9 @@
     sortValue: (row, key) => (key === "stare" ? `${CAND_STATES.indexOf(row.stare)}|${row.planificat}` : String(row[key] ?? "")),
     filterToken: (row, token) => token !== "tab:pol",
     rowSelectable: (row) => selectable(row),
+    /* arh-lockbox-v1: why the row's checkbox is disabled (shell rowLockedBox) */
+    rowSelectReason: (row) => (row.stare === "Anunțat" && !row.aprobare ? "Se nimicește automat, fără aprobare."
+      : ({ Confirmat: "Înregistrarea este deja confirmată pentru nimicire.", Respins: "Nimicirea a fost respinsă.", Executat: "Înregistrarea a fost deja nimicită.", Restaurat: "Înregistrarea a fost restaurată." })[row.stare] || ""),
     renderCell: (row, key) => {
       switch (key) {
         case "actiuni": return candMenu(row);
@@ -934,7 +937,7 @@
       if (a.control === "ArchiveRecord") {
         if (canArchive()) out.push({ ...a, label: "Arhivează" });
         if (canRestore()) out.push({ key: "arh-restore", type: "custom", control: "RestoreRecord", label: "Restaurează", icon: "undo", roles: [] });
-        out.push({ key: "arh-objects", type: "custom", control: "ArchivedObjects", label: "Obiecte arhivate", icon: "page-child", roles: [] });
+        out.push({ key: "arh-objects", type: "custom", control: "ArchivedObjects", label: "Obiecte arhivate", icon: "list-bullets", roles: [] });
         out.push({ key: "arh-versions", type: "custom", control: "Versions", label: "Versiuni", icon: "history", roles: [] });
         return;
       }
@@ -942,7 +945,7 @@
     });
     if (!out.some((a) => a.key === "arh-objects")) {
       if (canRestore()) out.push({ key: "arh-restore", type: "custom", control: "RestoreRecord", label: "Restaurează", icon: "undo", roles: [] });
-      out.push({ key: "arh-objects", type: "custom", control: "ArchivedObjects", label: "Obiecte arhivate", icon: "page-child", roles: [] }, { key: "arh-versions", type: "custom", control: "Versions", label: "Versiuni", icon: "history", roles: [] });
+      out.push({ key: "arh-objects", type: "custom", control: "ArchivedObjects", label: "Obiecte arhivate", icon: "list-bullets", roles: [] }, { key: "arh-versions", type: "custom", control: "Versions", label: "Versiuni", icon: "history", roles: [] });
     }
     return out;
   }

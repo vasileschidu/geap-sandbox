@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="css/empty-state.css?v=empty-top-v2">
   <link rel="stylesheet" href="css/form-builder.css?v=section-visible-v1">
   <!-- gb-v1: Constructor grilă — the full-screen editable-grid builder (js/grid-builder.js) -->
-  <link rel="stylesheet" href="css/grid-builder.css?v=adr-hide-v1">
+  <link rel="stylesheet" href="css/grid-builder.css?v=adr-grid-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=fb-prod-v1">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
@@ -89,7 +89,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=adr-hide-v1"></script>
+  <script src="js/demo-states.js?v=adr-grid-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -115,15 +115,15 @@
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=adr-us54-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=adr-grid-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=adr-hide-v1" defer></script>
+  <script src="js/form-builder.js?v=adr-grid-v1" defer></script>
   <!-- Constructor grilă (gb-v1): registers before the builder's DOMContentLoaded attaches it -->
-  <script src="js/grid-builder.js?v=adr-hide-v1" defer></script>
+  <script src="js/grid-builder.js?v=adr-grid-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-prod-v1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
-  <script src="js/arhivare.js?v=arh-sterge-v1" defer></script>
+  <script src="js/arhivare.js?v=arh-lockbox-v1" defer></script>
   <script src="js/registre.js?v=arh-v1" defer></script>
   <script src="js/registre-admin.js?v=coding-rules-v1" defer></script>
   <script src="js/view-switch.js?v=calendar-views-v3" defer></script>
@@ -3684,7 +3684,7 @@
   <script src="js/facet-filter.js?v=dsh-feature-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=doc-viewer-tabs-v1"></script>
-  <script src="js/e-permits-shell.js?v=arh-v1"></script>
+  <script src="js/e-permits-shell.js?v=arh-lockbox-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
