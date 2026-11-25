@@ -4,16 +4,18 @@
    the session's changes live in localStorage `e-permits-arhivare-v2` (a demo link starts clean).
 
    NO new engine, no new component:
-     · Setări › „Politici de arhivare și păstrare” = the BO registry (`GEAPShellRegistries.arhivare`, nav `arhivare`) and the
-       tab „Candidați la nimicire” = a second registry (`arhivare-candidati`, hidden nav item) — the status-tab bar switches
-       between them (view tabs, no counts); access as Permisiuni: Administrator central, Administrator local only when
-       granted (`?arhivare=acordat`), everyone else = the boxed lock empty state „Nu ai acces la această secțiune.”;
+     · PLACEMENT (arh-bo-v1, 2026-11-25, PO): the POLICIES stay in the Admin Portal — Setări › „Arhivare și păstrare” = the
+       registry `arhivare` (nav `arhivare`), list only, no tabs. The CANDIDATES and the destruction procedure live in the
+       BackOffice — „Candidați la nimicire” = its own registry (`arhivare-candidati`), a visible item of the „Registre” group
+       injected by the chained `GEAPShellNavHook` (after „Registru Dosare”); access as Permisiuni: Administrator central,
+       Administrator local only when granted (`?arhivare=acordat`), everyone else = the boxed lock empty state „Nu ai acces la
+       această secțiune.” (audit line names the screen);
      · policy create / edit = the ONE drawer (sections „Domeniu de aplicare” · „Arhivare” · „Păstrare”; durations = the
        value group with a trailing unit `.e-permits-doc-val` + `__mode--end`); activate / deactivate = askConfirm;
      · candidates: row checkboxes (only Anunțat + „Necesită aprobare” = Da, shell `rowSelectable`), the selection bar
        „Șterge” (red) · „Respinge”, row ⋮ for one candidate; confirm / reject = the library dialog;
      · Registru Dosare (js/registre.js hooks `window.GEAPArhivare`): column + facet „Starea înregistrării” (Activ / Arhivat /
-       Nimicit / Toate), „Data arhivării”, facets Perioada deciziei / Perioada arhivării / Tip obiect, ⋮ Arhivează ·
+       Șters / Toate), „Data arhivării”, facets Perioada deciziei / Perioada arhivării / Tip obiect, ⋮ Arhivează ·
        Restaurează · Obiecte arhivate · Versiuni, the read-only record card of an archived / destroyed dossier (minimal
        data), the automatic procedures' results as journal events; „Căutările mele” + „Salvează căutarea” on its toolbar.
    Publishing (arh-pub-v1, 2026-11-24 — PO: „versiuni și publicare, ca și la alte configurări”) = the KPI / widget model
@@ -51,6 +53,7 @@
   const NAV = "arhivare";
   const NAV_C = "arhivare-candidati";
   const TITLE = "Arhivare și păstrare";
+  const TITLE_C = "Candidați la nimicire";
   const STORE_KEY = "e-permits-arhivare-v2"; /* v2 = arh-pub-v1 (versions, drafts) */
   /* AC texts, word for word */
   const T = {
@@ -81,7 +84,7 @@
   const ACTIONS = ["Nimicire", "Anonimizare"];
   const CAND_STATES = ["Anunțat", "Confirmat", "Respins", "Restaurat", "Executat"];
   const CAND_TONE = { "Anunțat": "warning", "Confirmat": "danger", "Respins": "brand", "Restaurat": "success", "Executat": "neutral" };
-  const STARE_TONE = { Activ: "success", Arhivat: "neutral", Nimicit: "danger" };
+  const STARE_TONE = { Activ: "success", Arhivat: "neutral", Șters: "danger" };
   const LEVEL_RANK = { "Platformă": 0, "Autoritate": 1, "Serviciu": 2 };
   const DEFAULT_RESTORE = { n: 90, u: "zile" };
 
@@ -246,10 +249,6 @@
     nepublicat: unpublished(p),
     modificat: p.modificatLa
   });
-  const tabsOf = (active) => [
-    { id: "politici", label: "Politici", filter: "tab:pol", count: false },
-    { id: "candidati", label: "Candidați la nimicire", filter: "tab:cand", count: false }
-  ].map((t) => ({ ...t, active: t.id === active }));
   function registryDb() {
     if (!S.data) load().then(() => refreshList(KIND));
     const me = who();
@@ -270,8 +269,6 @@
           selectable: false,
           searchPlaceholder: "Caută după autoritate sau serviciu",
           columns: [...COLS.map(([key]) => key), ...(me.has ? ["actiuni"] : [])],
-          tabs: tabsOf("politici"),
-          defaultTab: "politici",
           primaryAction: me.has ? { id: "arh-new", label: "Adaugă politică" } : null,
           toolbarLabel: "Filtrare politici",
           exportLabel: "Exportă"
@@ -399,12 +396,10 @@
       },
       views: {
         [KIND_C]: {
-          title: TITLE,
+          title: TITLE_C,
           selectable: me.has,
           searchPlaceholder: "Caută după nr. dosar sau serviciu",
           columns: [...C_COLS.map(([key]) => key), ...(me.has ? ["actiuni"] : [])],
-          tabs: tabsOf("candidati"),
-          defaultTab: "candidati",
           toolbarLabel: "Filtrare candidați la nimicire"
         }
       },
@@ -432,11 +427,10 @@
     searchText: (row) => { const raw = [row.dosar, row.serviciu, row.subdiviziune].join(" "); return `${raw} ${fold(raw)}`; },
     /* default: Anunțat first (the ones waiting for a decision), then by the planned date */
     sortValue: (row, key) => (key === "stare" ? `${CAND_STATES.indexOf(row.stare)}|${row.planificat}` : String(row[key] ?? "")),
-    filterToken: (row, token) => token !== "tab:pol",
     rowSelectable: (row) => selectable(row),
     /* arh-lockbox-v1: why the row's checkbox is disabled (shell rowLockedBox) */
     rowSelectReason: (row) => (row.stare === "Anunțat" && !row.aprobare ? "Se nimicește automat, fără aprobare."
-      : ({ Confirmat: "Înregistrarea este deja confirmată pentru nimicire.", Respins: "Nimicirea a fost respinsă.", Executat: "Înregistrarea a fost deja nimicită.", Restaurat: "Înregistrarea a fost restaurată." })[row.stare] || ""),
+      : ({ Confirmat: "Înregistrarea este deja confirmată pentru nimicire.", Respins: "Nimicirea a fost respinsă.", Executat: "Înregistrarea a fost deja ștearsă.", Restaurat: "Înregistrarea a fost restaurată." })[row.stare] || ""),
     renderCell: (row, key) => {
       switch (key) {
         case "actiuni": return candMenu(row);
@@ -474,20 +468,7 @@
     syncChrome();
   }
 
-  /* ---------------------------------------------------------------- tabs = two registries; selection bar */
-  document.addEventListener("click", (event) => {
-    const tab = event.target.closest?.("[data-workplace-tab]");
-    const reg = document.querySelector("[data-workplace]");
-    if (!tab || !reg) return;
-    const kind = reg.dataset.registryKind;
-    const target = kind === KIND && tab.dataset.workplaceTab === "candidati" ? NAV_C : kind === KIND_C && tab.dataset.workplaceTab === "politici" ? NAV : "";
-    if (!target) return;
-    event.stopImmediatePropagation();
-    event.preventDefault();
-    document.querySelector(`[data-nav-item][data-nav-id="${target}"]`)?.click();
-    A().setActiveNav?.(NAV);
-    requestAnimationFrame(() => document.querySelector(`[data-workplace-tab="${target === NAV ? "politici" : "candidati"}"]`)?.focus());
-  }, true);
+  /* ---------------------------------------------------------------- selection bar (candidates) */
   const visibleRows = () => A().getVisibleRows?.() || [];
   const selectedRows = () => { const sel = A().workplaceState?.selected || new Set(); return visibleRows().filter((r) => sel.has(r.id) && selectable(r)); };
   function ensureChrome() {
@@ -759,7 +740,7 @@
         ${D.errors.actiune ? errorHtml("arh-f-actiune", D.errors.actiune) : ret ? "" : hintHtml("arh-f-actiune", ap ? "" : "Se completează după «Păstrare în arhivă».")}`),
       durationField("anunt", "Anunț înainte de nimicire", { required: ret, disabled: !ret, placeholder: ret ? "Ex. 30" : "" }),
       field(6, `<span class="e-permits-cfg-ro__label" id="arh-aprobare-label">Necesită aprobare</span>
-        <div class="e-permits-arh-switch">${A().renderToggle?.({ label: ret && v.aprobare ? "Da" : "Nu", description: ret ? (v.aprobare ? "Candidații la nimicire așteaptă confirmarea din tabul «Candidați la nimicire»." : "Candidații trec direct la execuție, la data planificată.") : "Se completează doar cu «Păstrare în arhivă».", checked: ret && v.aprobare, disabled: !ret, attrs: 'data-arh-field="aprobare" aria-describedby="arh-aprobare-label"' }) || ""}</div>`)
+        <div class="e-permits-arh-switch">${A().renderToggle?.({ label: ret && v.aprobare ? "Da" : "Nu", description: ret ? (v.aprobare ? "Candidații la nimicire așteaptă confirmarea din ecranul «Candidați la nimicire» din Registre." : "Candidații trec direct la execuție, la data planificată.") : "Se completează doar cu «Păstrare în arhivă».", checked: ret && v.aprobare, disabled: !ret, attrs: 'data-arh-field="aprobare" aria-describedby="arh-aprobare-label"' }) || ""}</div>`)
     ].join("");
     const notices = [
       D.dup && A().renderNotice?.("error", esc(T.duplicate), { role: "alert" }),
@@ -1151,8 +1132,8 @@
     extras ||= (S.data.extraDossiers || []).map((d) => ({
       id: d.id, nrDosar: d.id, status: d.statut === "Respins" ? "respins" : "eliberat", tipDosar: "Eliberare", serviciu: d.serviciu,
       /* a destroyed dossier keeps no personal data, an anonymized one shows „‹redactat›” (also in its journal) */
-      numeSolicitant: d.stare === "Nimicit" ? "—" : d.anonimizat ? "‹redactat›" : d.solicitant, companie: d.stare === "Nimicit" || d.anonimizat ? "" : d.companie || "",
-      specialist: { nume: d.stare === "Nimicit" ? "—" : "Natalia Cojocaru", rol: "Specialist" },
+      numeSolicitant: d.stare === "Șters" ? "—" : d.anonimizat ? "‹redactat›" : d.solicitant, companie: d.stare === "Șters" || d.anonimizat ? "" : d.companie || "",
+      specialist: { nume: d.stare === "Șters" ? "—" : "Natalia Cojocaru", rol: "Specialist" },
       subdiviziune: d.subdiviziune, dataDepunerii: d.depus, termenExaminare: d.decizie, sursa: "FO", idnp: d.idnp, __arh: true
     }));
     return extras;
@@ -1167,9 +1148,9 @@
     out.arhDecizie = r?.decizie || (out.arhFinal ? String(src.dataSemnarii || src.termenExaminare || "").slice(0, 10) : "");
     out.arhData = r?.arhivat?.at || "";
     out.arhDe = r?.arhivat?.by || "";
-    if (stare === "Nimicit") Object.assign(out, { solicitant: "—", companie: "", actor: "—", actorRol: "", distLine: "", distHtml: "" });
-    if (r?.anonimizat && stare !== "Nimicit") Object.assign(out, { solicitant: "‹redactat›", companie: "", anon: true });
-    out.arhTipuri = stare === "Nimicit" ? [] : [...new Set(objectsOf(out).map((o) => o.tip))];
+    if (stare === "Șters") Object.assign(out, { solicitant: "—", companie: "", actor: "—", actorRol: "", distLine: "", distHtml: "" });
+    if (r?.anonimizat && stare !== "Șters") Object.assign(out, { solicitant: "‹redactat›", companie: "", anon: true });
+    out.arhTipuri = stare === "Șters" ? [] : [...new Set(objectsOf(out).map((o) => o.tip))];
     return out;
   }
   const readOnly = (row) => row.arhStare !== "Activ" || Boolean(row.src?.__arh);
@@ -1188,9 +1169,9 @@
     const own = readStore().objects?.[row.id] || {};
     return list.map((o) => {
       const st = { ...(seed[o.name] || {}), ...(own[o.name] || {}) };
-      const dossierArchived = (r?.stare === "Arhivat" || r?.stare === "Nimicit");
+      const dossierArchived = (r?.stare === "Arhivat" || r?.stare === "Șters");
       const objArchivedWithDossier = dossierArchived && !st.restaurat;
-      const stare = st.stare || (objArchivedWithDossier ? (r.stare === "Nimicit" ? "Nimicit" : "Arhivat") : r?.restaurat && r?.arhivat ? "Activ" : "Activ");
+      const stare = st.stare || (objArchivedWithDossier ? (r.stare === "Șters" ? "Șters" : "Arhivat") : r?.restaurat && r?.arhivat ? "Activ" : "Activ");
       const at = st.at || (r?.arhivat ? r.arhivat.at : "");
       const wasArchived = Boolean(st.at || r?.arhivat);
       const pol = st.politica ? policyOf(st.politica) : resolve({ authority: row.authority, serviceName: row.serviciu, tipObiect: o.tip, sursa: o.sursa });
@@ -1237,9 +1218,9 @@
     switch (a.control) {
       case "ArchiveRecord": return row.arhStare === "Activ" && row.arhFinal && !row.struck && !row.src?.__arh; /* AC-02…04 */
       case "RestoreRecord": return row.arhStare === "Arhivat"; /* US-404 AC-02/03 */
-      case "ArchivedObjects": case "Versions": return row.arhStare !== "Nimicit";
+      case "ArchivedObjects": case "Versions": return row.arhStare !== "Șters";
       case "PushCase": case "StrikeCase": return row.arhStare === "Activ" && !row.src?.__arh;
-      case "Anonymize": return row.arhStare !== "Nimicit" && !row.src?.__arh;
+      case "Anonymize": return row.arhStare !== "Șters" && !row.src?.__arh;
       default: return true;
     }
   }
@@ -1478,7 +1459,7 @@
     const steps = DOC_CHANGES[o.key] || [];
     const base = String(row.depus || row.src?.dataDepunerii || "2026-06-01T09:00").slice(0, 16);
     const plusDays = (iso, n) => { const d = new Date(iso); d.setDate(d.getDate() + n); return isoOf(d); };
-    const author = o.sursa === "Solicitant" ? (row.anon || row.arhStare === "Nimicit" ? "‹redactat›" : row.solicitant) : o.sursa === "Extern" ? "MConnect · Registrul de stat" : o.key === "act" || o.key === "decizie" ? "SIA GEAP · MDocs" : "SIA GEAP";
+    const author = o.sursa === "Solicitant" ? (row.anon || row.arhStare === "Șters" ? "‹redactat›" : row.solicitant) : o.sursa === "Extern" ? "MConnect · Registrul de stat" : o.key === "act" || o.key === "decizie" ? "SIA GEAP · MDocs" : "SIA GEAP";
     const list = [{ v: 1, at: plusDays(base, o.key === "act" || o.key === "decizie" ? 14 : 0), by: author, values: Object.fromEntries(fields) }];
     steps.forEach((changes, i) => {
       const prev = list[list.length - 1];
@@ -1642,10 +1623,10 @@
     if (row.arhStare === undefined) return null;
     const r = row.arhRec || {};
     const pol = policyOf(r.politica);
-    if (row.arhStare === "Nimicit") {
+    if (row.arhStare === "Șters") {
       /* US-402 AC-11 · US-408 AC-05: only the minimal data, no personal data */
       return {
-        replace: `<div class="e-permits-reg-notices">${A().renderNotice?.("warning", `<strong>Dosar nimicit</strong> · ${esc(stamp(r.nimicit?.at))}. Conținutul și documentele au fost șterse; se păstrează doar datele minime, fără date personale. Nimicirea nu se poate anula.`, { icon: "delete-filled" }) || ""}</div>
+        replace: `<div class="e-permits-reg-notices">${A().renderNotice?.("warning", `<strong>Dosar șters</strong> · ${esc(stamp(r.nimicit?.at))}. Conținutul și documentele au fost șterse; se păstrează doar datele minime, fără date personale. Nimicirea nu se poate anula.`, { icon: "delete-filled" }) || ""}</div>
           ${card("Date minime", [
             ["Nr. dosar", A().renderProfileCopyCode?.(row.nr, `Copiază ${row.nr}`) || esc(row.nr)],
             ["Serviciu", v(row.serviciu)],
@@ -1680,7 +1661,7 @@
     };
   }
   function cardTabs(def, row) {
-    if (row.arhStare === undefined || row.arhStare === "Nimicit") return [];
+    if (row.arhStare === undefined || row.arhStare === "Șters") return [];
     return [{ id: "documente", label: "Documente", icon: "document", count: objectsOf(row).length }];
   }
   function cardTabHtml(def, row, tab) {
@@ -1706,7 +1687,7 @@
     if (seed.restaurat) list.push(ev("r", seed.restaurat.at, seed.restaurat.by, "Administrator central", "Restaurare dosar", "modificare", `RESTORE · ${seed.restaurat.rearhivare ? `pentru vizualizare, rearhivare la ${longDate(seed.restaurat.rearhivare)}` : "revine în procesare"} · Motiv: ${seed.restaurat.reason}`, [{ field: "Starea înregistrării", before: "Arhivat", after: "Activ" }]));
     const cand = (S.data?.candidates || []).find((c) => c.dosar === row.id && !c.tipObiect);
     if (cand) list.push(ev("c", `${cand.anuntat}T03:00`, "Procedură automată", "Sistem", "Anunț de nimicire", "sistem", `Candidat la nimicire · procedura automată «Nimicirea înregistrărilor arhivate» · ${cand.actiune} · data planificată ${longDate(cand.planificat)}.`));
-    if (seed.nimicit) list.push(ev("n", seed.nimicit.at, "Procedură automată", "Sistem", "Nimicire dosar", "sistem", `DELETE · procedura automată «Nimicirea înregistrărilor arhivate» · politica ${policyRef(pol)}. Se păstrează doar datele minime.`, [{ field: "Starea înregistrării", before: "Arhivat", after: "Nimicit" }]));
+    if (seed.nimicit) list.push(ev("n", seed.nimicit.at, "Procedură automată", "Sistem", "Nimicire dosar", "sistem", `DELETE · procedura automată «Nimicirea înregistrărilor arhivate» · politica ${policyRef(pol)}. Se păstrează doar datele minime.`, [{ field: "Starea înregistrării", before: "Arhivat", after: "Șters" }]));
     if (seed.anonimizat) list.push(ev("x", seed.anonimizat.at, "Procedură automată", "Sistem", "Anonimizare la expirarea păstrării", "sistem", `DELETE (anonimizare) · procedura automată «Nimicirea înregistrărilor arhivate» · politica ${policyRef(pol)}.`));
     return list;
   }
@@ -1909,10 +1890,11 @@
   /* the object / version drawer: Esc = the header × (GEAPDrawer); a raised dialog above it closes first */
 
   /* ---------------------------------------------------------------- menu, routes, denied (US-395 AC-01/02) */
-  function showDenied() {
+  function showDenied(nav = NAV) {
+    const name = nav === NAV_C ? TITLE_C : TITLE;
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
-    G().showPage?.(TITLE, E()?.render({ title: T.denied, text: "Ecranul «Arhivare și păstrare» este disponibil Administratorului central și utilizatorilor cărora li s-a acordat permisiunea de gestionare a politicilor.", icon: "lock" }) || T.denied);
-    audit("Acces ecran Arhivare și păstrare", "Acces refuzat: rolul nu are permisiunea de gestionare a politicilor de arhivare și păstrare.", "Ecran", NAV, "Refuzat");
+    G().showPage?.(name, E()?.render({ title: T.denied, text: `Ecranul «${name}» este disponibil Administratorului central și utilizatorilor cărora li s-a acordat permisiunea de gestionare a politicilor de arhivare și păstrare.`, icon: "lock" }) || T.denied);
+    audit(`Acces ecran ${name}`, `Acces refuzat: rolul nu are permisiunea de gestionare a politicilor de arhivare și păstrare${nav === NAV_C ? " și a candidaților la nimicire" : ""}.`, "Ecran", nav, "Refuzat");
   }
   window.GEAPShellRoutes = window.GEAPShellRoutes || [];
   window.GEAPShellRoutes.push((h) => {
@@ -1920,9 +1902,9 @@
     if (!m) return false;
     load().then(() => {
       const nav = document.querySelector(`[data-nav-item][data-nav-id="${m[1]}"]`);
-      if (!nav || !who().has) { showDenied(); return; }
+      if (!nav || !who().has) { showDenied(m[1]); return; }
       nav.click();
-      A().setActiveNav?.(NAV);
+      A().setActiveNav?.(m[1]);
       if (m[1] === NAV && m[2]) setTimeout(() => openDrawer(m[2] === "nou" ? "create" : "edit", m[2] === "nou" ? null : decodeURIComponent(m[2])), 300);
     });
     return true;
@@ -1932,24 +1914,29 @@
     if (prev?.arhWrapped) return;
     const hook = (profileKey, groups) => {
       const out = prev ? prev(profileKey, groups) : groups;
-      if (grantedTo(profileKey === "central-admin" || profileKey === "local-admin" ? profileKey : "")) return out;
+      if (grantedTo(profileKey === "central-admin" || profileKey === "local-admin" ? profileKey : "")) return withCandidates(out);
       return (out || []).map((g) => ({ ...g, items: (g.items || []).filter((i) => i.id !== NAV && i.id !== NAV_C) })).filter((g) => g.items.length);
     };
+    const withCandidates = (groups) => (groups || []).map((g) => {
+      if (g.label !== "Registre" || (g.items || []).some((i) => i.id === NAV_C)) return g;
+      const item = { id: NAV_C, label: TITLE_C, shellView: `${KIND_C}-registry` };
+      const at = g.items.findIndex((i) => i.id === "reg-dosare");
+      const items = [...g.items];
+      items.splice(at < 0 ? items.length : at + 1, 0, item);
+      return { ...g, items };
+    });
     hook.arhWrapped = true;
     window.GEAPShellNavHook = hook;
     A().refreshNav?.();
   };
-  /* the hidden candidates item keeps „Politici de arhivare și păstrare” highlighted in the menu */
-  document.addEventListener("click", (event) => {
-    if (event.target.closest?.(`[data-nav-item][data-nav-id="${NAV_C}"]`)) requestAnimationFrame(() => A().setActiveNav?.(NAV));
-  });
   const boot = () => {
     installNavHook();
     load();
     observeRegistry();
     new MutationObserver(() => observeRegistry()).observe(document.body, { childList: true, subtree: false });
   };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true }); else boot();
+  /* DOMContentLoaded also while the deferred scripts run (registre.js, loaded after this file, sets its own NavHook — ours must wrap it) */
+  if (document.readyState !== "complete") document.addEventListener("DOMContentLoaded", boot, { once: true }); else boot();
 
   window.GEAPArhivare = {
     load, policies, candidates, openDrawer, closeDrawer, toggle, who, resolve, refreshList,
@@ -1959,7 +1946,7 @@
     cell: (def, row, key) => (isCaseDef(def) ? cell(def, row, key) : null),
     text: (row, key) => (key === "arhStare" ? row.arhStare : key === "arhData" ? (row.arhData ? stamp(row.arhData) : "") : undefined),
     sortValue: (row, key) => (key === "arhData" ? row.arhData || "" : key === "arhStare" ? row.arhStare || "" : undefined),
-    searchText: (row) => (row.arhStare && row.arhStare !== "Nimicit" && !row.anon ? row.arhIdnp || "" : ""),
+    searchText: (row) => (row.arhStare && row.arhStare !== "Șters" && !row.anon ? row.arhIdnp || "" : ""),
     noMatch: (def) => (isCaseDef(def) ? T.noMatch : ""),
     facets, actions, actionVisible, actionState, run, events, meta, details, cardTabs, cardTabHtml, onExport,
     openArchive, openRestore, openObjects, openVersions, openCompare, openVersion, applySaved, openSaveSearch

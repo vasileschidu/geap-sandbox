@@ -692,7 +692,7 @@
       },
       openRow: (rowId) => openCard(id, rowId),
       rowLabel: (row) => `${row.nr}${row.serviciu || row.denumire || row.tip ? `, ${row.serviciu || row.denumire || row.tip}` : ""} — deschide fișa înregistrării`,
-      rowClass: (row) => (row.struck || row.arhStare === "Nimicit" ? "is-inactive" : ""),
+      rowClass: (row) => (row.struck || row.arhStare === "Șters" ? "is-inactive" : ""),
       emptyHtml: ({ query, filtered }) => {
         const E = window.GEAPEmptyState;
         const def = defOf(id);

@@ -612,7 +612,7 @@
    "idnp": "2003001234567",
    "depus": "2015-02-10T10:15:00",
    "decizie": "2015-03-02",
-   "stare": "Nimicit",
+   "stare": "Șters",
    "arhivat": {
     "at": "2016-03-03T02:00",
     "by": "Procedură automată",
@@ -936,12 +936,12 @@
   },
   {
    "id": "SS-2",
-   "name": "Nimicite",
+   "name": "Șterse",
    "criteria": {
     "query": "",
     "filters": {
      "arh-stare": [
-      "Nimicit"
+      "Șters"
      ]
     }
    },

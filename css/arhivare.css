@@ -224,3 +224,11 @@
 .e-permits-arh-panel > .e-permits-arh-notices:first-child {
   padding-top: var(--spacing-8, 8px);
 }
+
+/* arh-bo-v1: „Candidați la nimicire” = a BO item of the „Registre” group (the shell draws nav icons as 20px masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="arhivare-candidati"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/empty-bin.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/empty-bin.svg");
+  -webkit-mask-size: 20px 20px;
+}

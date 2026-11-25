@@ -4837,7 +4837,7 @@
     const ready = (k) => `${k} tr[data-workplace-row], ${k} .e-permits-empty:not(:has(.spinner))`;
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#arhivare", ...(params ? { params } : {}), ready: ready(K), delay: 900, run });
     const cands = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#arhivare-candidati", ...(params ? { params } : {}), ready: ready(KC), delay: 900, run });
-    const denied = (as, params) => ({ flow: "back-office", as, hash: "#arhivare", ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const denied = (as, params, hash = "#arhivare") => ({ flow: "back-office", as, hash, ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
     const dos = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#reg-dosare", ...(params ? { params } : {}), ready: ready(KD), delay: 900, run });
     const card = (id, tab = "detalii", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#registru/reg-dosare/${id}/${tab}`, ...(params ? { params } : {}), ready: "#reg-panel .e-permits-dosar-profil__section, #reg-panel .e-permits-empty", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
@@ -4886,6 +4886,7 @@
       /* AC-01: no permission → the boxed lock state with the AC text */
       "arh-02": denied(SPEC),
       "arh-02a": denied(LOCAL),
+      "arh-02b": denied(SPEC, undefined, "#arhivare-candidati"),
       /* US-396 — create: empty, required errors, cascade + conditional fields, bad numbers, Act permisiv, duplicate, saved */
       "arh-03": list(create),
       "arh-03a": list(seq(create, save)),
@@ -4931,7 +4932,7 @@
       /* US-402 — Registru Dosare: Starea înregistrării column + facet, archived / destroyed filter, no match */
       "arh-10": dos(),
       "arh-10a": dos(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Arhivat"] })),
-      "arh-10b": dos(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Nimicit"] })),
+      "arh-10b": dos(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Șters"] })),
       "arh-10c": dos(search(KD, "zzz")),
       "arh-10d": dos(seq(async (h) => { await h.click(`${KD} [data-workplace-filter-toggle]`); await h.wait(300); await h.click("[data-workplace-filters] [data-filter-facet='arh-stare'], [data-workplace-filters] .chip", "Starea înregistrării"); await h.wait(400); })),
       /* US-401 — ⋮ of a finalized dossier, the confirmation, archived; ⋮ of an archived one; no rights */
