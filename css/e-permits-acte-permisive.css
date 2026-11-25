@@ -20951,6 +20951,12 @@ button.e-permits-steps-strip__cell:focus-visible {
   height: auto;
 }
 
+/* case-radio-inline-v1: a radio OPTION row inside a form field keeps its 12 / 16 inset (the field-label rule above zeroes
+   label padding) — the hover layer then frames the whole option and the first circle sits on the label edge */
+.e-permits-fo-field label.e-permits-fo-radio--option {
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
 /* a radio group inside a form field = the 12 rhythm of the other radio groups (Arhivare, env-sync review) */
 .e-permits-fo-field .radio-group {
   gap: var(--spacing-12, 12px);

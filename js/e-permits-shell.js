@@ -5127,11 +5127,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* a choice of a few = the ONE radio, Small, in the field shell (as cfgRadios) */
-  const caseRadios = (key, label, options, { span = 12 } = {}) => `
+  /* case-radio-inline-v1 (user 2026-11-25): `inline` = the FO radio option rows side by side (grey hover layer per
+     option, the FO „Butoane radio” horizontal pattern: `.e-permits-fo-choice__group--inline` + `.e-permits-fo-radio--option`) */
+  const caseRadios = (key, label, options, { span = 12, inline = false } = {}) => `
     <div class="e-permits-fo-field e-permits-user-create__field${span !== 12 ? ` e-permits-user-create__field--${span}` : ""}">
       <label id="case-${key}-label">${escapeHtml(label)}</label>
-      <div class="radio-group" role="radiogroup" aria-labelledby="case-${key}-label">
-        ${options.map(([value, text]) => `<label class="radio radio--small"><input class="radio-input" type="radio" name="case-${key}" value="${escapeHtml(value)}"${caseDraft.values[key] === value ? " checked" : ""} data-case-radio="${key}"><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${escapeHtml(text)}</span></span></label>`).join("")}
+      <div class="${inline ? "e-permits-fo-choice__group e-permits-fo-choice__group--inline" : "radio-group"}" role="radiogroup" aria-labelledby="case-${key}-label">
+        ${options.map(([value, text]) => `<label class="radio ${inline ? "radio--medium e-permits-fo-radio e-permits-fo-radio--option" : "radio--small"}"><input class="radio-input" type="radio" name="case-${key}" value="${escapeHtml(value)}"${caseDraft.values[key] === value ? " checked" : ""} data-case-radio="${key}"><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${escapeHtml(text)}</span></span></label>`).join("")}
       </div>
     </div>
   `;
@@ -5423,7 +5425,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${caseSelect("punct", "Punctul de trecere a frontierei", opt(["Leușeni", "Sculeni", "Giurgiulești", "Otaci", "Palanca", "Aeroportul Internațional Chișinău"]), { span: 6 })}
               ${caseSelect("transport", "Mijlocul de transport", opt(["Rutier", "Feroviar", "Aerian", "Naval"]), { span: 6 })}
               ${caseTextarea("declaratie", "Declarația suplimentară")}
-              ${caseRadios("anexa", "Anexă", [["da", "Da"], ["nu", "Nu"]])}
+              ${caseRadios("anexa", "Anexă", [["da", "Da"], ["nu", "Nu"]], { inline: true })}
             `)}
           </div>`;
         }
