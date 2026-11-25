@@ -206,3 +206,7 @@ Deleted: 3 empty „Sticky placeholder – Container” frames. Instances verifi
   arh-07, 07a–07e, 01, 01f, 05 → 0 majors; left = sideways table clips (intended) and the library `Track line` ABSOLUTE in the drawer tab strips (5).
 - **Code gap (proto-engineer):** the rendered code (`?state=arh-07`) still shows Nivel sticky at the start of the table (js/arhivare.js columns config has no pin for
   `nivel`, so the shared table's default first-column sticky applies) — unpin it in code to match Figma.
+
+## 2026-11-25 (arh-edge-v1)
+- Toolbar gap: captured `Acțiuni tabel` frames had minWidth 130 around a 32 icon button → minWidth cleared + HUG on all 14 screens (Exportă ↔ Adaugă politică = 12, as code).
+- Scrolled tables without a start pin (arh-07 299:1767, arh-07a 303:15423): ABSOLUTE `Scroll edge · start` (8 × table height, white, x −8, constraints MIN / STRETCH, effect style „Table / Pinned column – start”) inside `Table scroll` = the code's `.table-scroll-edge--start`. Re-add on any new scrolled table without a start pin.
