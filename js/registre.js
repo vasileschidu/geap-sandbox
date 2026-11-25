@@ -47,6 +47,8 @@
      columns / facets / actions (Arhivează · Restaurează · Obiecte arhivate · Versiuni), the read-only card of an archived
      or destroyed dossier and the automatic procedures' events. Every hook is optional (null = the register as before). */
   const X = () => window.GEAPArhivare || null;
+  /* rtr-v1 (US-422 97587): „Înregistrează retragerea cererii” — the shared rules / reason field (js/retragere.js) */
+  const W = () => window.GEAPRetragere || null;
   const R = () => window.GEAPFormRender || {};
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const icon = (name, size = 20, cls = "icon") => `<svg class="${cls}" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${name}"></use></svg>`;
@@ -277,7 +279,8 @@
           form: a.type === "form" ? target : undefined,
           process: /^process/.test(a.type) ? target : undefined,
           danger: Boolean(a.danger || (S.data?.admin?.targets?.controls || []).find((c) => c.id === control)?.danger),
-          permission: control === "PushCase" ? "Cases.Case.Push" : undefined
+          /* rtr-v1: „Înregistrează retragerea cererii” needs Cases.Case.Withdraw (US-422 AC-01) */
+          permission: a.permission || (control === "PushCase" ? "Cases.Case.Push" : control === "WithdrawCase" ? "Cases.Case.Withdraw" : undefined)
         };
       })
     };
@@ -321,13 +324,16 @@
   /* ---------------------------------------------------------------- who is looking (role + perimeter) */
   /* RBAC functions per BO role (Feature 89940): Registers.Viewer.Export (export), Audit.Journal.View (US-273 tab),
      Cases.Case.Push (US-195) — the row actions carry their own role list in the definition */
+  /* rtr-v1: „withdraw” = Cases.Case.Withdraw („Înregistrarea retragerii cererii”, Roluri › Dosare d9 — Specialist,
+     Supervizor, Administrator central); the director's role does not have it (US-422 AC-01 „no right” demo) */
   const PERMS = {
-    "central-admin": ["export", "journal", "push"],
+    "central-admin": ["export", "journal", "push", "withdraw"],
     "local-admin": ["export", "journal"],
     director: ["export", "journal"],
-    supervisor: ["export"],
-    specialist: []
+    supervisor: ["export", "withdraw"],
+    specialist: ["withdraw"]
   };
+  const PERM_KEYS = { "Cases.Case.Push": "push", "Cases.Case.Withdraw": "withdraw" };
   function persona() {
     const a = A().currentAssignment?.() || null;
     const roleId = a?.roleId || "";
@@ -583,12 +589,40 @@
   /* ---------------------------------------------------------------- row actions (definition × role × state) */
   const actionsFor = (def, who = persona()) => {
     const base = (def.actions || []).filter((a) => !a.roles.length || a.roles.includes(who.roleId))
-      .filter((a) => !a.permission || who.can("push"));
+      .filter((a) => !a.permission || who.can(PERM_KEYS[a.permission] || a.permission));
     return X()?.actions ? X().actions(def, base, who) : base;
   };
   /* each control checks the record's real state (Epic 89620 AC: „respectă la execuție starea reală”) — the menu shows
      the reason, the confirm checks again */
+  /* rtr-v1 (US-422 AC-03…07 = US-413): the service passport block (Admin › Setări › „Retragerea cererii”) via the
+     BO service code, and the dossier's state: hidden (inactive service, draft, past the limit, signed, closed — eliberat /
+     respins / arhivat / retras, struck, archived record —, ex officio) · blocked (signing started = „Spre semnare”,
+     supus continuării din oficiu) · available */
+  const wdConfig = (row) => {
+    const code = A().dossierStore?.()?.serviceCodes?.[row.serviciu];
+    const service = code ? A().getServiceByCode?.(code) : null;
+    return W()?.config(service ? A().serviceConfig?.(service) : {}) || { active: false };
+  };
+  const EXAM_STARTED = ["inExaminare", "spreCoordonare", "spreSemnare", "semnat"];
+  function withdrawState(row) {
+    const R = W();
+    if (!R) return { show: false, reason: "" };
+    const cfg = wdConfig(row);
+    const st = row.src?.status;
+    return R.state({
+      cfg,
+      draft: st === "schita",
+      closed: ["eliberat", "respins", "arhivat", "retras"].includes(st) || row.struck || (row.arhStare !== undefined && row.arhStare !== "Activ"),
+      signed: st === "semnat",
+      exOfficio: row.src?.sursa === "OFICIU" || R.demo.exOfficio(row.id),
+      pastLimit: cfg.limit === "examinare" && EXAM_STARTED.includes(st),
+      signingStarted: st === "spreSemnare" || R.demo.signing(row.id),
+      continuation: R.demo.continuation(row.id)
+    });
+  }
+  const withdrawalOf = (row) => readStore().withdrawals?.[row.id] || null;
   function actionState(action, row) {
+    if (action.control === "WithdrawCase") return withdrawState(row).reason;
     const ext = X()?.actionState?.(action, row);
     if (ext !== undefined) return ext;
     const st = row.src?.status;
@@ -604,6 +638,7 @@
   const menuItems = (def, row, { includeOpen = true } = {}) => actionsFor(def)
     .filter((a) => includeOpen || a.type !== "open")
     .filter((a) => X()?.actionVisible?.(a, row) !== false)
+    .filter((a) => a.control !== "WithdrawCase" || withdrawState(row).show)
     .map((a) => {
       const reason = a.type === "open" ? "" : actionState(a, row);
       return {
@@ -1121,6 +1156,7 @@
       case "Case": return [
         ["Numărul dosarului", copy(row.nr)],
         ["Statut", `${tag(row.statut, caseTone(row))}${row.anon ? tag("Date anonimizate", "neutral") : ""}`],
+        ...(withdrawalOf(row) ? [["Data retragerii", esc(stamp(withdrawalOf(row).at))]] : []),
         ...(X()?.meta?.(row) || []),
         ["Subdiviziune", esc(`${row.subdivision} · ${row.authority}`)],
         ["Actor responsabil", esc(row.actor)],
@@ -1170,6 +1206,13 @@
           ["Data depunerii", val(stamp(row.depus))],
           ["Termen de examinare", val(longDate(row.termen))]
         ])}
+        ${withdrawalOf(row) ? card("Retragerea cererii", [
+          ["Data retragerii", esc(stamp(withdrawalOf(row).at))],
+          ["Starea dosarului la retragere", val(withdrawalOf(row).prev)],
+          withdrawalOf(row).reason ? ["Motivul retragerii", esc(withdrawalOf(row).reason)] : null,
+          ["Document de retragere", esc(withdrawalOf(row).file?.name || "—")],
+          ["Înregistrată de", esc(`${withdrawalOf(row).by}${withdrawalOf(row).role ? ` · ${withdrawalOf(row).role}` : ""}`)]
+        ]) : ""}
         ${ext?.after || ""}
         ${card("Solicitant", [
           ["Nume", row.anon ? esc(REDACTED) : val(row.solicitant)],
@@ -1773,6 +1816,7 @@
     if (!overlay.dataset.regBound) {
       overlay.dataset.regBound = "1";
       overlay.addEventListener("click", onModalClick);
+      overlay.addEventListener("change", (event) => { if (event.target.matches?.("[data-reg-wd-file]")) onWithdrawFile(event.target); });
       new MutationObserver(() => { if (overlay.getAttribute("aria-hidden") === "true" && modalClass) overlay.querySelector(".modal").classList.remove(...[...overlay.querySelector(".modal").classList].filter((c) => c.startsWith("e-permits-reg-modal"))); }).observe(overlay, { attributes: true, attributeFilter: ["aria-hidden"] });
     }
     if (!overlay.classList.contains("is-active")) window.__modal?.open?.("#case-action-modal");
@@ -1817,7 +1861,7 @@
     pending = { kind, rowId, key };
     /* registre-v2: a form / process / control configured in the builder that has no screen of its own in this
        prototype → one confirmation naming the target; the run is logged on the record */
-    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize"].includes(action.control)) {
+    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize", "WithdrawCase"].includes(action.control)) {
       const target = targetLabel(action);
       const verb = { form: "Completezi formularul", "process-start": "Pornești procesul", "process-advance": "Avansezi procesul" }[action.type] || "Rulezi controlul";
       openModal({
@@ -1831,6 +1875,7 @@
     }
     switch (action.control) {
       case "PushCase": openPush(def, row); return;
+      case "WithdrawCase": openWithdraw(row); return;
       case "ArchiveRecord":
         openModal({
           kind: "confirm",
@@ -1869,6 +1914,88 @@
       default:
     }
   }
+  /* ---- rtr-v1 (US-422): „Retragerea cererii” — the library dialog (#case-action-modal), as „Arhivează” (reg-11):
+     the lead names the dossier (its number stays in the content — „no code in modal header”, AC-08's „<Nr. dosar>”),
+     „Motivul retragerii” per the service (AC-09), „Document de retragere” = the boxed doc field of the BO (eKYC
+     certificate pattern: hidden file input + „Alege fișierul”, required → „Câmpul este obligatoriu.”, a non-PDF →
+     „Sunt acceptate doar fișiere PDF.” — AC-10 / AC-11), Anulează (AC-12) · red „Înregistrează” */
+  let wdFile = null;
+  const wdDocFieldHtml = () => `
+    <div class="e-permits-fo-field e-permits-rtr-doc" data-rtr-doc-field>
+      <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed">
+        <div class="e-permits-fo-doc-field__row">
+          <div class="e-permits-fo-doc-field__info">
+            <span class="e-permits-fo-doc-field__label" id="reg-wd-doc-label" data-reg-wd-name>${wdFile ? esc(wdFile.name) : `Document de retragere${U().requiredMark?.() || ""}`}</span>
+            <p class="e-permits-fo-doc-field__desc" data-reg-wd-desc>${wdFile ? `PDF · ${esc(fileSize(wdFile.size))}` : "Cererea de retragere a solicitantului, în format PDF."}</p>
+          </div>
+          <button class="btn btn-strict btn-md" type="button" aria-describedby="reg-wd-doc-label" data-reg-wd-pick>${icon("upload", 20)}<span>${wdFile ? "Alege alt fișier" : "Alege fișierul"}</span></button>
+          <input id="reg-wd-doc" class="u-visually-hidden" type="file" accept=".pdf,application/pdf" tabindex="-1" aria-hidden="true" data-reg-wd-file>
+        </div>
+      </div>
+    </div>`;
+  const fileSize = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toLocaleString("ro-RO", { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+  function openWithdraw(row) {
+    const R = W();
+    const cfg = wdConfig(row);
+    wdFile = null;
+    openModal({
+      kind: "confirm",
+      title: "Retragerea cererii",
+      subtitle: row.serviciu,
+      body: `<p class="e-permits-passport__lead">Înregistrezi retragerea cererii din dosarul <strong>${esc(row.nr)}</strong>, depusă de solicitant la ghișeu, prin poștă sau prin poștă electronică. Dosarul se închide fără act permisiv și fără decizie de refuz. Retragerea nu se mai poate anula.</p>
+        ${U().renderInfoNote?.(`Taxa achitată: ${esc(R.labelOf("fee", cfg.fee).toLocaleLowerCase("ro"))}. Nota de plată neachitată se anulează automat.`) || ""}
+        ${R.reasonFieldHtml({ id: "reg-wd-reason", mode: cfg.reason, placeholder: "De ex. solicitantul a renunțat la activitate" })}
+        ${wdDocFieldHtml()}`,
+      footer: footerOf("Înregistrează", "data-reg-confirm", { destructive: true })
+    });
+    R.bindReason(document.querySelector("#case-action-modal"));
+  }
+  function onWithdrawFile(input) {
+    const R = W();
+    const file = input.files?.[0];
+    if (!file) return;
+    const field = input.closest("[data-rtr-doc-field]");
+    const pdf = /\.pdf$/i.test(file.name) && (!file.type || file.type === "application/pdf");
+    if (!pdf) {
+      wdFile = null;
+      field.outerHTML = wdDocFieldHtml();
+      R.setError(document.querySelector("#case-action-modal [data-rtr-doc-field]"), "Sunt acceptate doar fișiere PDF.");
+      document.querySelector("#case-action-modal [data-reg-wd-pick]")?.focus();
+      return;
+    }
+    wdFile = { name: file.name, size: file.size };
+    field.outerHTML = wdDocFieldHtml();
+    document.querySelector("#case-action-modal [data-reg-wd-pick]")?.focus();
+  }
+  function confirmWithdraw(def, row) {
+    const R = W();
+    const cfg = wdConfig(row);
+    const box = document.querySelector("#case-action-modal");
+    const reason = R.readReason(box, cfg.reason);
+    if (!wdFile) {
+      R.setError(box.querySelector("[data-rtr-doc-field]"), "Câmpul este obligatoriu.");
+      if (reason !== null) box.querySelector("[data-reg-wd-pick]")?.focus();
+      return;
+    }
+    if (reason === null) return;
+    const wd = withdrawState(row);
+    if (conflict(row) || !wd.show || wd.reason) { refuse(`Retragerea cererii din dosarul ${row.nr} nu a fost înregistrată: dosarul a fost modificat între timp de alt utilizator. Reîncarcă registrul, verifică statutul și reîncearcă.`); return; }
+    const st = readStore();
+    const at = nowIso();
+    const before = row.statut;
+    st.withdrawals = st.withdrawals || {};
+    st.withdrawals[row.id] = { at, by: userName(), role: persona().roleLabel, reason, prev: before, file: wdFile, fee: cfg.fee };
+    st.patches[row.id] = { ...(st.patches[row.id] || {}), status: "retras" };
+    Object.assign(row.src, { status: "retras" }); row.src.profil = null;
+    /* US-422 AC-15 / US-413 AC-23: user, dossier, previous → new state, reason, timestamp (the journal adds who / when) */
+    logEvent(def, row, {
+      user: userName(), role: persona().roleLabel, type: "Retragerea cererii", category: "modificare",
+      detail: `${reason ? `Motivul: ${reason} ` : ""}Document de retragere: ${wdFile.name}. Dosarul s-a închis fără act permisiv.`,
+      changes: [{ field: "Statut", before, after: "Retras" }, { field: "Data retragerii", before: "—", after: stamp(at) }]
+    });
+    wdFile = null;
+    done(`Retragerea cererii a fost înregistrată. Dosarul ${row.nr} s-a închis.`);
+  }
   function confirmPending() {
     if (!pending) return;
     const { kind, rowId, key } = pending;
@@ -1877,11 +2004,12 @@
     const action = actionsFor(def).find((a) => a.key === key);
     if (!row || !action) return;
     const st = readStore();
-    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize"].includes(action.control)) {
+    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize", "WithdrawCase"].includes(action.control)) {
       logEvent(def, row, { user: userName(), role: persona().roleLabel, type: action.label, category: "modificare", detail: `${targetLabel(action)} · din ${def.name}.` });
       done(`„${action.label}” a pornit pentru ${row.nr}.`);
       return;
     }
+    if (action.control === "WithdrawCase") { confirmWithdraw(def, row); return; }
     if (action.control === "ArchiveRecord") {
       const reason = requireText("#fo-reg-archive-reason");
       if (!reason) return;
@@ -1930,6 +2058,7 @@
     if (S.card && !document.querySelector("[data-dosar-profil]")?.hidden) renderCard();
   }
   function onModalClick(event) {
+    if (event.target.closest("[data-reg-wd-pick]")) { document.querySelector("#case-action-modal [data-reg-wd-file]")?.click(); return; }
     if (event.target.closest("[data-reg-confirm]")) { confirmPending(); return; }
     if (event.target.closest("[data-reg-export-confirm]")) exportCsv();
   }
@@ -2248,6 +2377,19 @@
       const def = defOf(m[1]);
       if (def?.deprecated) { showDeprecated(def); return; }
       if (!def || !granted(def, who)) { showDenied(def?.name || "Registru", def?.object === "Permit" ? NO_PERMISSION : undefined); return; }
+      /* rtr-v1 (US-422 AC-01 / AC-02): #registru/reg-dosare/<id>/retragere = the direct call of „Înregistrează retragerea
+         cererii” — without the right, or for a dossier outside the role's authorities → „Acces interzis” */
+      if (m[3] === "retragere") {
+        const action = actionsFor(def, who).find((a) => a.control === "WithdrawCase");
+        const row = findRow(def, decodeURIComponent(m[2]));
+        if (!action || !row) { showDenied(def.name, "Rolul tău nu are dreptul „Înregistrează retragerea cererii” pentru acest dosar. Dreptul se acordă per rol și per autoritate, în setările registrului."); return; }
+        if (document.querySelector("[data-workplace]")?.dataset.registryKind !== m[1]) {
+          A().showRegistry?.(registryDb(m[1]), { sortKey: def.defaultSort?.key || null, sortDirection: def.defaultSort?.dir || "desc" });
+        }
+        await openCard(m[1], row.id, "detalii", { push: false });
+        if (withdrawState(row).show && !withdrawState(row).reason) runAction(m[1], row.id, action.key);
+        return;
+      }
       /* the register under the card (the crumb returns to it), drawn without touching the address */
       if (document.querySelector("[data-workplace]")?.dataset.registryKind !== m[1]) {
         A().showRegistry?.(registryDb(m[1]), { sortKey: def.defaultSort?.key || null, sortDirection: def.defaultSort?.dir || "desc" });

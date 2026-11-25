@@ -122,6 +122,17 @@
    }
   },
   {
+   "id": "d9",
+   "nr": "PRM-0056",
+   "cod": "Cases.Case.Withdraw",
+   "creat": "2026-11-25",
+   "descriere": {
+    "ro": "Înregistrează în registrul «Dosare» retragerea cererii depuse de solicitant la ghișeu, prin poștă sau prin poștă electronică.",
+    "ru": "Регистрирует в реестре «Дела» отзыв заявления, поданного заявителем в окне приёма, по почте или по электронной почте.",
+    "en": "Records in the «Cases» register the withdrawal of a request filed by the applicant at the desk, by post or by e-mail."
+   }
+  },
+  {
    "id": "p1",
    "nr": "PRM-0009",
    "cod": "Payments.Account.View",

@@ -1239,6 +1239,11 @@
     "svc-10": svc("settings"),
     /* a plain switch changed → save → publish („Alte setări” is gone: Aprobare secundară and
        Cu expertiză are per request type, Suspendare cu coordonare = Suspendare cu semnarea deciziei) */
+    /* rtr-v1: Setări › „Retragerea cererii” (US-413 / US-422): sanitară (obligatoriu · restituire), alcool (până la
+       examinare · opțional · fără restituire), a service without withdrawal (switch off) */
+    "rtr-20": svc("settings", cfgNav("withdrawal"), "003000118"),
+    "rtr-20a": svc("settings", cfgNav("withdrawal"), "003000207"),
+    "rtr-20b": svc("settings", cfgNav("withdrawal"), BIO),
     "svc-10a": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); }),
     "svc-10b": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); await h.click("[data-service-publish]"); }),
     "svc-10c": svc("settings", async (h) => {
@@ -3964,6 +3969,46 @@
     "sm-08": sm(null, { depus: "GEAP-2026-009-04521", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
     "sm-08a": sm(null, { schita: "1", pas: "3", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
     "sm-08b": sm(null, { depus: "GEAP-2026-009-04521", pp: "reperfectare", act: "act-izvoras", obiect: "Cafeneaua „Izvoraș”, mun. Bălți", subdiviziune: "CSP Bălți" }),
+
+    /* ---- „Retrage cererea” (rtr-v1, US-413 97574): the header „⋯” (red, always in the menu), the start dialog with the
+       consequences + „Motivul retragerii” per service (09 obligatoriu / restituire · 10 opțional / fără restituire ·
+       ?rtr-motiv=exclus), the MSign step, the return (?retras=) = „Retrasă” + toast + Istoric; blocked (signing started /
+       supus continuării din oficiu) = disabled item + reason; hidden variants (draft, inactive service, past the limit,
+       finished, ex officio); the MPower representative; „Acces interzis” for someone else's request ---- */
+    ...(() => {
+      const more = async (h) => {
+        await h.find("[data-sm-profile] .cab-act-header__overflow:not([hidden]) [data-cab-menu-trigger]"); await h.wait(300);
+        await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]"); await h.find("#sm-header-more:not([hidden])");
+      };
+      const open = async (h) => { await more(h); await h.click('#sm-header-more [data-sm-action="withdraw"]'); await h.find("#start-dialog.is-active"); await h.wait(350); };
+      const sign = async (h) => { await h.fill("#sm-rtr-reason", "Am renunțat la deschiderea magazinului.", { leave: false }); await h.click("#start-dialog [data-start-dialog-start]"); await h.find("#start-dialog.is-active [data-sm-msign]"); await h.wait(350); };
+      const back = { retras: "d-fresh", motiv: "Am renunțat la deschiderea magazinului." };
+      const noMenu = async (h) => { await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400); };
+      return {
+        "rtr-01": smDosar("d-fresh", more),
+        "rtr-01a": smDosar("d-fresh", open),
+        "rtr-01b": smDosar("d-fresh", async (h) => { await open(h); await h.click("#start-dialog [data-start-dialog-start]"); await h.wait(250); }),
+        "rtr-01c": smDosar("d-lab-prelungire", open),
+        "rtr-01d": smDosar("d-fresh", open, { ["rtr-motiv"]: "exclus" }),
+        "rtr-01e": smDosar("d-fresh", async (h) => { await open(h); await sign(h); }),
+        "rtr-01f": smDosar("d-sud", open),
+        "rtr-02": smDosar("d-fresh", null, back),
+        "rtr-02a": smDosar("d-fresh", async (h) => { await h.scroll("#sm-sec-istoric"); }, back),
+        "rtr-02b": sm(async (h) => { await smFind(h, "d-fresh"); }, back),
+        "rtr-02c": smDosar("d-sud", async (h) => { await h.click('[data-sm-tab="taxe"]'); }, { retras: "d-sud" }),
+        "rtr-03": smDosar("d-fresh", more, { ["rtr-semnare"]: "d-fresh" }),
+        "rtr-03a": smDosar("d-gara", async (h) => { await more(h); await h.hover('#sm-header-more [data-sm-action="withdraw"]'); }, { ["rtr-continuare"]: "d-gara" }),
+        "rtr-04": smDosar("d-spicul", noMenu),
+        "rtr-04a": smDosar("d-fresh", noMenu, { ["rtr-activa"]: "0" }),
+        "rtr-04b": smDosar("d-fresh", noMenu, { ["rtr-limita"]: "examinare" }),
+        "rtr-04c": smDosar("d-izvoras", noMenu),
+        "rtr-04d": smDosar("d-fresh", noMenu, { ["rtr-oficiu"]: "d-fresh" }),
+        "rtr-05": smDosar("d-vita-reperf", more, { as: "pj-vita-plant" }),
+        "rtr-06": { ...sm(null, {}, "#dosar/d-ana/retragere"), ready: "[data-sm-denied]" },
+        "rtr-06a": sm(async (h) => { await h.find("#start-dialog.is-active"); await h.wait(350); }, {}, "#dosar/d-fresh/retragere"),
+        "rtr-07": sm(smMenu("d-fresh")),
+      };
+    })(),
 
     /* ---- EVO catalog (US-10): list, search, service 09, „Solicită online” per session ---- */
     "cat-01": cat(),
@@ -6743,7 +6788,38 @@
       await h.click('input[name="reg-push-step"][value="semnare"]');
       await h.fill("#fo-reg-push-reason", "Pasul automat de emitere a eșuat; dosarul revine la semnare.", { leave: false });
     };
+    /* „Înregistrează retragerea cererii” (rtr-v1, US-422 97587): sanitară = motiv obligatoriu (VIS in examination,
+       SIGN „Spre semnare” = blocked), alcool = until the examination starts / motiv opțional (OPT filed, PAST in
+       examination = hidden); the dialog empty / errors / non-PDF / filled, done (Detalii · Documente · Jurnal), the
+       director without the right + the direct call */
+    const VIS = "D-2026-004490", SIGN = "D-2026-004640", OPT = "D-2026-004476", PAST = "D-2026-004526", DIRECTOR = "ansp-director-chisinau";
+    const W_MODAL = "#case-action-modal.is-active";
+    const wdOpen = (id) => act(id, "withdraw");
+    const wdAttach = (name, type, size = 245760) => async (h) => {
+      const input = await h.find(`${W_MODAL} [data-reg-wd-file]`);
+      const dt = new DataTransfer(); dt.items.add(new File([new Uint8Array(size)], name, { type }));
+      input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); await h.wait(300);
+    };
+    const wdFill = async (h) => { await fillReason("#reg-wd-reason", "Solicitantul a renunțat la deschiderea unității (cererea nr. 418 din 10 iulie 2026, depusă la ghișeu).")(h); await wdAttach("cerere-retragere-D-2026-004490.pdf", "application/pdf")(h); };
+    const wdCard = (tab) => async (h) => { await wdOpen(VIS)(h); await wdFill(h); await h.click(`${W_MODAL} [data-reg-confirm]`); await h.wait(600); window.location.hash = `#registru/reg-dosare/${VIS}/${tab}`; await h.find(CARD); await h.wait(700); };
     return {
+      "rtr-10": reg("reg-dosare", ADMIN, rowMenu(VIS)),
+      "rtr-10a": reg("reg-dosare", ADMIN, async (h) => { await rowMenu(SIGN)(h); await h.hover(`[data-reg-action="withdraw"][data-reg-row="${SIGN}"]`); }),
+      "rtr-10b": reg("reg-dosare", ADMIN, rowMenu(VIS), { ["rtr-continuare"]: VIS }),
+      "rtr-10c": reg("reg-dosare", ADMIN, rowMenu(PAST)),
+      "rtr-11": reg("reg-dosare", ADMIN, wdOpen(VIS)),
+      "rtr-11a": reg("reg-dosare", ADMIN, async (h) => { await wdOpen(VIS)(h); await h.click(`${W_MODAL} [data-reg-confirm]`); await h.wait(300); }),
+      "rtr-11b": reg("reg-dosare", ADMIN, async (h) => { await wdOpen(VIS)(h); await wdAttach("cerere-retragere.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")(h); }),
+      "rtr-11c": reg("reg-dosare", ADMIN, async (h) => { await wdOpen(VIS)(h); await wdFill(h); }),
+      "rtr-11d": reg("reg-dosare", ADMIN, wdOpen(OPT)),
+      "rtr-11e": reg("reg-dosare", ADMIN, wdOpen(VIS), { ["rtr-motiv"]: "exclus" }),
+      "rtr-12": reg("reg-dosare", ADMIN, wdCard("detalii")),
+      "rtr-12a": reg("reg-dosare", ADMIN, wdCard("documente")),
+      "rtr-12b": reg("reg-dosare", ADMIN, wdCard("jurnal")),
+      "rtr-12c": reg("reg-dosare", ADMIN, async (h) => { await wdOpen(VIS)(h); await wdFill(h); await h.click(`${W_MODAL} [data-reg-confirm]`); await h.wait(500); await h.fill("[data-workplace-search]", VIS); await h.wait(400); }),
+      "rtr-13": reg("reg-dosare", DIRECTOR, rowMenu(VIS)),
+      "rtr-13a": reg("reg-dosare", DIRECTOR, async (h) => { window.location.hash = `#registru/reg-dosare/${VIS}/retragere`; await h.find("[data-reg-page]:not([hidden]) .e-permits-empty"); await h.wait(300); }),
+      "rtr-14": card("reg-dosare", VIS, "detalii", ADMIN, async (h) => { await h.click(".e-permits-page-header [data-stack-menu-trigger]"); await h.wait(250); }),
       /* catalog „Toate registrele” (Feature 91139 § UX): icon, name, category, perimeter count, description; Solicitanți „În curând” */
       "reg-01": page("#registre"),
       "reg-01a": page("#registre", SPEC),

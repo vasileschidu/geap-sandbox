@@ -1124,7 +1124,8 @@
     return seed || own ? { ...(seed || {}), ...(own || {}) } : null;
   }
   const stareOf = (id) => recOf(id)?.stare || "Activ";
-  const FINALIZED = ["eliberat", "respins"];
+  /* rtr-v1: a withdrawn dossier („Retras”, US-413 AC-22) is archived by the policy like a finished one */
+  const FINALIZED = ["eliberat", "respins", "retras"];
   /* the old dossiers (2015–2017) of data/arhivare.json, shaped as the shell's dossier rows */
   let extras = null;
   function extraCaseRows() {
@@ -1157,12 +1158,16 @@
   /* the dossier's objects (documents + generated objects), deterministic from the dossier */
   function objectsOf(row) {
     const eliberat = row.status === "eliberat";
+    const wd = G().store?.()?.withdrawals?.[row.id] || null;
     const list = [
       { key: "cerere", name: "Cerere de eliberare", tip: "Cerere", sursa: "Solicitant" },
       { key: "nota", name: "Notă de plată", tip: "Notă de plată", sursa: "SIA GEAP" },
       { key: "plan", name: "Planul încăperilor", tip: "Document justificativ", sursa: "Solicitant" },
       { key: "extras", name: "Extras din Registrul de stat", tip: "Document justificativ", sursa: "Extern" },
-      eliberat ? { key: "act", name: "Act permisiv", tip: "Act permisiv", sursa: "SIA GEAP" } : { key: "decizie", name: "Decizie de respingere", tip: "Document justificativ", sursa: "SIA GEAP" }
+      /* rtr-v1 (US-422 AC-14): the withdrawal PDF registered from the register stays with the dossier's documents (no act,
+         no refusal decision for a withdrawn dossier) */
+      wd ? { key: "retragere", name: "Document de retragere", tip: "Cerere de retragere", sursa: "Solicitant", wdAt: wd.at, wdBy: wd.by, file: wd.file?.name || "" }
+        : eliberat ? { key: "act", name: "Act permisiv", tip: "Act permisiv", sursa: "SIA GEAP" } : { key: "decizie", name: "Decizie de respingere", tip: "Document justificativ", sursa: "SIA GEAP" }
     ];
     const r = row.arhRec || recOf(row.id);
     const seed = S.data?.objectStates?.[row.id] || {};
@@ -1457,9 +1462,9 @@
   function versionsOf(row, o) {
     const fields = DOC_FIELDS[o.key]?.(row) || [];
     const steps = DOC_CHANGES[o.key] || [];
-    const base = String(row.depus || row.src?.dataDepunerii || "2026-06-01T09:00").slice(0, 16);
+    const base = String(o.wdAt || row.depus || row.src?.dataDepunerii || "2026-06-01T09:00").slice(0, 16);
     const plusDays = (iso, n) => { const d = new Date(iso); d.setDate(d.getDate() + n); return isoOf(d); };
-    const author = o.sursa === "Solicitant" ? (row.anon || row.arhStare === "Șters" ? "‹redactat›" : row.solicitant) : o.sursa === "Extern" ? "MConnect · Registrul de stat" : o.key === "act" || o.key === "decizie" ? "SIA GEAP · MDocs" : "SIA GEAP";
+    const author = o.wdBy ? o.wdBy : o.sursa === "Solicitant" ? (row.anon || row.arhStare === "Șters" ? "‹redactat›" : row.solicitant) : o.sursa === "Extern" ? "MConnect · Registrul de stat" : o.key === "act" || o.key === "decizie" ? "SIA GEAP · MDocs" : "SIA GEAP";
     const list = [{ v: 1, at: plusDays(base, o.key === "act" || o.key === "decizie" ? 14 : 0), by: author, values: Object.fromEntries(fields) }];
     steps.forEach((changes, i) => {
       const prev = list[list.length - 1];

@@ -178,6 +178,16 @@
       "central-admin"
      ],
      "danger": true
+    },
+    {
+     "key": "withdraw",
+     "type": "custom",
+     "control": "WithdrawCase",
+     "label": "Înregistrează retragerea cererii",
+     "icon": "circle-x",
+     "roles": [],
+     "permission": "Cases.Case.Withdraw",
+     "danger": true
     }
    ],
    "position": 1

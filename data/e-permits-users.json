@@ -253,6 +253,11 @@
               "id": "d8",
               "label": "Exportul dosarelor",
               "role": "Specialist"
+            },
+            {
+              "id": "d9",
+              "label": "Înregistrarea retragerii cererii",
+              "role": "Specialist"
             }
           ]
         },

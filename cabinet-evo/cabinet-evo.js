@@ -667,7 +667,7 @@
      below and there is room above (the ⋮ of the last rows on a phone) */
   const MENU_EDGE = 16;
   function fitMenu(menu) {
-    menu.classList.remove("is-end", "is-start", "is-open-up", "is-trigger-end");
+    menu.classList.remove("is-end", "is-start", "is-open-up", "is-trigger-end", "is-trigger-start");
     /* the profile header „⋯” on phones hangs from the action row (header-max-two-v1): right edge on the trigger when the
        menu fits leftwards from it, else the row's left edge — geometry, set as a custom property */
     const overflow = menu.closest(".cab-act-header__overflow");
@@ -677,6 +677,9 @@
       menu.style.setProperty("--cab-menu-right", `${Math.max(0, Math.round(row.right - trigger.right))}px`);
       menu.classList.toggle("is-trigger-end", trigger.right - row.left >= menu.getBoundingClientRect().width);
     }
+    /* rtr-v1: a desktop header „⋯” with no button before it (only menu actions, e.g. „Retrage cererea”) sits on the left
+       gutter — its right-anchored menu would run off the left edge, so it opens rightwards from the trigger instead */
+    if (overflow && getComputedStyle(overflow).position !== "static" && menu.getBoundingClientRect().left < MENU_EDGE) menu.classList.add("is-trigger-start");
     const rect = menu.getBoundingClientRect();
     const edge = document.documentElement.clientWidth;
     if (rect.right > edge - MENU_EDGE) menu.classList.add("is-end");
@@ -1203,7 +1206,7 @@
 
   /* an act / request address that matches nothing (act-profile-url-v1): the profile's header with the breadcrumb back to
      the list (parents only) + the library empty state — no second „back” button. Shared with Solicitările mele. */
-  function notFoundHtml({ back, title, text }) {
+  function notFoundHtml({ back, title, text, icon: glyph = "search" }) {
     return `
       <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
@@ -1212,7 +1215,7 @@
           </div>
         </div>
       </header>
-      <div class="e-permits-dosar-profil__panel cab-not-found">${window.GEAPEmptyState.render({ title, text, icon: "search" })}</div>`;
+      <div class="e-permits-dosar-profil__panel cab-not-found">${window.GEAPEmptyState.render({ title, text, icon: glyph })}</div>`;
   }
 
   const ACT_NOT_FOUND = "Actul permisiv nu a fost găsit";
@@ -1271,7 +1274,11 @@
     if (!box) return;
     const act = box.closest("[data-cab-detail]") ? state.permits.find((permit) => permit.id === state.detail) : null;
     if (box.closest("[data-cab-detail]") && !act) return;
-    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")];
+    /* rtr-v1: `data-cab-header-menu` = an action that always lives in the „⋯” (US-413 „Retrage cererea”, destructive,
+       PO-approved placement) — never a visible button, never counted for the 2-button cap */
+    const pinned = [...box.querySelectorAll(":scope > [data-cab-header-menu]")];
+    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")].filter((el) => !pinned.includes(el));
+    pinned.forEach((el) => { el.hidden = true; });
     const more = box.querySelector(":scope > .cab-act-header__overflow");
     const primary = box.querySelector(":scope > .btn-primary");
     /* read */
@@ -1307,7 +1314,7 @@
     /* write */
     items.forEach((el, index) => { el.hidden = index >= keep; });
     if (!more) return;
-    const overflow = items.slice(keep);
+    const overflow = [...items.slice(keep), ...pinned];
     more.hidden = !overflow.length;
     const kinds = overflow.map((el) => el.dataset.cabActAction || el.textContent.trim());
     if (more.dataset.items !== kinds.join(" ")) { /* rebuilt only when the overflow set changes (an open menu keeps its focus) */
@@ -1321,10 +1328,12 @@
           /* a new-tab link keeps target / rel / its „filă nouă” name and shows label then the external icon
              (request-act-modal-link-v1) */
           const newTab = el.getAttribute("target") === "_blank";
-          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
+          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && !["data-cab-header-item", "data-cab-header-menu"].includes(a.name)) || a.name === "href" || a.name === "aria-disabled" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
             .map((a) => ` ${a.name}="${escape(a.value)}"`).join("");
           const glyph = el.querySelector("svg use")?.getAttribute("href")?.split("#")[1];
-          const label = `<span>${escape(el.textContent.trim())}</span>`;
+          /* a blocked action (rtr-v1): the act rows' disabled item — reason line + the Small tooltip (data-tooltip-reason) */
+          const reason = el.getAttribute("aria-disabled") === "true" ? el.dataset.tooltipReason || "" : "";
+          const label = `<span>${escape(el.textContent.trim())}</span>${reason ? `<span class="e-permits-fo-intent-menu__reason" aria-hidden="true">${escape(reason)}</span>` : ""}`;
           return `<li role="none"><${tag} class="e-permits-fo-intent-menu__item${danger(el) ? " is-danger" : ""}"${tag === "button" ? ' type="button"' : ""} role="menuitem"${attrs}>${newTab ? `${label}${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}` : `${glyph ? icon(glyph, "medium") : ""}${label}`}</${tag}></li>`;
         };
         const safe = overflow.filter((el) => !danger(el));

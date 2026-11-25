@@ -6,19 +6,20 @@
     "derulare": { "label": "În derulare", "tag": "status-tag--brand is-subtle" },
     "achitare": { "label": "Spre achitare", "tag": "status-tag--accent is-strong" },
     "info": { "label": "Informații suplimentare", "tag": "status-tag--accent is-strong" },
-    "finalizat": { "label": "Finalizat", "tag": "status-tag--success is-subtle" }
+    "finalizat": { "label": "Finalizat", "tag": "status-tag--success is-subtle" },
+    "retras": { "label": "Retrasă", "tag": "status-tag--muted is-subtle" }
   },
   "filters": [
     { "id": "toate", "label": "Toate" },
     { "id": "schita", "label": "Schiță", "statuses": ["schita"] },
     { "id": "atentie", "label": "Necesită atenție", "statuses": ["achitare", "info"], "accent": true },
     { "id": "derulare", "label": "În derulare", "statuses": ["derulare"] },
-    { "id": "finalizat", "label": "Finalizate", "statuses": ["finalizat"] }
+    { "id": "finalizat", "label": "Finalizate", "statuses": ["finalizat", "retras"] }
   ],
   "services": {
-    "09": { "title": "Autorizația sanitară de funcționare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare", "validityYears": 3 },
-    "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5 },
-    "618": { "_note": "type-first-v1 (2026-10-21): a service WITHOUT an object / location (licence for an activity) — the request row has no line 2", "title": "Licența pentru transportul rutier de mărfuri", "authority": "ANTA", "authorityName": "Agenția Națională Transport Auto", "termDays": 15, "fee": 300, "actTitle": "Licență pentru transportul rutier de mărfuri", "validityYears": 5 }
+    "09": { "title": "Autorizația sanitară de funcționare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare", "validityYears": 3, "withdrawal": { "_note": "rtr-v1: the passport block „Retragerea cererii” (US-413)", "active": true, "limit": "semnare", "reason": "obligatoriu", "fee": "restituire", "notify": true } },
+    "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5, "withdrawal": { "active": true, "limit": "semnare", "reason": "optional", "fee": "fara", "notify": true } },
+    "618": { "_note": "type-first-v1 (2026-10-21): a service WITHOUT an object / location (licence for an activity) — the request row has no line 2", "title": "Licența pentru transportul rutier de mărfuri", "authority": "ANTA", "authorityName": "Agenția Națională Transport Auto", "termDays": 15, "fee": 300, "actTitle": "Licență pentru transportul rutier de mărfuri", "validityYears": 5, "withdrawal": { "active": false } }
   },
   "help": {
     "ANSP": { "name": "Agenția Națională pentru Sănătate Publică", "phone": "022 574 501", "email": "office@ansp.gov.md" },

@@ -16,6 +16,9 @@
      footer   „Anulează” · primary „Începe →” (trailing icon-arrow-right, red for a consequential one) + a 12/16 tertiary
               no caption (start-dialog-v7); primary = «Începe →»
    GEAPStartDialog.open({ title, subtitle, text, consequence, tone, facts, destructive, href | onStart, trigger })
+   rtr-v1 (2026-11-25, „Retragerea cererii”): + fieldsHtml (a form field under the facts — the withdrawal reason),
+   primaryHtml (own primary, e.g. the MSign badge; keeps data-start-dialog-start), validate(el) → false keeps the dialog
+   open (inline error), onOpen(el) (bind the field), focus (selector focused first)
    GEAPStartDialog.facts({ fee, term, sign }) · titleFor(label) · summaryFor(label, { oficiu }) · consequenceFor(label)
    GEAPStartDialog.citizenPostprocess({ pp, service, act, href | onStart, trigger }) · appeal({ subtitle, href, trigger })
    Keyboard: Esc closes, Tab is trapped — on WINDOW capture so a modal underneath (Ghișeu window, js/modal.js) never
@@ -114,7 +117,9 @@
       if (event.target === el || event.target.closest("[data-start-dialog-close], [data-start-dialog-cancel]")) { close(); return; }
       const start = event.target.closest("[data-start-dialog-start]");
       if (!start || !state) return;
-      const { onStart } = state;
+      const { onStart, validate } = state;
+      /* rtr-v1: a dialog with a field (withdrawal reason) stays open while it is not valid */
+      if (validate && validate(el) === false) { event.preventDefault(); return; }
       if (start.tagName === "A") {
         /* a new-tab link (EVO Cabinet → the FO form): the tab opens, the dialog closes, focus back to the trigger */
         if (start.target === "_blank") { close(); return; }
@@ -150,7 +155,7 @@
     else if (!event.shiftKey && (document.activeElement === last || !inside)) { event.preventDefault(); first.focus(); }
   }
 
-  function open({ title = "", subtitle = "", text = "", consequence = "", tone = "warning", facts: factList = [], destructive = Boolean(consequence), primaryLabel = "Începe", href = "", newTab = false, onStart = null, onCancel = null, trigger = null } = {}) {
+  function open({ title = "", subtitle = "", text = "", consequence = "", tone = "warning", facts: factList = [], destructive = Boolean(consequence), primaryLabel = "Începe", href = "", newTab = false, onStart = null, onCancel = null, trigger = null, fieldsHtml = "", primaryHtml = "", validate = null, onOpen = null, focus = "" } = {}) {
     const el = overlay();
     el.querySelector("[data-start-dialog-title]").textContent = title;
     const sub = el.querySelector("[data-start-dialog-subtitle]");
@@ -164,25 +169,28 @@
       : (text ? `<p class="e-permits-start-dialog__text">${esc(text)}</p>` : "");
     el.querySelector("[data-start-dialog-body]").innerHTML = `
       ${lead}
-      ${factList.length ? `<ul class="e-permits-start-dialog__facts" aria-label="Pe scurt">${factList.map((f) => `<li class="e-permits-start-dialog__fact"><span class="status-tag status-tag--neutral is-subtle">${icon(f.icon)}<span>${esc(f.text)}</span></span></li>`).join("")}</ul>` : ""}`;
+      ${factList.length ? `<ul class="e-permits-start-dialog__facts" aria-label="Pe scurt">${factList.map((f) => `<li class="e-permits-start-dialog__fact"><span class="status-tag status-tag--neutral is-subtle">${icon(f.icon)}<span>${esc(f.text)}</span></span></li>`).join("")}</ul>` : ""}
+      ${fieldsHtml}`;
     const primaryClass = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-rounded`;
     /* start-dialog-v8 (user 2026-10-29): from EVO Cabinet the form opens in a NEW tab (another app; Cabinet stays) =
        the product's new-tab link: trailing external-link icon + „(se deschide într-o filă nouă)”; FO / Ghișeu / din
        oficiu continue in the same tab with the arrow */
     const external = Boolean(href && newTab);
     const inner = `<span>${esc(primaryLabel)}</span>${icon(external ? "external-link" : "arrow-right")}`;
-    const primary = href
+    const primary = primaryHtml || (href
       ? `<a class="${primaryClass}" href="${esc(href)}"${external ? ` target="_blank" rel="noopener" aria-label="${esc(`${primaryLabel} (se deschide într-o filă nouă)`)}"` : ""} data-start-dialog-start>${inner}</a>`
-      : `<button class="${primaryClass}" type="button" data-start-dialog-start>${inner}</button>`;
+      : `<button class="${primaryClass}" type="button" data-start-dialog-start>${inner}</button>`);
     el.querySelector("[data-start-dialog-footer]").innerHTML = `<button class="btn btn-neutral btn-rounded" type="button" data-start-dialog-cancel>Anulează</button>${primary}`;
     /* start-dialog-v7 (user 2026-10-29): no caption under the buttons — the primary's icon says where it goes */
-    state = { onStart, onCancel, trigger: trigger || document.activeElement };
+    state = { onStart, onCancel, validate, trigger: trigger || document.activeElement };
     el.classList.add("is-active");
     el.querySelector(".modal").classList.add("is-active");
     el.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
     window.addEventListener("keydown", onKey, true);
-    requestAnimationFrame(() => el.querySelector("[data-start-dialog-start]")?.focus({ preventScroll: true }));
+    el.querySelector(".modal").classList.toggle("e-permits-start-dialog--form", Boolean(fieldsHtml.trim()));
+    onOpen?.(el);
+    requestAnimationFrame(() => el.querySelector(focus || "[data-start-dialog-start]")?.focus({ preventScroll: true }));
   }
 
   function close({ restore = true } = {}) {

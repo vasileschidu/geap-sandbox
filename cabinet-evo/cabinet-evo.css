@@ -1807,6 +1807,13 @@ button.cab-alert-link {
   right: 0;
 }
 
+/* rtr-v1: the „⋯” is the only header action (its items always live in the menu) → the menu opens rightwards (fitMenu) */
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-start,
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-start:is(.is-start, .is-end) {
+  left: 0;
+  right: auto;
+}
+
 /* phones (header-actions-hug-v1, 2026-10-23): the buttons hug, so the „⋯” no longer sits on the gutter — opened from
    it the menu ran past the left screen edge (pp-03h: x −20 at 375 / 320). The menu hangs from the ACTION ROW instead:
    under the row, on its left edge (= the primary's left, the page gutter), at most the row's width */

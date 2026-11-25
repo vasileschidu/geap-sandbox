@@ -41,6 +41,10 @@
     "arhivat": {
       "label": "Arhivat",
       "tone": "neutral"
+    },
+    "retras": {
+      "label": "Retras",
+      "tone": "muted"
     }
   },
   "alerts": {

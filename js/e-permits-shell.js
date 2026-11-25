@@ -19377,6 +19377,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG_RELEASE_ACTORS = ["Specialist ghișeu", "Specialist", "Asistent tehnic"];
   const CFG_DECISIONS = ["Aprobare", "Respingere"];
   const CFG_DAY_TYPES = ["Zile lucrătoare", "Zile calendaristice"];
+  /* rtr-v1 (US-413 / US-422): „Retragerea cererii” per service — values = the labels (pending-changes diffs read them);
+     js/retragere.js maps them to its rule keys. Seeds: sanitară = obligatoriu / restituire, alcool = until the examination
+     starts / opțional / fără restituire, Notificare în comerț = motiv exclus; the others off */
+  const CFG_WD_LIMITS = ["Până la semnarea actului sau a deciziei de refuz", "Până la începerea examinării"];
+  const CFG_WD_REASONS = [["Obligatoriu", "Obligatoriu", "Solicitantul scrie motivul înainte să semneze."], ["Opțional", "Opțional", "Solicitantul poate scrie motivul."], ["Exclus", "Exclus", "Câmpul nu apare."]];
+  const CFG_WD_FEES = [["Restituire", "Restituire", "Restituirea taxei achitate se inițiază automat."], ["Fără restituire", "Fără restituire", "Taxa achitată nu se restituie."]];
+  const CFG_WD_SEED = {
+    "003000118": { wdActive: true, wdLimit: CFG_WD_LIMITS[0], wdReason: "Obligatoriu", wdFee: "Restituire", wdNotify: true },
+    "003000207": { wdActive: true, wdLimit: CFG_WD_LIMITS[1], wdReason: "Opțional", wdFee: "Fără restituire", wdNotify: true },
+    "003000023": { wdActive: true, wdLimit: CFG_WD_LIMITS[0], wdReason: "Exclus", wdFee: "Restituire", wdNotify: false }
+  };
   const CFG_DOC_TYPES = ["Act permisiv", "Decizie de respingere", "Înștiințare"];
   const CFG_RESET = ["Anual", "Lunar", "Fără resetare"];
   /* Numerotare: one template with parameters (A. Pascalov + G. Roșca, Figma 2026-10-12) —
@@ -19481,7 +19492,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const CFG_SECTIONS = [
     ["applicant", "Solicitant și act"], ["exam", "Examinare și distribuire"], ["suspension", "Suspendare"], ["signing", "Semnare"],
-    ["payment", "Plată"], ["delivery", "Livrare și eliberare"], ["appeal", "Contestare"], ["numbering", "Numerotare"],
+    ["payment", "Plată"], ["delivery", "Livrare și eliberare"], ["appeal", "Contestare"], ["withdrawal", "Retragerea cererii"], ["numbering", "Numerotare"],
     ["rap", "Publicare în RAP"], ["drafts", "Schițe"]
   ];
   const CFG_FIELDS = {
@@ -19494,6 +19505,7 @@ document.addEventListener("DOMContentLoaded", () => {
     payment: [["mpayCode", "Cod serviciu MPay"], ["payTerm", "Termenul de achitare (zile)"]],
     delivery: [["eDelivery", "Livrare electronică"], ["mdelivery", "Livrare prin MDelivery"], ["paperRelease", "Eliberare pe hârtie la autoritatea emitentă"], ["releaseActor", "Actorul care imprimă și eliberează actul"]],
     appeal: [["appealable", "Serviciu contestabil"], ["appealTypes", "Tipuri de solicitare contestabile"], ["appealDecisions", "Decizii contestabile"], ["appealDays", "Termen admisibil de contestare (zile)"], ["appealDayType", "Tipul zilelor de contestare"]],
+    withdrawal: [["wdActive", "Retragerea cererii activă"], ["wdLimit", "Momentul-limită"], ["wdReason", "Motivul retragerii"], ["wdFee", "Taxa achitată"], ["wdNotify", "Notificarea celorlalți participanți"]],
     numbering: [["numbering", "Reguli de numerotare"]],
     rap: [["rap", "Câmpuri transmise în RAP"]],
     drafts: [["draftDays", "Perioada de retenție a schițelor (zile)"]]
@@ -19562,6 +19574,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ? [["Denumirea persoanei juridice"], ["IDNO"], ["Numele și prenumele (PF)", true], ["Telefonul de contact", true], ["Obiectul autorizat"], [`${CFG_RAP_CAEM} › Codul CAEM`], [`${CFG_RAP_CAEM} › Denumirea activității`], ["Tipul unității"], ["Numărul de locuri"]].map(([field, anon = false]) => ({ field, anon }))
         : [{ field: "Denumirea persoanei juridice", anon: false }, { field: "IDNO", anon: false }, { field: "Obiectul autorizat", anon: false }, { field: "Numele și prenumele (PF)", anon: true }],
       draftDays: "90",
+      wdActive: false, wdLimit: CFG_WD_LIMITS[0], wdReason: "Obligatoriu", wdFee: "Restituire", wdNotify: true,
+      ...(CFG_WD_SEED[service.code] || {}),
       deps: (geap.dependencies || []).map((d, i) => d.relation === "Excludere mutuală"
         ? { id: `dep-${i + 1}`, name: d.act, requestTypes: [...rts], type: "Exclusivă", incompatible: d.code }
         : { id: `dep-${i + 1}`, name: d.act, requestTypes: rts.slice(0, 1), type: "Totală", source: d.code, fields: ["Denumirea persoanei juridice", "IDNO"] }),
@@ -19621,6 +19635,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG_MPAY_CODE = "EPM02";
   const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${cfgIdPrefix}${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
   const cfgSwitch = (key, label, description, { disabled = false } = {}) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-switch="${key}"`, disabled })}</div>`;
+  /* rtr-v1: one choice of a few = the library radio group (Small, css/radio.css), label + description per option */
+  const cfgRadios = (key, label, options, o = {}) => cfgField(key, label, `<div class="radio-group" role="radiogroup" aria-labelledby="cfg-${cfgIdPrefix}${key}-label">${options.map(([val, lab, desc]) => `<label class="radio radio--small"><input class="radio-input" type="radio" name="cfg-${cfgIdPrefix}${key}" value="${escapeHtml(val)}"${val === cfgDraft.v[key] ? " checked" : ""} data-cfg-radio="${key}"><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${escapeHtml(lab)}</span>${desc ? `<span class="radio-description">${escapeHtml(desc)}</span>` : ""}</span></label>`).join("")}</div>`, { ...o, labelFor: false });
+  /* a single yes / no that is not a group switch = the checkbox option with its description */
+  const cfgFlag = (key, label, description) => `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">${renderCheckOption({ label, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-flag="${key}" aria-describedby="cfg-${cfgIdPrefix}${key}-hint"` })}${description ? `<p class="e-permits-fo-field__hint" id="cfg-${cfgIdPrefix}${key}-hint">${escapeHtml(description)}</p>` : ""}</div>`;
   const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return renderCheckOption({ label: lab, plain: true, checked: (cfgDraft.v[key] || []).includes(val), attrs: `value="${escapeHtml(val)}" data-cfg-check="${key}"` }); }).join("")}</div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true });
   /* long list (primării): the full-flow multi-select field (as „Subgen de activitate”, CAEM
      step 2) — the button shows „N din M selectate · K grupuri” and opens the picker modal
@@ -19888,7 +19906,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   };
 
-  const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable", "refusal"];
+  const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable", "refusal", "wdActive"];
   const renderCfgForm = (service) => {
     const v = cfgDraft.v, r = cfgRssp(service), rts = service.geap.requestTypes.map((rt) => rt.name);
     switch (cfgDraft.section) {
@@ -19930,6 +19948,14 @@ document.addEventListener("DOMContentLoaded", () => {
           ${cfgChecks("appealDecisions", "Decizii contestabile", CFG_DECISIONS, { required: true })}
           ${cfgInput("appealDays", "Termen admisibil de contestare (zile)", { required: true, numeric: true, span: 6, hint: "Calculat de la emiterea deciziei." })}
           ${cfgSelect("appealDayType", "Tipul zilelor de contestare", CFG_DAY_TYPES, { required: true, span: 6 })}`))}`);
+      /* rtr-v1: „Retragerea cererii” (US-413 Assumptions: activă, momentul-limită, regimul motivului, regimul taxei,
+         notificarea altor participanți) — library switch / select / radio group (Small) / checkbox option */
+      case "withdrawal": return cfgGrid(`
+        ${cfgGroup(cfgSwitch("wdActive", "Retragerea cererii activă", v.wdActive ? "Solicitantul poate retrage cererea depusă din EVO Cabinet; retragerea primită pe alt canal se înregistrează din registrul «Dosare»." : "Cererile depuse pentru acest serviciu nu se pot retrage."), v.wdActive, cfgGrid(`
+          ${cfgSelect("wdLimit", "Momentul-limită", CFG_WD_LIMITS, { required: true, hint: "Până când se poate retrage cererea, din momentul depunerii." })}
+          ${cfgRadios("wdReason", "Motivul retragerii", CFG_WD_REASONS, { required: true })}
+          ${cfgRadios("wdFee", "Taxa achitată", CFG_WD_FEES, { required: true })}
+          ${cfgFlag("wdNotify", "Notifică ceilalți participanți", "Reprezentantul împuternicit, autoritățile avizatoare și autoritatea de control, după caz.")}`))}`);
       case "numbering": {
         const used = v.numbering.map((x) => x.doc);
         return `
@@ -20043,7 +20069,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG2_SECTIONS = [...CFG_SECTIONS, ["deps", "Interdependențe"]];
   /* section list icons (central icon system): one literal icon per section, always with its
      label — recognition aid, never the meaning; 16px, grey, brand on the current section */
-  const CFG2_ICONS = { applicant: "person", exam: "people", suspension: "pause", signing: "signature", payment: "wallet", delivery: "envelope", appeal: "judge-gavel", numbering: "hashtag", rap: "globe", drafts: "page-text", deps: "link" };
+  const CFG2_ICONS = { applicant: "person", exam: "people", suspension: "pause", signing: "signature", payment: "wallet", delivery: "envelope", appeal: "judge-gavel", withdrawal: "circle-x", numbering: "hashtag", rap: "globe", drafts: "page-text", deps: "link" };
   const CFG2_DESC = {
     applicant: "Cine poate depune cererea și cum se verifică împuternicirea. Datele din RSSP se schimbă doar la resincronizare.",
     exam: "Subdiviziunile care examinează dosarele și cum ajung dosarele la specialiști.",
@@ -20052,6 +20078,7 @@ document.addEventListener("DOMContentLoaded", () => {
     payment: "Datele pentru nota de plată din MPay și termenul de achitare.",
     delivery: "Cum ajunge actul la solicitant și cine îl eliberează pe hârtie.",
     appeal: "Dacă și în ce termen se pot contesta deciziile serviciului.",
+    withdrawal: "Dacă și până când solicitantul poate retrage cererea depusă, cu sau fără motiv, și ce se întâmplă cu taxa achitată.",
     numbering: "Formatul numerelor atribuite documentelor emise.",
     rap: "Ce date din cerere se publică în Registrul actelor permisive și care se anonimizează.",
     drafts: "Cât timp se păstrează schițele de cerere nedepuse.",
@@ -20697,6 +20724,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (CFG_GROUP_SWITCHES.includes(key)) { const ctx = cfgCapture(); setTimeout(() => cfgWith(ctx, () => { if (!cfgDraft || !cfgBody?.isConnected) return; cfgRender(); cfgBody.querySelector(`[data-cfg-switch="${key}"]`)?.focus(); }), matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200); }
       return;
     }
+    if (t.matches("[data-cfg-radio]")) { const key = t.dataset.cfgRadio; cfgDraft.v[key] = t.value; cfgMark(key, t); return; }
+    if (t.matches("[data-cfg-flag]")) { const key = t.dataset.cfgFlag; cfgDraft.v[key] = t.checked; cfgMark(key, t); return; }
     if (t.matches("[data-cfg-check]")) { const key = t.dataset.cfgCheck; cfgDraft.v[key] = [...cfgBody.querySelectorAll(`[data-cfg-check="${key}"]:checked`)].map((x) => x.value); cfgMark(key, t); return; }
     if (t.matches("[data-cfg-rap]")) {
       const field = t.value;
