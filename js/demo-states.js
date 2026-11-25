@@ -1387,6 +1387,10 @@
     "dos-02i": dos(DIR, "inExaminare", "general", { suspendat: "1" }),
     "dos-02j": dos(SPEC, "spreCoordonare"),
     "dos-02k": dos(LOCAL, "inExaminare"),
+    /* Specialist at „Crearea proiectului de act permisiv” (Figma 02e): ?pas=node17 = the act-project step;
+       l = the step menu open, m = the act-project form (Înainte) open */
+    "dos-02l": dos(SPEC, "inExaminare", "general", { pas: "node17" }, redistMenu),
+    "dos-02m": dos(SPEC, "inExaminare", "general", { pas: "node17" }, async (h) => { await redistMenu(h); await h.click("[data-case-action='inainteAct']"); await h.find("#case-action-modal.is-active #case-valabilDin, #case-action-modal.is-active input"); }),
     /* 03 taxe și plăți */
     "dos-03": dos(SPEC, "inExaminare", "taxe"),
     "dos-03a": dos(SPEC, "asteaptaPlata", "taxe"),

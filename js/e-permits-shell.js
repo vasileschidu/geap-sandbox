@@ -2920,6 +2920,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* &documente=0: a dossier whose applicant attached nothing (Documente însoțitoare empty state) */
     if (params.get("documente") === "0") { row.demoFaraDocumente = true; row.profil = null; }
     delete row.flowState;
+    row.demoPas = params.get("pas") || null;
     /* dist-actions-v1: the seeded refusal / transfer replays on the case in its demo status */
     delete row.distTx; delete row.distReports; delete row.nedist; delete row.distribuire; row.demoTransferApplied = false;
     applyDemoTransfer(row);
@@ -4550,6 +4551,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ...(row.status === "spreSemnare" && flow.nodes.RecordState2 ? ["RecordState2"] : [])
       ];
       row.flowState = { flowId: flow.id, vars, ...init, visited, decision: row.decizia === "respingere" ? "respingere" : null, log: seedCaseLog(row) };
+      /* demo ?pas=<flow node> (with ?stare=): the dossier rests at that human step, e.g. node17 = „Crearea proiectului de act permisiv” */
+      if (row.demoPas && flow.nodes[row.demoPas]?.kind === "human") row.flowState.stateId = row.demoPas;
     }
 
     return { flow: caseFlow.getFlow(row.flowState.flowId), state: row.flowState };
