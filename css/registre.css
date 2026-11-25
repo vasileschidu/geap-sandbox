@@ -631,3 +631,13 @@
     top: var(--spacing-24, 24px);
   }
 }
+
+/* red-rad-v1 (US-410 AC-10): a register status cell with a marker („Dosar radiat” / „Dosar redeschis”) — the status tag
+   over the marker tag, 4 apart (the column is too narrow for two tags side by side; the row keeps its height) */
+.e-permits-reg-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}

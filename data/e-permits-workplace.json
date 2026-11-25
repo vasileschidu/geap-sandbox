@@ -45,6 +45,10 @@
     "retras": {
       "label": "Retras",
       "tone": "muted"
+    },
+    "redeschis": {
+      "label": "Redeschis",
+      "tone": "warning"
     }
   },
   "alerts": {

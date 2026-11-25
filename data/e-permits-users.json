@@ -258,6 +258,26 @@
               "id": "d9",
               "label": "Înregistrarea retragerii cererii",
               "role": "Specialist"
+            },
+            {
+              "id": "d10",
+              "label": "Solicitarea redeschiderii dosarului",
+              "role": "Specialist"
+            },
+            {
+              "id": "d11",
+              "label": "Confirmarea redeschiderii dosarelor",
+              "role": "Supervizor"
+            },
+            {
+              "id": "d12",
+              "label": "Solicitarea radierii dosarului",
+              "role": "Specialist"
+            },
+            {
+              "id": "d13",
+              "label": "Confirmarea radierii dosarelor",
+              "role": "Supervizor"
             }
           ]
         },

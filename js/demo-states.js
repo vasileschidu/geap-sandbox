@@ -4787,6 +4787,12 @@
        17 cardul actului (US-317) */
     ...regDemoStates(),
 
+    /* ---- Redeschiderea + Radierea dosarului (red-rad-v1, Features 97301 / 97414, js/dosar-cereri.js): red-01 ⋮ rules ·
+       02 dialog · 03 trimisă · 04 fără drept · 05 Sarcinile mele · 06 confirmare · 07 respingere · 08 contestație între
+       timp · 09 fără permisiune; rad-01 ⋮ rules · 02 dialog · 03 trimisă · 04 fără drept · 05 sarcina · 06 confirmare ·
+       07 respingere · 08 fără permisiune */
+    ...crqDemoStates(),
+
     /* ---- Registre — the register builder in the AdminPortal, phase 2 (Feature 94523, js/registre-admin.js,
        registre-v2 2026-10-24): reg-a01 listă · a02 creare · a03 profil · a04 editare · a05 coloane · a06 filtru ·
        a07 acțiuni · a08 publicare · a09 istoric versiuni · a10 depreciere · a11 acces · a12 Administrator local ·
@@ -6760,6 +6766,135 @@
         await h.click("[data-rga-grant]"); await h.click('input[data-rga-role][value="central-admin"]'); await h.click("[data-rga-grant-save]"); await h.wait(500);
         document.querySelector('[data-nav-item][data-nav-id="reg-platisanitar"]').click(); await h.wait(900);
       })
+    };
+  }
+
+  /* ---- Redeschiderea + Radierea dosarului (red-rad-v1, 2026-11-25; Feature 97301 US-411 / US-412 · Feature 97414 US-409 /
+     US-410; js/dosar-cereri.js). BO desktop only. Seeds (CSP Chișinău): reopen asked for D-2026-004719 (eliberat, act
+     AUT-2026-004719) · reopen by SIA GEAP for D-2026-004734 (contestație aprobată) · strikes asked for D-2026-004566 /
+     D-2026-004507 · D-2026-004561 = „Dosar radiat” · D-2026-004713 = a rejected reopen. Submit on D-2026-004707 (reopen) /
+     D-2026-004559 (strike). red-contestatie=<id> = an active appeal. */
+  function crqDemoStates() {
+    const ADMIN = "ansp-central-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau";
+    const LIST = "[data-registry-kind='reg-dosare'] tr[data-workplace-row], [data-registry-kind='reg-dosare'] .e-permits-empty";
+    const CARD = "#reg-panel .e-permits-dosar-profil__section, #reg-panel .e-permits-empty";
+    const DENIED = "[data-reg-page]:not([hidden]) .e-permits-empty";
+    const PROFILE = ".e-permits-trajectory, .e-permits-dosar-profil__section";
+    const MODAL = "#case-action-modal.is-active";
+    const R_NEW = "D-2026-004707", R_PEND = "D-2026-004719", R_AUTO = "D-2026-004734", R_REJ = "D-2026-004713", R_APPEAL = "D-2026-004704";
+    const S_NEW = "D-2026-004559", S_PEND = "D-2026-004566", S_DONE = "D-2026-004561", ELIB = "D-2026-004704", ARCH = "D-2026-004746", OUT = "D-2026-004717";
+    const T_REOPEN = "S-2026-000412", T_AUTO = "S-2026-000415", T_STRIKE = "S-2026-000409";
+    const reg = (as, run, params) => ({ flow: "back-office", as, hash: "#reg-dosare", params, ready: LIST, run });
+    const card = (id, tab, as, run, params) => ({ flow: "back-office", as, hash: `#registru/reg-dosare/${id}/${tab}`, params, ready: CARD, run });
+    const tasks = (as, run, params) => ({ flow: "back-office", as, hash: "#sarcini", params, ready: "[data-registry-kind='sarcini'] tr[data-workplace-row], [data-registry-kind='sarcini'] .e-permits-empty", run });
+    const search = async (h, id) => { await h.fill("[data-workplace-search]", id); await h.wait(300); };
+    const rowMenu = (id) => async (h) => { await search(h, id); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const act = (id, key) => async (h) => { await rowMenu(id)(h); await h.click(`[data-reg-action="${key}"][data-reg-row="${id}"]`); await h.find(`${MODAL} [data-crq-submit]`); await h.wait(250); };
+    const fillReason = (sel, text) => async (h) => { await h.fill(sel, text, { leave: false }); };
+    const REOPEN_WHY = "Eroare materială în decizie: suprafața încăperilor a fost preluată greșit din cerere (48 m² în loc de 84 m²).";
+    const STRIKE_WHY = "Dosar depus din eroare, dublură a dosarului D-2026-004566 (aceeași cerere, înregistrată de două ori la ghișeu).";
+    const submitted = (id, key, why) => async (h) => { await act(id, key)(h); await fillReason("#crq-reason", why)(h); await h.click(`${MODAL} [data-crq-submit]`); await h.find(".toast"); await h.wait(300); };
+    const toCard = (id, tab) => async (h) => { window.location.hash = `#registru/reg-dosare/${id}/${tab}`; await h.find(CARD); await h.wait(700); };
+    /* a task: the row of „Sarcinile mele” opens its dialog */
+    const task = (id) => async (h) => { await h.click(`tr[data-workplace-row="${id}"]`); await h.find(`${MODAL} [data-crq-confirm]`); await h.wait(250); };
+    const tab = (id) => async (h) => { await h.click(`[data-workplace-tab="${id}"]`); await h.wait(300); };
+    const confirmOpen = (id) => async (h) => { await task(id)(h); await h.click(`${MODAL} [data-crq-confirm]`); await h.find(`${MODAL} [data-crq-confirm-final]`); await h.wait(250); };
+    const confirmed = (id) => async (h) => { await confirmOpen(id)(h); await h.click(`${MODAL} [data-crq-confirm-final]`); await h.find(".toast"); await h.wait(300); };
+    const rejectOpen = (id) => async (h) => { await task(id)(h); await h.click(`${MODAL} [data-crq-reject]`); await h.find(`${MODAL} #crq-reject-reason`); await h.wait(250); };
+    const rejected = (id, why) => async (h) => { await rejectOpen(id)(h); await fillReason("#crq-reject-reason", why)(h); await h.click(`${MODAL} [data-crq-reject-final]`); await h.find(".toast"); await h.wait(300); };
+    const openCase = (id) => async (h) => { await task(id)(h); await h.click(`${MODAL} [data-crq-open-case]`); await h.find(PROFILE); await h.wait(600); };
+    const toProfile = (id) => async (h) => { window.location.hash = `#dosar/${id}/general`; await h.find(PROFILE); await h.wait(700); };
+    const then = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    /* the journal tab needs „Audit.Journal.View” (not the supervisor's): the Administrator central (implicit confirmation
+       permission, no „Sarcinile mele” item) opens the task by its address */
+    const adminTask = (id, run) => ({ flow: "back-office", as: ADMIN, hash: `#sarcina/${id}`, ready: `${MODAL} [data-crq-confirm]`, run });
+    return {
+      /* US-411 Solicitarea redeschiderii — ⋮ only on a finished dossier (AC-03), not with an appeal (AC-04), archived (AC-05),
+         nor with a reopen „În confirmare” (AC-06); a rejected one can be asked again */
+      "red-01": reg(ADMIN, rowMenu(R_NEW)),
+      "red-01a": reg(ADMIN, rowMenu(S_NEW)),
+      "red-01b": reg(ADMIN, rowMenu(R_APPEAL), { ["red-contestatie"]: R_APPEAL }),
+      "red-01c": reg(ADMIN, rowMenu(ARCH)),
+      "red-01d": reg(ADMIN, rowMenu(R_PEND)),
+      "red-01e": reg(ADMIN, rowMenu(R_REJ)),
+      /* the dialog (AC-07), the required reason (AC-08), filled, Anulează (AC-09), sent (AC-10), the card (AC-11 / AC-12 task) and the journal (AC-13) */
+      "red-02": reg(ADMIN, act(R_NEW, "reopen")),
+      "red-02a": reg(ADMIN, async (h) => { await act(R_NEW, "reopen")(h); await h.click(`${MODAL} [data-crq-submit]`); await h.wait(300); }),
+      "red-02b": reg(ADMIN, async (h) => { await act(R_NEW, "reopen")(h); await fillReason("#crq-reason", REOPEN_WHY)(h); }),
+      "red-02c": reg(ADMIN, async (h) => { await act(R_NEW, "reopen")(h); await h.click(`${MODAL} [data-case-close]`); await h.wait(400); await rowMenu(R_NEW)(h); }),
+      "red-03": reg(ADMIN, submitted(R_NEW, "reopen", REOPEN_WHY)),
+      "red-03a": reg(ADMIN, then(submitted(R_NEW, "reopen", REOPEN_WHY), toCard(R_NEW, "detalii"))),
+      "red-03b": reg(ADMIN, then(submitted(R_NEW, "reopen", REOPEN_WHY), toCard(R_NEW, "jurnal"))),
+      /* AC-01 / AC-02: the director has no „Redeschide”; the direct call without the right / outside the perimeter = „Acces interzis”;
+         with the right the direct call opens the dialog */
+      "red-04": reg(DIR, rowMenu(R_NEW)),
+      "red-04a": { flow: "back-office", as: DIR, hash: `#registru/reg-dosare/${R_NEW}/redeschidere`, ready: DENIED },
+      "red-04b": { flow: "back-office", as: SPEC, hash: `#registru/reg-dosare/${OUT}/redeschidere`, ready: DENIED },
+      "red-04c": { flow: "back-office", as: SPEC, hash: `#registru/reg-dosare/${R_NEW}/redeschidere`, ready: `${MODAL} [data-crq-submit]` },
+      /* US-412 Confirmarea redeschiderii — „Sarcinile mele” of the Supervizor (AC-02) / Director, the task (AC-03), SIA GEAP's
+         reopen at an approved appeal (AC-04), the dossier from the task (AC-05) */
+      "red-05": tasks(SUP),
+      "red-05a": tasks(SUP, tab("redeschidere")),
+      "red-05b": tasks(SUP, task(T_REOPEN)),
+      "red-05c": tasks(SUP, task(T_AUTO)),
+      "red-05d": tasks(SUP, openCase(T_REOPEN)),
+      "red-05e": tasks(DIR),
+      /* confirm (AC-06), Anulează keeps it (AC-07), confirmed (AC-08 / AC-09 / AC-10 / AC-13 / AC-14), act „Redeschis” (AC-11), journal (AC-20) */
+      "red-06": tasks(SUP, confirmOpen(T_REOPEN)),
+      "red-06a": tasks(SUP, async (h) => { await confirmOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-case-close]`); await h.wait(400); }),
+      "red-06b": tasks(SUP, confirmed(T_REOPEN)),
+      "red-06c": tasks(SUP, then(confirmed(T_REOPEN), toProfile(R_PEND))),
+      "red-06d": tasks(SUP, then(confirmed(T_REOPEN), toCard(R_PEND, "detalii"))),
+      "red-06e": adminTask(T_REOPEN, then(async (h) => { await h.click(`${MODAL} [data-crq-confirm]`); await h.click(`${MODAL} [data-crq-confirm-final]`); await h.find(".toast"); }, toCard(R_PEND, "jurnal"))),
+      "red-06f": tasks(SUP, then(confirmed(T_REOPEN), async (h) => { window.location.hash = "#reg-acte"; await h.find("[data-registry-kind='reg-acte'] tr[data-workplace-row]"); await h.wait(500); await search(h, "AUT-2026-004719"); })),
+      /* reject: the dialog, the required „Motivul respingerii” (AC-17), rejected = the dossier stays „Eliberat” (AC-18) */
+      "red-07": tasks(SUP, rejectOpen(T_REOPEN)),
+      "red-07a": tasks(SUP, async (h) => { await rejectOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-crq-reject-final]`); await h.wait(300); }),
+      "red-07b": tasks(SUP, rejected(T_REOPEN, "Eroarea se corectează prin reperfectarea actului; redeschiderea nu este necesară.")),
+      "red-07c": tasks(SUP, then(rejected(T_REOPEN, "Eroarea se corectează prin reperfectarea actului; redeschiderea nu este necesară."), toCard(R_PEND, "detalii"))),
+      /* AC-19: an appeal arrived meanwhile → „Dosarul nu mai poate fi redeschis.” */
+      "red-08": tasks(SUP, async (h) => { await confirmOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-crq-confirm-final]`); await h.find(".toast"); await h.wait(300); }, { ["red-contestatie"]: R_PEND }),
+      /* AC-01: the specialist has no confirmation tasks; the task opened directly = „Acces interzis” */
+      "red-09": tasks(SPEC),
+      "red-09a": { flow: "back-office", as: SPEC, hash: `#sarcina/${T_REOPEN}`, ready: DENIED },
+
+      /* US-409 Solicitarea radierii — ⋮ in any status but „Eliberat” (AC-03), not archived (AC-04), not struck (AC-05, the row
+         shows „Dosar radiat”), not with a strike „În confirmare” (AC-06) */
+      "rad-01": reg(ADMIN, rowMenu(S_NEW)),
+      "rad-01a": reg(ADMIN, rowMenu(ELIB)),
+      "rad-01b": reg(ADMIN, rowMenu(ARCH)),
+      "rad-01c": reg(ADMIN, rowMenu(S_DONE)),
+      "rad-01d": reg(ADMIN, rowMenu(S_PEND)),
+      "rad-02": reg(ADMIN, act(S_NEW, "strike")),
+      "rad-02a": reg(ADMIN, async (h) => { await act(S_NEW, "strike")(h); await h.click(`${MODAL} [data-crq-submit]`); await h.wait(300); }),
+      "rad-02b": reg(ADMIN, async (h) => { await act(S_NEW, "strike")(h); await fillReason("#crq-reason", STRIKE_WHY)(h); }),
+      "rad-02c": reg(ADMIN, async (h) => { await act(S_NEW, "strike")(h); await h.click(`${MODAL} [data-case-close]`); await h.wait(400); await rowMenu(S_NEW)(h); }),
+      "rad-03": reg(ADMIN, submitted(S_NEW, "strike", STRIKE_WHY)),
+      "rad-03a": reg(ADMIN, then(submitted(S_NEW, "strike", STRIKE_WHY), toCard(S_NEW, "detalii"))),
+      "rad-03b": reg(ADMIN, then(submitted(S_NEW, "strike", STRIKE_WHY), toCard(S_NEW, "jurnal"))),
+      "rad-04": reg(DIR, rowMenu(S_NEW)),
+      "rad-04a": { flow: "back-office", as: DIR, hash: `#registru/reg-dosare/${S_NEW}/radiere`, ready: DENIED },
+      "rad-04b": { flow: "back-office", as: SPEC, hash: `#registru/reg-dosare/${OUT}/radiere`, ready: DENIED },
+      /* US-410 Confirmarea radierii — the tab (AC-02), the task (AC-03), the dossier (AC-04), confirm (AC-05), Anulează (AC-06),
+         confirmed (AC-07 / AC-17), the register row (AC-10 / AC-11), the card (AC-08 / AC-09 / AC-12 / AC-13 / AC-14), journal
+         (AC-18), the profile (AC-09) */
+      "rad-05": tasks(SUP, tab("radiere")),
+      "rad-05a": tasks(SUP, task(T_STRIKE)),
+      "rad-05b": tasks(SUP, openCase(T_STRIKE)),
+      "rad-06": tasks(SUP, confirmOpen(T_STRIKE)),
+      "rad-06a": tasks(SUP, async (h) => { await confirmOpen(T_STRIKE)(h); await h.click(`${MODAL} [data-case-close]`); await h.wait(400); await tab("radiere")(h); }),
+      "rad-06b": tasks(SUP, confirmed(T_STRIKE)),
+      "rad-06c": tasks(SUP, then(confirmed(T_STRIKE), async (h) => { window.location.hash = "#reg-dosare"; await h.find(LIST); await h.wait(500); await search(h, S_PEND); })),
+      "rad-06d": tasks(SUP, then(confirmed(T_STRIKE), toCard(S_PEND, "detalii"))),
+      "rad-06e": adminTask(T_STRIKE, then(async (h) => { await h.click(`${MODAL} [data-crq-confirm]`); await h.click(`${MODAL} [data-crq-confirm-final]`); await h.find(".toast"); }, toCard(S_PEND, "jurnal"))),
+      "rad-06f": tasks(SUP, then(confirmed(T_STRIKE), toProfile(S_PEND))),
+      /* reject: the dialog, the required reason (AC-15), rejected = no marker (AC-16) */
+      "rad-07": tasks(SUP, rejectOpen(T_STRIKE)),
+      "rad-07a": tasks(SUP, async (h) => { await rejectOpen(T_STRIKE)(h); await h.click(`${MODAL} [data-crq-reject-final]`); await h.wait(300); }),
+      "rad-07b": tasks(SUP, then(rejected(T_STRIKE, "Dosarul nu este o dublură: cererile diferă prin adresa obiectului."), toCard(S_PEND, "detalii"))),
+      /* AC-01: without the confirmation permission (specialist, director) the task opened directly = „Acces interzis” */
+      "rad-08": { flow: "back-office", as: SPEC, hash: `#sarcina/${T_STRIKE}`, ready: DENIED },
+      "rad-08a": { flow: "back-office", as: DIR, hash: `#sarcina/${T_STRIKE}`, ready: DENIED }
     };
   }
 

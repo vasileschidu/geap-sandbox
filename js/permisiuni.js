@@ -69,7 +69,7 @@
         S.icons = new Map(Object.values(ctx.roles || {}).map((r) => [String(r.label).toLowerCase(), r.icon]));
         if (D.id) renderDetails();
       }).catch(() => {});
-      S.loading = fetch("data/permisiuni.json?v=rtr-v1").then((r) => r.json()).then((json) => {
+      S.loading = fetch("data/permisiuni.json?v=red-rad-v1").then((r) => r.json()).then((json) => {
         S.data = demo.has("gol") ? { permissions: [] } : json;
         return S.data;
       }).catch(() => { S.data = { permissions: [] }; return S.data; });

@@ -78,12 +78,14 @@
      row, red star when required (US-413 AC-11 / US-422 AC-09); excluded = no field at all */
   const MAX = 500;
   const requiredMark = () => `<span class="e-permits-fo-required" aria-label="obligatoriu">${icon("asterisk", 12)}</span>`;
-  function reasonFieldHtml({ id = "rtr-reason", mode = "obligatoriu", value = "", placeholder = "De ex. am renunțat la deschiderea unității" } = {}) {
+  /* red-rad-v1: `label` lets the other reason dialogs of the dossier (Redeschiderea / Radierea, js/dosar-cereri.js) reuse
+     the same field — one textarea, one counter, one inline error */
+  function reasonFieldHtml({ id = "rtr-reason", mode = "obligatoriu", value = "", placeholder = "De ex. am renunțat la deschiderea unității", label = "Motivul retragerii" } = {}) {
     if (mode === "exclus") return "";
     const required = mode === "obligatoriu";
     return `
       <div class="e-permits-fo-field e-permits-rtr-reason" data-rtr-reason-field>
-        <div class="e-permits-fo-field__label-counter"><label for="${esc(id)}">Motivul retragerii ${required ? requiredMark() : ""}</label><span class="e-permits-fo-field__counter" data-rtr-counter${value ? "" : " hidden"}>${value.length} / ${MAX}</span></div>
+        <div class="e-permits-fo-field__label-counter"><label for="${esc(id)}">${esc(label)} ${required ? requiredMark() : ""}</label><span class="e-permits-fo-field__counter" data-rtr-counter${value ? "" : " hidden"}>${value.length} / ${MAX}</span></div>
         <div class="e-permits-fo-textarea">
           <textarea id="${esc(id)}" rows="3" maxlength="${MAX}" placeholder="${esc(placeholder)}"${required ? ' aria-required="true"' : ""} data-rtr-reason>${esc(value)}</textarea>
         </div>

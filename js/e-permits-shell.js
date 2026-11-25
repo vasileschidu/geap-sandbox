@@ -1843,44 +1843,46 @@ document.addEventListener("DOMContentLoaded", () => {
     return rows;
   };
 
+  /* red-rad-v1 (Features 97301 / 97414): „Sarcinile mele” = the confirmation tasks of the role — „Confirmarea radierii”
+     (Supervizor) and „Confirmarea redeschiderii” (Supervizor, Director), from js/dosar-cereri.js (pending requests in the
+     perimeter, never the user's own); the old mock rows only without that module */
+  const sarciniRows = () => window.GEAPCaseRequests?.tasks?.() ?? buildSarcini();
   const buildSarciniDb = () => ({
     kind: "sarcini",
     fieldCount: dossierDb?.fieldCount || 48,
     myAutoritate: dossierDb?.myAutoritate,
     tipSarcina: {
-      radiere: { label: "Radiere", tone: "danger", icon: "cross-small" },
-      redeschidere: { label: "Redeschidere", tone: "brand", icon: "checkmark-small" }
+      radiere: { label: "Confirmarea radierii", tone: "danger", icon: "circle-x" },
+      redeschidere: { label: "Confirmarea redeschiderii", tone: "warning", icon: "undo" }
     },
-    statuses: {
-      aprobat: { label: "Aprobat", tone: "ok" },
-      schita: { label: "Schiță", tone: "neutral" }
-    },
+    statuses: dossierDb?.statuses || {},
     columns: {
-      nrSarcina: { label: "Numărul sarcinii", width: 120 },
-      tipSarcina: { label: "Tip sarcină", width: 150 },
-      dosar: { label: "Dosar", width: 150 },
-      statut: { label: "Statut", width: 110 },
-      tipDosar: { label: "Tip dosar", width: 112 },
-      solicitant: { label: "Nume solicitant", width: 152 },
-      companie: { label: "Compania", width: 164 },
-      modLivrare: { label: "Metoda de livrare", width: 150 },
-      dataSemnarii: { label: "Data semnării", width: 150, sortable: true }
+      nrSarcina: { label: "Numărul sarcinii", width: 152 },
+      tipSarcina: { label: "Tip sarcină", width: 232 },
+      dosar: { label: "Dosar", width: 160 },
+      statut: { label: "Statut dosar", width: 136 },
+      solicitant: { label: "Solicitant", width: 200, fill: true },
+      initiat: { label: "Inițiat de", width: 208 },
+      initiatLa: { label: "Inițiat la", width: 168, sortable: true }
     },
     views: {
       sarcini: {
         title: "Sarcinile mele",
         groupBy: "serviciu",
-        columns: ["nrSarcina", "tipSarcina", "dosar", "statut", "tipDosar", "solicitant", "companie", "modLivrare", "dataSemnarii"],
+        searchPlaceholder: "Caută după numărul sarcinii, dosar sau solicitant",
+        selectable: false,
+        emptyMessage: "Nu ai sarcini de confirmare",
+        columns: ["nrSarcina", "tipSarcina", "dosar", "statut", "solicitant", "initiat", "initiatLa"],
         defaultTab: "toate",
         tabs: [
-          { id: "radiere", label: "Radiere", filter: "sarcina:radiere", tone: "crit" },
+          { id: "radiere", label: "Radiere", filter: "sarcina:radiere" },
           { id: "redeschidere", label: "Redeschidere", filter: "sarcina:redeschidere" },
           { divider: true },
           { id: "toate", label: "Toate", filter: "all" }
         ]
       }
     },
-    runtimeRows: buildSarcini()
+    runtimeRows: sarciniRows()
   });
 
   const buildRoleAdminDb = () => {
@@ -1889,7 +1891,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const all = groups.flatMap((group) => (group.permissions || []).map((permission) => permission.id));
     const total = all.length;
 
-    const specialistFns = [...ids("dosare"), "p1", "p3", ...ids("avizare").slice(0, 1), ...ids("decizii"), ...ids("sarcini"), ...ids("audit")];
+    /* red-rad-v1: d11 / d13 = the confirmation of a reopen / strike — Supervizor, not Specialist */
+    const specialistFns = [...ids("dosare").filter((id) => !["d11", "d13"].includes(id)), "p1", "p3", ...ids("avizare").slice(0, 1), ...ids("decizii"), ...ids("sarcini"), ...ids("audit")];
     const supervisorFns = [...ids("dosare"), ...ids("plati"), ...ids("avizare"), ...ids("decizii"), ...ids("sarcini")];
     const admlFns = ["adm1", "adm2", "adm3", "adm4", "adm5", "adm6", "adm8", ...ids("audit"), "d1", "s1", ...ids("registre")];
 
@@ -2091,6 +2094,9 @@ document.addEventListener("DOMContentLoaded", () => {
         row.companie,
         row.modLivrare,
         row.serviciu,
+        row.initiat,
+        row.motiv,
+        formatDate(row.initiatLa), formatLongDate(row.initiatLa),
         formatDate(row.dataSemnarii), formatLongDate(row.dataSemnarii)
       ].filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
@@ -2807,7 +2813,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "semnat",
     "eliberat",
     "respins",
-    "arhivat"
+    "arhivat",
+    /* red-rad-v1: a reopened case went through every stage once — its payments, opinions and earlier decision stay */
+    "redeschis"
   ];
 
   const DOSAR_PROFIL_TABS = [
@@ -3273,7 +3281,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Termen", escapeHtml(formatDate(row.termenExaminare)), termenMeta ? escapeHtml(termenMeta) : ""],
       row.alerte?.length ? ["Alerte", renderAlerts(row.alerte)] : null,
       ["Specialist", renderAvatarChip(row.specialist), distCaption(distRecordOf(row))],
-      ["Statut", `${renderTag(status?.label, status?.tone)}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
+      ["Statut", `${renderTag(status?.label, status?.tone)}${window.GEAPCaseRequests?.markersHtml?.(row.id) || ""}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
     ]);
   };
 
@@ -3354,7 +3362,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDosarTrajectory = (row) => {
     const isOficiu = row.sursa === "OFICIU";
     const rejected = row.decizia === "respingere" && ["respins", "arhivat"].includes(row.status);
-    const current = { schita: 0, depus: 1, inExaminare: 1, asteaptaPlata: 1, spreCoordonare: 2, spreSemnare: 3, semnat: 5, eliberat: 6, respins: 6, arhivat: 6 }[row.status] ?? 0;
+    const current = { schita: 0, depus: 1, inExaminare: 1, asteaptaPlata: 1, spreCoordonare: 2, spreSemnare: 3, semnat: 5, eliberat: 6, respins: 6, arhivat: 6, redeschis: 1 }[row.status] ?? 0;
     const flowCtx = caseFlowOf(row);
     const suspended = Boolean(flowCtx?.state.suspended);
     const today = parseIsoDate(workplaceDb.today) || new Date();
@@ -3497,7 +3505,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Nr. actului anterior", row.actBaza?.nr ? escapeHtml(row.actBaza.nr) : dash]
     ]);
 
-    return `${renderDosarTrajectory(row)}${identificare}${dateDeProces}${suspendare}${nedistribuire}${organizare}${persoaneImplicate}${decizieSiAct}`;
+    /* red-rad-v1 (US-412 AC-14 / US-410 AC-09): „Redeschiderea dosarului” / „Radierea dosarului” — state, reason, who / when */
+    const cereri = window.GEAPCaseRequests?.cardsHtml?.(row.id, renderInfoCard) || "";
+    return `${renderDosarTrajectory(row)}${identificare}${dateDeProces}${cereri}${suspendare}${nedistribuire}${organizare}${persoaneImplicate}${decizieSiAct}`;
   };
 
   const renderDosarProfilSolicitare = (row) => {
@@ -7511,6 +7521,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  const renderSarcinaSolicitant = (row) => (row.companie
+    ? `<div class="e-permits-workplace__case-cell"><span data-cell-tooltip="${escapeHtml(row.companie)}">${escapeHtml(row.companie)}</span><span class="e-permits-workplace__source"><span data-cell-tooltip="${escapeHtml(row.numeSolicitant || "")}">${escapeHtml(row.numeSolicitant || "")}</span></span></div>`
+    : `<span data-cell-tooltip="${escapeHtml(row.numeSolicitant || "—")}">${escapeHtml(row.numeSolicitant || "—")}</span>`);
   const renderSarcinaCell = (row, key) => {
     switch (key) {
       case "nrSarcina":
@@ -7534,7 +7547,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return renderTag(status?.label, status?.tone);
       }
       case "solicitant":
-        return escapeHtml(row.numeSolicitant);
+        return renderSarcinaSolicitant(row);
+      case "initiat":
+        /* SIA GEAP (the redeschidere created at an approved appeal, US-412 AC-04) is not a person: plain two lines */
+        return row.initiat === "SIA GEAP"
+          ? `<div class="e-permits-workplace__case-cell"><span>SIA GEAP</span><span class="e-permits-workplace__source"><span>Sistem</span></span></div>`
+          : renderTablePerson((dossierDb?.specialisti || []).find((p) => p.nume === row.initiat) || personFromName(row.initiat), row.initiatRol || "");
+      case "initiatLa":
+        return renderDateTime(row.initiatLa);
       case "dataSemnarii":
         return renderDateTime(withDemoTime(row.dataSemnarii, `${row.id}s`));
       default:
@@ -8285,6 +8305,23 @@ document.addEventListener("DOMContentLoaded", () => {
     renderWorkplace();
   };
 
+  /* red-rad-v1: a task decided in its dialog leaves the list (US-410 AC-17); „Deschide dosarul” from a task = the dossier
+     profile, the back chevron returns to „Sarcinile mele” (US-412 AC-05 / US-410 AC-04) */
+  document.addEventListener("geap:tasks-changed", () => {
+    if (!sarciniDb) return;
+    sarciniDb.runtimeRows = sarciniRows();
+    if (activeRegistry === "sarcini") { workplaceState.rows = sarciniDb.runtimeRows; renderWorkplace(); }
+  });
+  document.addEventListener("geap:task-open-case", (event) => {
+    const dosar = (dossierDb?.runtimeRows || []).find((item) => item.id === event.detail?.caseId);
+    if (!dosar) return;
+    dosarProfilState.returnTo = "sarcini";
+    activeRegistry = "dossiers";
+    workplaceDb = dossierDb;
+    workplaceState.rows = dossierDb.runtimeRows || [];
+    openDosarProfil(dosar);
+  });
+
   const showSarciniRegistry = () => {
     if (!sarciniDb) {
       showRolePlaceholder("Sarcinile mele");
@@ -8292,6 +8329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     activeRegistry = "sarcini";
+    sarciniDb.runtimeRows = sarciniRows();
     workplaceDb = sarciniDb;
     workplaceState.rows = sarciniDb.runtimeRows || [];
     workplaceState.viewKey = "sarcini";
@@ -21009,6 +21047,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       usersDb.runtimeRows = buildUsers(usersDb);
       sarciniDb = buildSarciniDb();
+      /* red-rad-v1: the „Sarcinile mele” badge counts the role's confirmation tasks — they exist once the dossiers are here */
+      if (window.GEAPCaseRequests) setTimeout(() => window.GEAPShellApi?.refreshNav?.(), 0);
       roleAdminDb = buildRoleAdminDb();
 
       /* Pașaportul Serviciului seed + mock RSSP; the rest of the shell works without it */
@@ -21086,7 +21126,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (linkedRow) {
         /* a case opened from a module registry (Ghișeu „Dosare suspendate”, US-255): the profile reads the
            dossiers' statuses / alerts / decisions from workplaceDb */
-        if (!workplaceDb?.statuses && dossierDb) workplaceDb = dossierDb;
+        /* red-rad-v1: „Sarcinile mele” carries the statuses but not the decisions → the dossiers' db too */
+        if ((!workplaceDb?.statuses || !workplaceDb?.decisions) && dossierDb) workplaceDb = dossierDb;
         applyDemoCaseState(linkedRow);
         /* deep-link-nav-v1: a role whose menu has no dossier list (Administrator central opens on „Utilizatori”) reaches
            dossiers through „Registru Dosare” (or „Toate registrele” when the role has no such item) — never highlight an Administrare item for a dossier */
@@ -21728,6 +21769,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (user) {
           openUserProfile(user);
         }
+        return;
+      }
+
+      /* red-rad-v1: a confirmation task opens its dialog (dossier, reason, Inițiat de / la, „Deschide dosarul”) */
+      if (rowId && activeRegistry === "sarcini" && window.GEAPCaseRequests?.isTask?.(rowId)) {
+        window.GEAPCaseRequests.openTask(rowId);
         return;
       }
 

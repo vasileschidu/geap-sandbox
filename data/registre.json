@@ -158,14 +158,22 @@
      ]
     },
     {
+     "key": "reopen",
+     "type": "custom",
+     "control": "ReopenCase",
+     "label": "Redeschide",
+     "icon": "undo",
+     "roles": [],
+     "permission": "Cases.Case.Reopen"
+    },
+    {
      "key": "strike",
      "type": "custom",
      "control": "StrikeCase",
-     "label": "Radiază dosarul",
+     "label": "Radiază",
      "icon": "circle-x",
-     "roles": [
-      "central-admin"
-     ],
+     "roles": [],
+     "permission": "Cases.Case.Strike",
      "danger": true
     },
     {
@@ -702,6 +710,14 @@
     {
      "id": "ArchiveRecord",
      "label": "Arhivare",
+     "objects": [
+      "Case"
+     ],
+     "danger": false
+    },
+    {
+     "id": "ReopenCase",
+     "label": "Redeschidere dosar",
      "objects": [
       "Case"
      ],
@@ -7848,6 +7864,57 @@
      "status": "eliberat",
      "submitted": "2026-02-08T09:47:00",
      "specialist": "Stela Bradu"
+    }
+   ]
+  },
+  {
+   "id": "act-079",
+   "nr": "AUT-2026-004719",
+   "name": "Autorizație de comerț cu produse alcoolice",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PF",
+    "name": "Maria Ceban",
+    "idnp": "2004001234567",
+    "address": "mun. Chișinău, str. Ismail 45",
+    "phone": "+373 69 214 538",
+    "email": "maria.ceban@mail.md"
+   },
+   "place": "mun. Chișinău, str. Ismail 45",
+   "dossier": "D-2026-004719",
+   "status": "Valabil",
+   "tacit": false,
+   "issued": "2026-07-03T11:20:00",
+   "validUntil": "2031-07-02",
+   "statusChange": null,
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2026-07-03T11:20:00",
+     "reason": "Act emis la finalizarea examinării dosarului."
+    }
+   ],
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu amănuntul al băuturilor alcoolice"
+    ],
+    [
+     "Suprafața încăperilor",
+     "84 m²"
+    ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-004719",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-06-14T09:12:00",
+     "specialist": "Elena Caragia"
     }
    ]
   }

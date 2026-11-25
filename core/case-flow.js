@@ -304,6 +304,9 @@
         return opts.hasSpecialist ? { stateId: "node6", suspended: false } : resolve(flow, "node3", opts.vars);
       case "inExaminare":
         return { stateId: "node6", suspended: !!opts.suspended };
+      /* red-rad-v1 (US-412 AC-10): a reopened case rests where the specialist selects the decision */
+      case "redeschis":
+        return { stateId: "node6", suspended: false };
       case "asteaptaPlata":
         return { stateId: "node16", suspended: false };
       case "spreCoordonare":

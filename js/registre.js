@@ -49,6 +49,8 @@
   const X = () => window.GEAPArhivare || null;
   /* rtr-v1 (US-422 97587): „Înregistrează retragerea cererii” — the shared rules / reason field (js/retragere.js) */
   const W = () => window.GEAPRetragere || null;
+  /* red-rad-v1 (Features 97301 / 97414): „Redeschide” / „Radiază” = a request + a confirmation task (js/dosar-cereri.js) */
+  const Q = () => window.GEAPCaseRequests || null;
   const R = () => window.GEAPFormRender || {};
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const icon = (name, size = 20, cls = "icon") => `<svg class="${cls}" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${name}"></use></svg>`;
@@ -280,7 +282,7 @@
           process: /^process/.test(a.type) ? target : undefined,
           danger: Boolean(a.danger || (S.data?.admin?.targets?.controls || []).find((c) => c.id === control)?.danger),
           /* rtr-v1: „Înregistrează retragerea cererii” needs Cases.Case.Withdraw (US-422 AC-01) */
-          permission: a.permission || (control === "PushCase" ? "Cases.Case.Push" : control === "WithdrawCase" ? "Cases.Case.Withdraw" : undefined)
+          permission: a.permission || (control === "PushCase" ? "Cases.Case.Push" : control === "WithdrawCase" ? "Cases.Case.Withdraw" : control === "ReopenCase" ? "Cases.Case.Reopen" : control === "StrikeCase" ? "Cases.Case.Strike" : undefined)
         };
       })
     };
@@ -326,14 +328,17 @@
      Cases.Case.Push (US-195) — the row actions carry their own role list in the definition */
   /* rtr-v1: „withdraw” = Cases.Case.Withdraw („Înregistrarea retragerii cererii”, Roluri › Dosare d9 — Specialist,
      Supervizor, Administrator central); the director's role does not have it (US-422 AC-01 „no right” demo) */
+  /* red-rad-v1: reopen / strike = „Redeschide” / „Radiază” (Cases.Case.Reopen / Cases.Case.Strike — Supervizor, Specialist,
+     Administrator central); confirm-reopen = Supervizor, Director, Administrator central (implicit); confirm-strike =
+     Supervizor, Administrator central (Feature 89940). The director asks neither (the „no right” demo, AC-01). */
   const PERMS = {
-    "central-admin": ["export", "journal", "push", "withdraw"],
+    "central-admin": ["export", "journal", "push", "withdraw", "reopen", "strike", "confirm-reopen", "confirm-strike"],
     "local-admin": ["export", "journal"],
-    director: ["export", "journal"],
-    supervisor: ["export", "withdraw"],
-    specialist: ["withdraw"]
+    director: ["export", "journal", "confirm-reopen"],
+    supervisor: ["export", "withdraw", "reopen", "strike", "confirm-reopen", "confirm-strike"],
+    specialist: ["withdraw", "reopen", "strike"]
   };
-  const PERM_KEYS = { "Cases.Case.Push": "push", "Cases.Case.Withdraw": "withdraw" };
+  const PERM_KEYS = { "Cases.Case.Push": "push", "Cases.Case.Withdraw": "withdraw", "Cases.Case.Reopen": "reopen", "Cases.Case.Strike": "strike" };
   function persona() {
     const a = A().currentAssignment?.() || null;
     const roleId = a?.roleId || "";
@@ -381,7 +386,7 @@
     { id: "eliberat", name: "Act eliberat", kind: "final", status: "eliberat" },
     { id: "respins", name: "Dosar respins", kind: "final", status: "respins" }
   ];
-  const STATUS_STEP = { depus: "inregistrare", asteaptaPlata: "plata", inExaminare: "examinare", spreCoordonare: "coordonare", spreSemnare: "semnare", semnat: "semnare", eliberat: "eliberat", respins: "respins", arhivat: "eliberat" };
+  const STATUS_STEP = { depus: "inregistrare", asteaptaPlata: "plata", inExaminare: "examinare", spreCoordonare: "coordonare", spreSemnare: "semnare", semnat: "semnare", eliberat: "eliberat", respins: "respins", arhivat: "eliberat", redeschis: "decizie" };
   const FINAL = ["eliberat", "respins", "arhivat"];
   const ROLES = ["Specialist", "Supervizor", "Director", "Specialist ghișeu", "Expert"];
   const stepOf = (id) => STEPS.find((s) => s.id === id);
@@ -405,8 +410,9 @@
   const SOURCES = {
     Case: () => applyPatches([...(A().dossierStore?.()?.runtimeRows || []), ...(X()?.extraCaseRows?.() || [])]).filter(() => params.get("registre") !== "gol").map((row) => {
       const st = readStore();
-      const struck = st.struck[`reg-dosare:${row.id}`];
-      const status = struck ? "radiat" : row.status;
+      /* red-rad-v1: „Dosar radiat” is a marker next to the status (US-410 AC-08…10), not a status */
+      const struck = st.struck[`reg-dosare:${row.id}`] || Q()?.isStruck?.(row.id);
+      const status = struck && !Q() ? "radiat" : row.status;
       const anon = anonOf("reg-dosare", row.id);
       const base = {
         id: row.id, src: row, authority: "ANSP", subdivision: row.subdiviziune,
@@ -425,7 +431,7 @@
       id: a.id, src: a, authority: a.authority, subdivision: a.subdivision, authorityOnly: true,
       nr: a.nr, denumire: a.name, tip: a.type, autoritate: a.authority, beneficiar: a.beneficiary.name,
       beneficiarId: a.beneficiary.idno ? `IDNO ${a.beneficiary.idno}` : `IDNP ${a.beneficiary.idnp}`,
-      status: a.tacit && a.status === "Valabil" ? "Aprobare tacită" : a.status, emis: a.issued, valabil: a.validUntil, dosar: a.dossier
+      status: Q()?.actStatus?.(a) || (a.tacit && a.status === "Valabil" ? "Aprobare tacită" : a.status), emis: a.issued, valabil: a.validUntil, dosar: a.dossier
     })),
     Invoice: () => (S.data?.notes || []).map((n) => ({
       id: n.id, src: n, authority: n.authority, subdivision: n.subdivision,
@@ -490,7 +496,7 @@
   const findRow = (def, id) => rowsOf(def).find((row) => row.id === id) || null;
 
   /* ---------------------------------------------------------------- tones */
-  const ACT_TONE = { "Valabil": "success", "Aprobare tacită": "brand", "Suspendat": "warning", "Expirat": "neutral", "Retras": "danger", "Anulat": "danger" };
+  const ACT_TONE = { "Valabil": "success", "Aprobare tacită": "brand", "Suspendat": "warning", "Expirat": "neutral", "Retras": "danger", "Anulat": "danger", "Redeschis": "warning" };
   const NOTE_TONE = { "Emisă": "brand", "Achitată": "success", "Parțial achitată": "warning", "Neachitată": "danger", "Expirată": "neutral", "Anulată": "neutral", "Rambursată": "violet" };
   const MPAY_TONE = { "Finalizată cu succes": "success", "Eșuată": "danger", "În așteptare": "warning", "Anulată": "neutral" };
   const AVIZ_TONE = { "Favorabil": "success", "Nefavorabil": "danger", "În lucru": "brand", "Expirat": "neutral", "Retras": "danger" };
@@ -521,7 +527,8 @@
       solicitant: (r) => stack(r.solicitant, r.anon ? "Date anonimizate" : r.companie),
       serviciu: (r) => `<span data-cell-tooltip="${esc(r.serviciu)}">${esc(r.serviciu)}</span>`,
       subdiviziune: (r) => stack(r.subdivision, r.authority),
-      statut: (r) => tag(r.statut, caseTone(r)),
+      /* red-rad-v1 (US-410 AC-10): the marker sits under the status (the column is too narrow for two tags side by side) */
+      statut: (r) => { const m = Q()?.markersHtml?.(r.id) || ""; return m ? `<div class="e-permits-reg-tags">${tag(r.statut, caseTone(r))}${m}</div>` : tag(r.statut, caseTone(r)); },
       /* dist-mode-v2: a real holder = the shared table person (avatar + name + „aleatoriu” / „manual · supervisor”), the
          same cell as the Dosare list; „Nerepartizat” / „—” stay plain text */
       actor: (r) => (r.actor && !["—", "Nerepartizat"].includes(r.actor) && A().renderTablePersonCell
@@ -623,6 +630,8 @@
   const withdrawalOf = (row) => readStore().withdrawals?.[row.id] || null;
   function actionState(action, row) {
     if (action.control === "WithdrawCase") return withdrawState(row).reason;
+    const q = Q()?.actionState?.(action, row);
+    if (q !== undefined) return q;
     const ext = X()?.actionState?.(action, row);
     if (ext !== undefined) return ext;
     const st = row.src?.status;
@@ -639,6 +648,7 @@
     .filter((a) => includeOpen || a.type !== "open")
     .filter((a) => X()?.actionVisible?.(a, row) !== false)
     .filter((a) => a.control !== "WithdrawCase" || withdrawState(row).show)
+    .filter((a) => Q()?.visible?.(a, row) !== false)
     .map((a) => {
       const reason = a.type === "open" ? "" : actionState(a, row);
       return {
@@ -1007,6 +1017,11 @@
           : group.items.filter((item) => item.id !== "registre").map((item) => ({ ...item, hidden: true }));
         return { ...group, items: [catalogItem, ...regs] };
       }
+      /* red-rad-v1: „Sarcinile mele” counts the confirmation tasks of the role (js/dosar-cereri.js) */
+      if (Q() && group.items.some((item) => item.id === "my-tasks")) {
+        const n = Q().tasks().length;
+        return { ...group, items: group.items.map((item) => (item.id === "my-tasks" ? { ...item, badge: n || undefined } : item)) };
+      }
       if (group.items.some((item) => item.id === "registre-config") && !adminPerms(who).has("view")) {
         return { ...group, items: group.items.filter((item) => item.id !== "registre-config") };
       }
@@ -1155,7 +1170,7 @@
     switch (def.object) {
       case "Case": return [
         ["Numărul dosarului", copy(row.nr)],
-        ["Statut", `${tag(row.statut, caseTone(row))}${row.anon ? tag("Date anonimizate", "neutral") : ""}`],
+        ["Statut", `${tag(row.statut, caseTone(row))}${Q()?.markersHtml?.(row.id) || ""}${row.anon ? tag("Date anonimizate", "neutral") : ""}`],
         ...(withdrawalOf(row) ? [["Data retragerii", esc(stamp(withdrawalOf(row).at))]] : []),
         ...(X()?.meta?.(row) || []),
         ["Subdiviziune", esc(`${row.subdivision} · ${row.authority}`)],
@@ -1194,18 +1209,19 @@
       const anon = anonOf(def.id, row.id);
       const notices = [
         anon && U().renderNotice?.("info", `<strong>Date personale anonimizate</strong> · ${esc(stamp(anon.at))}, ${esc(anon.by)}. Cererea ${esc(anon.request)} (aprobată). Datele solicitantului apar ca „${REDACTED}” aici, în registru și în evenimentele anterioare din jurnal.`, { icon: "shield-keyhole" }),
-        row.struck && U().renderNotice?.("warning", `<strong>Dosar radiat din registru</strong> · ${esc(stamp(readStore().struck[`${def.id}:${row.id}`].at))}. Motiv: ${esc(readStore().struck[`${def.id}:${row.id}`].reason)}. Înregistrarea rămâne în sistem, nu se mai procesează.`)
+        row.struck && !Q() && U().renderNotice?.("warning", `<strong>Dosar radiat din registru</strong> · ${esc(stamp(readStore().struck[`${def.id}:${row.id}`].at))}. Motiv: ${esc(readStore().struck[`${def.id}:${row.id}`].reason)}. Înregistrarea rămâne în sistem, nu se mai procesează.`)
       ].filter(Boolean).join("");
       return `${notices || ext?.notices ? `<div class="e-permits-reg-notices">${ext?.notices || ""}${notices}</div>` : ""}
         ${card("Date generale", [
           ["Numărul dosarului", copy(row.nr)],
           ["Tip solicitare", val(row.tip)],
           ["Serviciu", val(row.serviciu)],
-          ["Statut", tag(row.statut, caseTone(row))],
+          ["Statut", `${tag(row.statut, caseTone(row))}${Q()?.markersHtml?.(row.id) || ""}`],
           ["Etapa curentă", val(stepOf(STATUS_STEP[s.status])?.name || "—")],
           ["Data depunerii", val(stamp(row.depus))],
           ["Termen de examinare", val(longDate(row.termen))]
         ])}
+        ${Q()?.cardsHtml?.(row.id, card) || ""}
         ${withdrawalOf(row) ? card("Retragerea cererii", [
           ["Data retragerii", esc(stamp(withdrawalOf(row).at))],
           ["Starea dosarului la retragere", val(withdrawalOf(row).prev)],
@@ -1856,6 +1872,7 @@
       return;
     }
     if (X()?.run?.(action, def, row)) return;
+    if (Q()?.run?.(action, def, row)) return;
     const blocked = actionState(action, row);
     if (blocked) { U().showShellToast?.(blocked, "info"); return; }
     pending = { kind, rowId, key };
@@ -2379,6 +2396,19 @@
       if (!def || !granted(def, who)) { showDenied(def?.name || "Registru", def?.object === "Permit" ? NO_PERMISSION : undefined); return; }
       /* rtr-v1 (US-422 AC-01 / AC-02): #registru/reg-dosare/<id>/retragere = the direct call of „Înregistrează retragerea
          cererii” — without the right, or for a dossier outside the role's authorities → „Acces interzis” */
+      /* red-rad-v1 (US-411 / US-409 AC-01 / AC-02): …/redeschidere · …/radiere = the direct call of „Redeschide” / „Radiază” */
+      const qk = Q()?.routeKind?.(m[3]);
+      if (qk) {
+        const action = actionsFor(def, who).find((a) => a.control === qk.control);
+        const row = findRow(def, decodeURIComponent(m[2]));
+        if (!action || !row) { showDenied(def.name, `Rolul tău nu are dreptul „${qk.action}” pentru acest dosar. Dreptul se acordă per rol și per autoritate, în setările registrului.`); return; }
+        if (document.querySelector("[data-workplace]")?.dataset.registryKind !== m[1]) {
+          A().showRegistry?.(registryDb(m[1]), { sortKey: def.defaultSort?.key || null, sortDirection: def.defaultSort?.dir || "desc" });
+        }
+        await openCard(m[1], row.id, "detalii", { push: false });
+        if (Q().visible(action, row) !== false) runAction(m[1], row.id, action.key);
+        return;
+      }
       if (m[3] === "retragere") {
         const action = actionsFor(def, who).find((a) => a.control === "WithdrawCase");
         const row = findRow(def, decodeURIComponent(m[2]));
@@ -2430,7 +2460,7 @@
     fieldsOf, fieldOf, columnFrom, objects: OBJECTS, scopes: SCOPES, fieldTypes: FIELD_TYPES, filterSupport: FILTER_SUPPORT, serviceOf, targetLabel,
     /* the distinct values of a source field (value lists of the predefined-filter rules) */
     valuesOf: (object, key) => [...new Set((SOURCES[object]?.() || []).map((row) => textOf(row, key)).filter((v) => v && v !== "—"))].sort((a, b) => a.localeCompare(b, "ro")),
-    openModal, closeModal, footerOf, detailRow, tag, icon, esc, longDate, stamp, nowIso, userName, plural, clone, showPage,
+    openModal, closeModal, footerOf, detailRow, tag, icon, esc, longDate, stamp, nowIso, userName, plural, clone, showPage, save: writeStore,
     /* arh-v1 (js/arhivare.js): redraw a register / an open record card after an archive action, log on the record */
     refresh, findRow: (id, rowId) => findRow(defOf(id), rowId), logEvent: (id, row, event) => logEvent(defOf(id), row, event),
     renderCard: () => { if (S.card && !document.querySelector("[data-dosar-profil]")?.hidden) renderCard(); }, card: () => S.card, reasonField, requireText

@@ -133,6 +133,50 @@
    }
   },
   {
+   "id": "d10",
+   "nr": "PRM-0057",
+   "cod": "Cases.Case.Reopen",
+   "creat": "2026-11-25",
+   "descriere": {
+    "ro": "Trimite spre confirmare, din registrul «Dosare», redeschiderea unui dosar finalizat, cu motiv.",
+    "ru": "Отправляет на подтверждение из реестра «Дела» повторное открытие завершённого дела, с указанием причины.",
+    "en": "Submits for confirmation, from the «Cases» register, the reopening of a finalised case, with a reason."
+   }
+  },
+  {
+   "id": "d11",
+   "nr": "PRM-0058",
+   "cod": "Cases.Case.ReopenConfirm",
+   "creat": "2026-11-25",
+   "descriere": {
+    "ro": "Confirmă sau respinge redeschiderea dosarelor din «Sarcinile mele».",
+    "ru": "Подтверждает или отклоняет повторное открытие дел в «Моих задачах».",
+    "en": "Confirms or rejects the reopening of cases from «My tasks»."
+   }
+  },
+  {
+   "id": "d12",
+   "nr": "PRM-0059",
+   "cod": "Cases.Case.Strike",
+   "creat": "2026-11-25",
+   "descriere": {
+    "ro": "Trimite spre confirmare, din registrul «Dosare», radierea unui dosar, cu motiv.",
+    "ru": "Отправляет на подтверждение из реестра «Дела» исключение дела, с указанием причины.",
+    "en": "Submits for confirmation, from the «Cases» register, the striking-off of a case, with a reason."
+   }
+  },
+  {
+   "id": "d13",
+   "nr": "PRM-0060",
+   "cod": "Cases.Case.StrikeConfirm",
+   "creat": "2026-11-25",
+   "descriere": {
+    "ro": "Confirmă sau respinge radierea dosarelor din «Sarcinile mele».",
+    "ru": "Подтверждает или отклоняет исключение дел в «Моих задачах».",
+    "en": "Confirms or rejects the striking-off of cases from «My tasks»."
+   }
+  },
+  {
    "id": "p1",
    "nr": "PRM-0009",
    "cod": "Payments.Account.View",
