@@ -3970,17 +3970,22 @@
     "sm-08a": sm(null, { schita: "1", pas: "3", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
     "sm-08b": sm(null, { depus: "GEAP-2026-009-04521", pp: "reperfectare", act: "act-izvoras", obiect: "Cafeneaua „Izvoraș”, mun. Bălți", subdiviziune: "CSP Bălți" }),
 
-    /* ---- „Retrage cererea” (rtr-v1, US-413 97574): the header „⋯” (red, always in the menu), the start dialog with the
+    /* ---- „Retrage cererea” (rtr-v1, US-413 97574): the red header action (max-2 rule: button, or in the „⋯” at ≥ 3 / narrow), the start dialog with the
        consequences + „Motivul retragerii” per service (09 obligatoriu / restituire · 10 opțional / fără restituire ·
        ?rtr-motiv=exclus), the MSign step, the return (?retras=) = „Retrasă” + toast + Istoric; blocked (signing started /
        supus continuării din oficiu) = disabled item + reason; hidden variants (draft, inactive service, past the limit,
        finished, ex officio); the MPower representative; „Acces interzis” for someone else's request ---- */
     ...(() => {
+      /* rtr-header-v1: „Retrage cererea” follows the max-2 header rule — a visible button when it fits, else in the „⋯” */
+      const WD_BTN = '[data-sm-profile] [data-cab-profile-header] [data-sm-action="withdraw"]';
+      const wdButton = () => [...document.querySelectorAll(WD_BTN)].find((el) => el.getClientRects().length && !el.closest(".cab-menu"));
       const more = async (h) => {
-        await h.find("[data-sm-profile] .cab-act-header__overflow:not([hidden]) [data-cab-menu-trigger]"); await h.wait(300);
+        await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400);
+        if (wdButton()) return;
         await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]"); await h.find("#sm-header-more:not([hidden])");
       };
-      const open = async (h) => { await more(h); await h.click('#sm-header-more [data-sm-action="withdraw"]'); await h.find("#start-dialog.is-active"); await h.wait(350); };
+      const wdTarget = () => (wdButton() ? WD_BTN + ":not(.cab-menu *)" : '#sm-header-more [data-sm-action="withdraw"]');
+      const open = async (h) => { await more(h); await h.click(wdTarget()); await h.find("#start-dialog.is-active"); await h.wait(350); };
       const sign = async (h) => { await h.fill("#sm-rtr-reason", "Am renunțat la deschiderea magazinului.", { leave: false }); await h.click("#start-dialog [data-start-dialog-start]"); await h.find("#start-dialog.is-active [data-sm-msign]"); await h.wait(350); };
       const back = { retras: "d-fresh", motiv: "Am renunțat la deschiderea magazinului." };
       const noMenu = async (h) => { await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400); };
@@ -3997,7 +4002,7 @@
         "rtr-02b": sm(async (h) => { await smFind(h, "d-fresh"); }, back),
         "rtr-02c": smDosar("d-sud", async (h) => { await h.click('[data-sm-tab="taxe"]'); }, { retras: "d-sud" }),
         "rtr-03": smDosar("d-fresh", more, { ["rtr-semnare"]: "d-fresh" }),
-        "rtr-03a": smDosar("d-gara", async (h) => { await more(h); await h.hover('#sm-header-more [data-sm-action="withdraw"]'); }, { ["rtr-continuare"]: "d-gara" }),
+        "rtr-03a": smDosar("d-gara", async (h) => { await more(h); await h.hover(wdTarget()); }, { ["rtr-continuare"]: "d-gara" }),
         "rtr-04": smDosar("d-spicul", noMenu),
         "rtr-04a": smDosar("d-fresh", noMenu, { ["rtr-activa"]: "0" }),
         "rtr-04b": smDosar("d-fresh", noMenu, { ["rtr-limita"]: "examinare" }),
