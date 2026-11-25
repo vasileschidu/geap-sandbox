@@ -1324,6 +1324,16 @@ Demo (open at 1440, 1280 × 720 and 375): `modal-scroll-01` KPI alert detail (cu
 `-02` export dialog (short, hugs, no cue) · `-03` Jurnal event detail (long; phone reference). Also `fo-04d` (FO picker),
 `rap-04a` (phone filter sheet), `gh-07` (Ghișeu request sheet).
 
+**Long step form — dialog vs drawer (example, dos-act-long-v1, 2026-11-25).** Dev question „the act-project form is a
+narrow modal, how do we make it wider?”. Demo only (`?forma=lunga` / `lunga-panou`, product default = the short form):
+the 16-field act project („Proiectul actului permisiv”, footer Anulează · „Creează proiectul”) in sections
+(`caseSection` = `.e-permits-user-create__section` > `__section-title` + `__section-content` > `__grid`, stacked with no
+gap) on the 12-column grid (pairs `__field--6`, long fields span 12, phones 1 column). `dos-02n` = `#case-action-modal`
+switched to the library `modal--lg` (720, `renderCaseModal` toggles `modal--lg` / `modal--md` by `caseDraft.long`) with
+the long-modal cue; `dos-02o` = the same form in the shell case drawer `[data-case-drawer]` + `.drawer--lg` (960;
+`caseDraft.container = "drawer"`, same handlers). Radios in a case form = `caseRadios` (the ONE radio, Small, as
+`cfgRadios`); `caseReadonly(…, { placeholder })` shows „Se atribuie la semnare” for an empty value.
+
 ### Modals on phones — maximum content space (2026-10-19)
 
 User (2026-10-19): „all modals on mobile have the minimum padding for the scrim and for the modal itself,

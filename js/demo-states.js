@@ -1391,6 +1391,9 @@
        l = the step menu open, m = the act-project form (Înainte) open */
     "dos-02l": dos(SPEC, "inExaminare", "general", { pas: "node17" }, redistMenu),
     "dos-02m": dos(SPEC, "inExaminare", "general", { pas: "node17" }, async (h) => { await redistMenu(h); await h.click("[data-case-action='inainteAct']"); await h.find("#case-action-modal.is-active #case-valabilDin, #case-action-modal.is-active input"); }),
+    /* long act-project form example (dev question „how do we make it wider?”): n = wide dialog (modal--lg), o = drawer--lg */
+    "dos-02n": dos(SPEC, "inExaminare", "general", { pas: "node17", forma: "lunga" }, async (h) => { await redistMenu(h); await h.click("[data-case-action='inainteAct']"); await h.find("#case-action-modal.is-active #case-tipCertificat"); }),
+    "dos-02o": dos(SPEC, "inExaminare", "general", { pas: "node17", forma: "lunga-panou" }, async (h) => { await redistMenu(h); await h.click("[data-case-action='inainteAct']"); await h.find("[data-case-drawer]:not([hidden]) #case-tipCertificat"); }),
     /* 03 taxe și plăți */
     "dos-03": dos(SPEC, "inExaminare", "taxe"),
     "dos-03a": dos(SPEC, "asteaptaPlata", "taxe"),

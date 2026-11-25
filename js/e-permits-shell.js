@@ -5040,11 +5040,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* span 0 = outside the 12-column grid (the redistribution transfer row); the value shows its
      full text in a tooltip when the read-only box cuts it */
-  const caseReadonly = (label, value, span = 6) => `
+  const caseReadonly = (label, value, span = 6, { placeholder = "" } = {}) => `
     <div class="e-permits-fo-field${span ? ` e-permits-user-create__field e-permits-user-create__field--${span}` : ""}">
       <label>${escapeHtml(label)}</label>
       <div class="e-permits-fo-input is-filled is-readonly">
-        <input type="text" value="${escapeHtml(value || "—")}" readonly tabindex="-1" data-cell-tooltip aria-label="${escapeHtml(label)}">
+        <input type="text" value="${escapeHtml(value || (placeholder ? "" : "—"))}"${!value && placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""} readonly tabindex="-1" data-cell-tooltip aria-label="${escapeHtml(label)}">
         <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
       </div>
     </div>
@@ -5077,8 +5077,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* inRow: a field of the redistribution transfer row — outside the 12-column grid, its error /
      hint drawn under the whole row by the caller (caseRowMessage) */
-  const caseSelect = (key, label, options, { required = false, placeholder = "Alege", hint = "", inRow = false } = {}) => `
-    <div class="e-permits-fo-field${inRow ? "" : " e-permits-user-create__field"}">
+  const caseSelect = (key, label, options, { required = false, placeholder = "Alege", hint = "", inRow = false, span = 12 } = {}) => `
+    <div class="e-permits-fo-field${inRow ? "" : ` e-permits-user-create__field${span !== 12 ? ` e-permits-user-create__field--${span}` : ""}`}">
       <label for="case-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
       ${renderFoSelectControl({
         id: `case-${key}`, attrs: `data-case-select="${key}"`, error: Boolean(caseDraft.errors[key]),
@@ -5125,6 +5125,24 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
   };
+
+  /* a choice of a few = the ONE radio, Small, in the field shell (as cfgRadios) */
+  const caseRadios = (key, label, options, { span = 12 } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field${span !== 12 ? ` e-permits-user-create__field--${span}` : ""}">
+      <label id="case-${key}-label">${escapeHtml(label)}</label>
+      <div class="radio-group" role="radiogroup" aria-labelledby="case-${key}-label">
+        ${options.map(([value, text]) => `<label class="radio radio--small"><input class="radio-input" type="radio" name="case-${key}" value="${escapeHtml(value)}"${caseDraft.values[key] === value ? " checked" : ""} data-case-radio="${key}"><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${escapeHtml(text)}</span></span></label>`).join("")}
+      </div>
+    </div>
+  `;
+
+  /* a group of a long form = the drawer section (heading + 12-column grid); sections stack with no gap (padding only) */
+  const caseSection = (title, fields) => `
+    <section class="e-permits-user-create__section">
+      <h3 class="e-permits-user-create__section-title">${escapeHtml(title)}</h3>
+      <div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">${fields}</div></div>
+    </section>
+  `;
 
   /* the tone's own icon (NOTICE_ICONS: warning = warning-filled); `title` = a medium first line
      over the text (the redistribution „Termen de examinare: …” alert) */
@@ -5380,6 +5398,35 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       }
       case "act":
+        /* demo ?forma=lunga (modal--lg) / lunga-panou (drawer--lg): an example of a LONG act-project form (dev question
+           „how do we make it wider?”) — the product default stays the short form below */
+        if (d.long) {
+          const opt = (list) => list.map((text) => [text, text]);
+          return `<div>
+            ${caseSection("Date generale", `
+              ${caseReadonly("Denumirea actului permisiv", row.serviciu, 12)}
+              ${caseReadonly("Nr. dosar/cerere", row.nrDosar)}
+              ${caseReadonly("Numărul actului permisiv", row.nrActEmis || "", 6, { placeholder: "Se atribuie la semnare" })}
+              ${caseReadonly("Beneficiar", applicant, 12)}
+            `)}
+            ${caseSection("Emitere și valabilitate", `
+              ${caseDate("valabilDin", "Valabil din", { required: true })}
+              ${caseDate("valabilPana", "Valabil până la", { hint: "Opțional — fără dată, actul este nelimitat." })}
+              ${caseReadonly("Data emiterii", formatLongDate(localIsoNow().slice(0, 10)))}
+              ${caseReadonly("Emisă de", row.autoritate || dossierDb?.myAutoritate || "—")}
+              ${caseReadonly("Subdiviziunea de examinare", row.subdiviziune, 12)}
+            `)}
+            ${caseSection("Detalii certificat", `
+              ${caseSelect("tipCertificat", "Tipul certificatului", opt(["Export", "Reexport"]), { required: true, span: 6 })}
+              ${caseSelect("limba", "Limba certificatului", opt(["Română", "Engleză", "Rusă"]), { required: true, span: 6 })}
+              ${caseSelect("tara", "Țara de destinație", opt(["Germania", "Italia", "Polonia", "România", "Turcia", "Ucraina"]), { required: true, span: 6 })}
+              ${caseSelect("punct", "Punctul de trecere a frontierei", opt(["Leușeni", "Sculeni", "Giurgiulești", "Otaci", "Palanca", "Aeroportul Internațional Chișinău"]), { span: 6 })}
+              ${caseSelect("transport", "Mijlocul de transport", opt(["Rutier", "Feroviar", "Aerian", "Naval"]), { span: 6 })}
+              ${caseTextarea("declaratie", "Declarația suplimentară")}
+              ${caseRadios("anexa", "Anexă", [["da", "Da"], ["nu", "Nu"]])}
+            `)}
+          </div>`;
+        }
         return `
           <div class="e-permits-user-create__grid">
             ${caseReadonly("Numărul dosarului", row.nrDosar)}
@@ -5414,24 +5461,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* the step form lives in the case modal; the demo long act form (?forma=lunga-panou) in the case drawer */
+  const caseInDrawer = () => caseDraft?.container === "drawer";
+  const caseFormBody = () => (caseInDrawer() ? caseDrawerBody : caseModalBody);
+
   const renderCaseModal = () => {
     const row = getDosarById(caseDraft.rowId);
-    caseModal.querySelector("[data-case-modal-title]").textContent = caseDraft.title;
-    caseModal.querySelector("[data-case-modal-subtitle]").textContent = caseDraft.subtitle;
-    caseModalBody.innerHTML = `
+    const body = caseFormBody();
+    const buttons = `
+        <button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>
+        <button class="btn ${caseDraft.form === "refuz" ? "btn-destructive" : caseDraft.kind === "return" ? "btn-neutral" : "btn-primary"} btn-rounded" type="button" data-case-submit>${escapeHtml(caseDraft.submitLabel)}</button>
+    `;
+    body.innerHTML = `
       <div class="e-permits-case-form">
         ${renderCaseForm(row)}
         ${caseDraft.form && caseDraft.form !== "decizie" ? renderNextStep(caseDraft.next) : ""}
       </div>
     `;
-    window.GEAPFormRender?.bind?.(caseModalBody);
-    caseModal.querySelector("[data-case-modal-footer]").innerHTML = `
-      <div class="modal-buttons">
-        <button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>
-        <button class="btn ${caseDraft.form === "refuz" ? "btn-destructive" : caseDraft.kind === "return" ? "btn-neutral" : "btn-primary"} btn-rounded" type="button" data-case-submit>${escapeHtml(caseDraft.submitLabel)}</button>
-      </div>
-    `;
-    window.GEAPDatePicker?.init(caseModalBody);
+    if (caseInDrawer()) {
+      caseDrawer.querySelector(".drawer")?.classList.add("drawer--lg");
+      caseDrawer.querySelector("[data-case-title]").textContent = caseDraft.title;
+      caseDrawer.querySelector("[data-case-subtitle]").textContent = caseDraft.subtitle;
+      caseDrawer.querySelector("[data-case-summary]").textContent = "";
+      caseDrawer.querySelector("[data-case-buttons]").innerHTML = buttons;
+    } else {
+      /* a long form = the library wide dialog (modal--lg), every other step form the medium one */
+      const dialog = caseModal.querySelector(".modal");
+      dialog?.classList.toggle("modal--lg", Boolean(caseDraft.long));
+      dialog?.classList.toggle("modal--md", !caseDraft.long);
+      caseModal.querySelector("[data-case-modal-title]").textContent = caseDraft.title;
+      caseModal.querySelector("[data-case-modal-subtitle]").textContent = caseDraft.subtitle;
+      caseModal.querySelector("[data-case-modal-footer]").innerHTML = `<div class="modal-buttons">${buttons}</div>`;
+    }
+    window.GEAPFormRender?.bind?.(body);
+    window.GEAPDatePicker?.init(body);
   };
 
   const openCaseAction = (row, actionId) => {
@@ -5477,14 +5540,33 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       errors: {}
     };
-    renderCaseModal();
-    window.__modal?.open?.("#case-action-modal");
-    requestAnimationFrame(() => focusFormControl(caseModalBody.querySelector("[data-case-field], [data-case-select], [data-case-combo] .e-permits-fo-caem__button, [data-case-choice], [data-case-fee]") || caseModal.querySelector("[data-case-submit]")));
+    /* demo ?forma=lunga | lunga-panou: the long act-project form example (modal--lg | drawer--lg) */
+    const forma = new URLSearchParams(window.location.search).get("forma");
+    if (item.form === "act" && ["lunga", "lunga-panou"].includes(forma)) {
+      Object.assign(caseDraft, { long: true, container: forma === "lunga-panou" ? "drawer" : "modal", title: "Proiectul actului permisiv", submitLabel: "Creează proiectul" });
+      caseDraft.values.anexa = "nu";
+    }
+    if (caseInDrawer()) {
+      caseReturnFocus = document.activeElement;
+      renderCaseModal();
+      caseDrawer.hidden = false;
+      document.body.classList.add("is-drawer-open");
+    } else {
+      renderCaseModal();
+      window.__modal?.open?.("#case-action-modal");
+    }
+    /* the long form starts with read-only data and its first field is a date (focus would open the calendar):
+       the dialog / drawer itself takes the focus, the form stays at the top */
+    if (caseDraft.long) {
+      requestAnimationFrame(() => { const body = caseFormBody(); body.closest(".modal, .drawer")?.focus({ preventScroll: true }); body.scrollTop = 0; });
+      return;
+    }
+    requestAnimationFrame(() => focusFormControl(caseFormBody().querySelector("[data-case-field], [data-case-select], [data-case-combo] .e-permits-fo-caem__button, [data-case-choice], [data-case-fee]") || caseModal.querySelector("[data-case-submit]")));
   };
 
   const closeCaseModal = () => {
     closeFoSelect();
-    window.__modal?.close?.("#case-action-modal");
+    if (caseInDrawer()) closeCaseDrawer(); else window.__modal?.close?.("#case-action-modal");
     caseDraft = null;
   };
 
@@ -5517,6 +5599,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "taxa": if (!(v.fees || []).length) errors.fees = "Alege cel puțin o taxă."; break;
       case "act":
         need("valabilDin", "Alege data de început.");
+        if (caseDraft.long) { need("tipCertificat", "Alege tipul certificatului."); need("limba", "Alege limba certificatului."); need("tara", "Alege țara de destinație."); }
         if (v.valabilPana && v.valabilDin && v.valabilPana < v.valabilDin) errors.valabilPana = "Data de sfârșit este înaintea datei de început.";
         break;
       case "respingere": need("motiv", "Indică motivul refuzului."); break;
@@ -5799,7 +5882,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!caseDraft) return;
     if (!validateCaseDraft()) {
       renderCaseModal();
-      focusFormControl(caseModalBody.querySelector(".e-permits-fo-input.is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-caem.is-error .e-permits-fo-caem__button, [data-case-fee]"));
+      focusFormControl(caseFormBody().querySelector(".e-permits-fo-input.is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-caem.is-error .e-permits-fo-caem__button, [data-case-fee]"));
       return;
     }
     /* US-114 AC-29 / AC-30 / AC-33 (demo ?distribuie=eroare): nothing changes, the form stays open to try again, the
@@ -5876,7 +5959,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   caseDrawer?.addEventListener("click", (event) => {
-    if (event.target.closest("[data-case-close]")) closeCaseDrawer();
+    if (caseInDrawer() && event.target.closest("[data-case-submit]")) { submitCaseDraft(); return; }
+    if (event.target.closest("[data-case-close]")) { if (caseInDrawer()) closeCaseModal(); else closeCaseDrawer(); }
     /* the case's path on the BPMN diagram (Process Designer, view-only): visited + current step */
     const schema = event.target.closest("[data-case-flow-schema]");
     const row = schema && getDosarById(schema.dataset.caseFlowSchema);
@@ -5898,16 +5982,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  caseModal?.addEventListener("input", (event) => {
+  const onCaseInput = (event) => {
     const field = event.target.closest("[data-case-field]");
     if (!field || !caseDraft) return;
     caseDraft.values[field.dataset.caseField] = field.value;
-    const count = caseModalBody.querySelector(`[data-case-count="${field.dataset.caseField}"]`);
+    const count = caseFormBody().querySelector(`[data-case-count="${field.dataset.caseField}"]`);
     if (count) count.textContent = field.value.length;
-  });
+  };
 
-  caseModal?.addEventListener("change", (event) => {
+  const onCaseChange = (event) => {
     if (!caseDraft) return;
+    const caseModalBody = caseFormBody();
+    const radio = event.target.closest("[data-case-radio]");
+    if (radio) { caseDraft.values[radio.dataset.caseRadio] = radio.value; return; }
     /* the searchable list (dist-picker-v1): the chosen option's code; redraw = the error / competence warning follow */
     const combo = event.target.closest("[data-case-combo]");
     if (combo) {
@@ -5937,10 +6024,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const picker = event.target.closest("[data-case-date]");
     if (picker) { caseDraft.values[picker.dataset.caseDate] = picker.dataset.selected || ""; delete caseDraft.errors[picker.dataset.caseDate]; }
-  });
+  };
+  [caseModal, caseDrawer].forEach((root) => { root?.addEventListener("input", onCaseInput); root?.addEventListener("change", onCaseChange); });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && caseDrawer && !caseDrawer.hidden && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list")) closeCaseDrawer();
+    if (event.key === "Escape" && caseDrawer && !caseDrawer.hidden && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list")) { if (caseInDrawer()) closeCaseModal(); else closeCaseDrawer(); }
   });
 
   const renderDosarProfil = (row) => {
