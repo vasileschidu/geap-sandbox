@@ -1274,11 +1274,7 @@
     if (!box) return;
     const act = box.closest("[data-cab-detail]") ? state.permits.find((permit) => permit.id === state.detail) : null;
     if (box.closest("[data-cab-detail]") && !act) return;
-    /* rtr-v1: `data-cab-header-menu` = an action that always lives in the „⋯” (US-413 „Retrage cererea”, destructive,
-       PO-approved placement) — never a visible button, never counted for the 2-button cap */
-    const pinned = [...box.querySelectorAll(":scope > [data-cab-header-menu]")];
-    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")].filter((el) => !pinned.includes(el));
-    pinned.forEach((el) => { el.hidden = true; });
+    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")];
     const more = box.querySelector(":scope > .cab-act-header__overflow");
     const primary = box.querySelector(":scope > .btn-primary");
     /* read */
@@ -1314,7 +1310,7 @@
     /* write */
     items.forEach((el, index) => { el.hidden = index >= keep; });
     if (!more) return;
-    const overflow = [...items.slice(keep), ...pinned];
+    const overflow = items.slice(keep);
     more.hidden = !overflow.length;
     const kinds = overflow.map((el) => el.dataset.cabActAction || el.textContent.trim());
     if (more.dataset.items !== kinds.join(" ")) { /* rebuilt only when the overflow set changes (an open menu keeps its focus) */
@@ -1328,7 +1324,7 @@
           /* a new-tab link keeps target / rel / its „filă nouă” name and shows label then the external icon
              (request-act-modal-link-v1) */
           const newTab = el.getAttribute("target") === "_blank";
-          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && !["data-cab-header-item", "data-cab-header-menu"].includes(a.name)) || a.name === "href" || a.name === "aria-disabled" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
+          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href" || a.name === "aria-disabled" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
             .map((a) => ` ${a.name}="${escape(a.value)}"`).join("");
           const glyph = el.querySelector("svg use")?.getAttribute("href")?.split("#")[1];
           /* a blocked action (rtr-v1): the act rows' disabled item — reason line + the Small tooltip (data-tooltip-reason) */

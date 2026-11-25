@@ -1092,15 +1092,15 @@
         break;
       case "retras":
         /* US-413 AC-21: a new request for the same service is still possible (the FO in a new tab, as „Depune contestație”) */
-        buttons.push(newTabLink("btn-neutral", newRequestUrl(), "Depune o cerere nouă", 'data-sm-action="new-request"'));
+        buttons.push(newTabLink("btn-secondary", newRequestUrl(), "Depune o cerere nouă", 'data-sm-action="new-request"'));
         break;
       default:
         break;
     }
-    /* rtr-v1 (US-413, PO-approved placement): „Retrage cererea” = red, always inside the header „⋯” (data-cab-header-menu,
-       cabinet-evo.js fitActActions); blocked = aria-disabled + the reason (tooltip + reason line in the menu) */
+    /* rtr-v1 (US-413): „Retrage cererea” = red outline, last; header-max-two-v1 like every action (≤ 2 = buttons,
+       ≥ 3 = 2 + „⋯”, rtr-header-v1 2026-11-25); blocked = aria-disabled + the reason (tooltip / reason line in the menu) */
     const wd = withdrawState(dosar);
-    if (wd.show) buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="withdraw" data-sm-id="${escape(dosar.id)}" data-cab-header-menu${wd.reason ? ` aria-disabled="true" data-tooltip-reason="${escape(wd.reason)}" aria-description="${escape(wd.reason)}"` : ""}>${icon("icon-circle-x")}<span>Retrage cererea</span></button>`);
+    if (wd.show) buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="withdraw" data-sm-id="${escape(dosar.id)}"${wd.reason ? ` aria-disabled="true" data-tooltip-reason="${escape(wd.reason)}" aria-description="${escape(wd.reason)}"` : ""}>${icon("icon-circle-x")}<span>Retrage cererea</span></button>`);
     /* profile-phone-v1 (2026-10-21): the secondaries give way first — what does not fit beside the primary goes into
        the trailing „⋯” (C.watchHeaderActions, the act header's priority+); never wraps to a second row */
     const secondaries = buttons.filter((html) => !html.includes("btn-primary"));
@@ -1556,7 +1556,7 @@
       state.tab = "general";
       renderProfile(dosar);
       const wd = withdrawState(dosar);
-      if (wd.show && !wd.reason) confirmWithdraw(dosar, root.querySelector("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]"));
+      if (wd.show && !wd.reason) confirmWithdraw(dosar, [...root.querySelectorAll('[data-sm-profile] [data-sm-action="withdraw"], [data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]')].find((el) => el.getClientRects().length));
       return;
     }
     state.tab = match?.[2] || "general";

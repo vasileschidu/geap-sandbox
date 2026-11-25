@@ -20947,7 +20947,13 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 .e-permits-fo-field label.radio {
   cursor: pointer;
-  height: auto; /* gap / alignment = the ONE radio (css/radio.css) */
+  gap: var(--spacing-12, 12px); /* the ONE radio's 12 (css/radio.css) — the field-label 4 above won on specificity (rtr-radio-v1) */
+  height: auto;
+}
+
+/* a radio group inside a form field = the 12 rhythm of the other radio groups (Arhivare, env-sync review) */
+.e-permits-fo-field .radio-group {
+  gap: var(--spacing-12, 12px);
 }
 
 /* Traiectoria dosarului → css/trajectory.css (one component, 2026-10-20) */
