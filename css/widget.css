@@ -1955,3 +1955,9 @@ button.e-permits-wid-rows__row:focus-visible {
     height: 100%;
   }
 }
+
+/* compare-warn-v1 (user 2026-11-25): „Alege două versiuni diferite” = warning notice INSIDE the version card, 16 under the
+   selects (widgets, KPI, dashboards, Arhivare) — it belongs to the choice, not a grey note glued under the card */
+.e-permits-wid-compare .e-permits-ntpl-card > .message {
+  margin-top: var(--spacing-16, 16px);
+}

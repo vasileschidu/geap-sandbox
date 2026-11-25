@@ -1034,8 +1034,8 @@
           <h2 class="e-permits-dosar-profil__section-title" id="arh-compare-title">Compară versiuni</h2>
           <div class="e-permits-passport__heading-tools"><button class="btn btn-neutral btn-sm" type="button" data-arh-cmp-close>Închide comparația</button></div>
         </div>
-        <div class="e-permits-ntpl-card"><div class="e-permits-user-create__grid">${cmpSelect("a", "Versiunea de bază", ka)}${cmpSelect("b", "Comparată cu", kb)}</div></div>
-        ${ka === kb ? A().renderInfoNote?.("Alege două versiuni diferite.") || "" : changes.length ? CP().changesList?.(changes) || "" : A().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
+        <div class="e-permits-ntpl-card"><div class="e-permits-user-create__grid">${cmpSelect("a", "Versiunea de bază", ka)}${cmpSelect("b", "Comparată cu", kb)}</div>${ka === kb ? A().renderNotice?.("warning", "Alege două versiuni diferite.") || "" : ""}</div>
+        ${ka === kb ? "" : changes.length ? CP().changesList?.(changes) || "" : A().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
       </section>`;
   }
   function historyPane(p) {

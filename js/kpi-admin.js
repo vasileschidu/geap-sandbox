@@ -1546,9 +1546,9 @@
         <div class="e-permits-ntpl-card">${grid(
           selectField("kpi-cmp-a", "cmp.a", "Versiunea de bază", opts, ka, { span: 6 }),
           selectField("kpi-cmp-b", "cmp.b", "Comparată cu", opts, kb, { span: 6 })
-        )}</div>
+        )}${ka === kb ? U().renderNotice?.("warning", "Alege două versiuni diferite.") || "" : ""}</div>
         ${ka === kb
-          ? U().renderInfoNote?.("Alege două versiuni diferite.") || ""
+          ? ""
           : changes.length ? changesList(changes) : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
       </section>`;
   }

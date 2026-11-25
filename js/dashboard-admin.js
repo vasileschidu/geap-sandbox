@@ -1163,8 +1163,8 @@
         <div class="e-permits-ntpl-card">${grid(
           selectField("dsh-cmp-a", 'data-dsh-cmp="a"', "Versiunea de bază", opts, ka),
           selectField("dsh-cmp-b", 'data-dsh-cmp="b"', "Comparată cu", opts, kb)
-        )}</div>
-        ${ka === kb ? U().renderInfoNote?.("Alege două versiuni diferite.") || "" : changes.length ? CP().changesList?.(changes) || "" : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
+        )}${ka === kb ? U().renderNotice?.("warning", "Alege două versiuni diferite.") || "" : ""}</div>
+        ${ka === kb ? "" : changes.length ? CP().changesList?.(changes) || "" : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
       </section>`;
   }
   function historyTab(d) {
