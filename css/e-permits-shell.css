@@ -3491,5 +3491,16 @@ td .e-permits-workplace__person {
 .switch:not(.switch--small):not(.switch--large) {
   --track-width: var(--spacing-40, 40px);
   --track-height: var(--spacing-24, 24px);
-  --thumb-size: var(--spacing-16, 16px);
+  --thumb-size: var(--spacing-20, 20px); /* switch-inset-v1: 2 on every side = the Figma Switch (48 × 28, thumb 24 @ 2,2) */
+}
+
+/* switch-inset-v1 (user 2026-11-25: „not the same padding top / bottom as left / right”): the thumb sits at the SAME
+   inset on all four sides at every size — the library pins it at left 2 whatever the track height (16 thumb in a 24
+   track = 4 top / bottom, 2 left / right) */
+.switch .switch-thumb {
+  left: calc((var(--track-height) - var(--thumb-size)) / 2);
+}
+
+.switch .switch-input:checked + .switch-track .switch-thumb {
+  transform: translate(calc(var(--track-width) - var(--track-height)), -50%);
 }
