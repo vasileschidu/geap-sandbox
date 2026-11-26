@@ -275,3 +275,5 @@ Lessons live in `.claude/playbooks/figma-designer-lessons.md` (archive, ~150k to
 - **Reuse existing patterns (user rule 2026-11-24):** before building, find where the same data / situation is already shown (grep helpers + components.md, screenshot it) and reuse that pattern or layout 1:1 — shared helper in code, same instance in Figma. Two renderings of one thing = unify, never add a third.
 
 - **HARD RULE (2026-11-26, user „DO A RULE”, repeated misses): icon colour = label colour on EVERY control** — red (danger) label → red icon (Figma: bind to icon/danger/default; code: one global rule), disabled grey → grey icon; never a purple/black/filled icon next to a red label. Avatar initials white on dark seeds. Ending outcomes (retras/radiat/respins) = neutral Info toast. Check every block/state before reporting (audit rule `danger-icon-colour`).
+
+- Full Figma audit: use `tools/ui-qa/figma-audit.min.js` (fits use_figma; the .js source is over 50k). (2026-11-26)
