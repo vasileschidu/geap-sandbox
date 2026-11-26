@@ -1921,6 +1921,7 @@
       if (wd.show && !wd.reason) {
         applyWithdrawal(withdrawn, params.get("motiv") || "");
         state.toast = `Cererea a fost retrasă. Dosarul ${withdrawn.nr} s-a închis fără act permisiv.`;
+        state.toastType = "info"; /* toast-tone-v1: an outcome that ENDS something = the neutral info toast, never green */
       }
     }
     if (params.get("nota") === "expirata") {
@@ -1965,7 +1966,7 @@
       route();
       /* return-toast-v1 (2026-10-26, user on EVO Cabinet 1148:44312): a success on return (filed / paid) = the library
          success toast — the highlighted row already shows the result; info / warning returns keep the inline notice */
-      if (state.toast) window.GEAPToast?.show({ type: "success", message: state.toast, key: "sm-return" });
+      if (state.toast) window.GEAPToast?.show({ type: state.toastType || "success", message: state.toast, key: "sm-return" });
       /* from a payment notification (US-135 AC-02 / AC-11 / AC-14): ?achita=<id> opens MPay, or the expired-fee message */
       const toPay = state.dosare.find((dosar) => dosar.id === params.get("achita") && dosar.status === "achitare");
       if (toPay && !paymentExpired(toPay)) openPayment(toPay);

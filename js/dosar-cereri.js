@@ -324,7 +324,7 @@
         detail: `Decizia: respinsă. Motivul respingerii: ${rejectReason}`,
         changes: [{ field: k.stateLabel, before: "În confirmare", after: "Respinsă" }, { field: "Statut", before: prevLabel, after: prevLabel }]
       });
-      finish(`${k.Noun} dosarului ${row.nrDosar} a fost respinsă.`, { tasks: true });
+      finish(`${k.Noun} dosarului ${row.nrDosar} a fost respinsă.`, { tasks: true, tone: "info" });
       return;
     }
     if (k.key === "reopen") {
@@ -358,7 +358,7 @@
       user: "SIA GEAP", role: "Sistem", type: "Aplicarea marcajului „Dosar radiat”", category: "sistem",
       detail: "Înregistrările de registru legate de dosar (note de plată, avize) au fost marcate ca dezactivate, fără ștergere."
     });
-    finish(`Radierea a fost confirmată. Dosarul ${row.nrDosar} este radiat.`, { tasks: true });
+    finish(`Radierea a fost confirmată. Dosarul ${row.nrDosar} este radiat.`, { tasks: true, tone: "info" });
   }
 
   /* ---------------------------------------------------------------- after an action */
@@ -367,11 +367,12 @@
     open = null;
     window.GEAPToast?.show ? window.GEAPToast.show({ type: "error", message, duration: 0, key: "crq-refused" }) : U().showShellToast?.(message, "error");
   }
-  function finish(message, { tasks: changed = false } = {}) {
+  /* toast-tone-v1: a confirmation that ENDS / cancels something (dossier struck, request rejected) = the neutral info toast */
+  function finish(message, { tasks: changed = false, tone = "success" } = {}) {
     G().save?.();
     G().closeModal?.();
     open = null;
-    U().showShellToast?.(message, "success");
+    U().showShellToast?.(message, tone);
     G().refresh?.(REG);
     G().renderCard?.();
     if (changed) document.dispatchEvent(new CustomEvent("geap:tasks-changed"));

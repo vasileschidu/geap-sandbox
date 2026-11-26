@@ -267,3 +267,29 @@
     grid-row: 1 / span 2;
   }
 }
+
+/* ==========================================================================
+   Danger = icon colour = label colour — ONE global rule (danger-icon-v1, 2026-11-26)
+   User: „Radiază” / „Înregistrează retragerea cererii” had red labels and black icons; the old fix only covered
+   `.e-permits-stack__menu`. Every danger item of every menu (`.is-danger`, `[data-danger]`) and every destructive
+   button (outline / text; the filled one keeps its white label + icon) paints its icon with the danger icon token,
+   the same red as the label. Disabled items keep the disabled grey. Audit rule `danger-icon` (component-audit.mjs).
+   ========================================================================== */
+:is(.e-permits-fo-intent-menu__item, .e-permits-fo-select__option, .e-permits-cab-menu__item, [role="menuitem"]):is(.is-danger, [data-danger="true"]):not([aria-disabled="true"], :disabled) {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+:is(.e-permits-fo-intent-menu__item, .e-permits-fo-select__option, .e-permits-cab-menu__item, [role="menuitem"]):is(.is-danger, [data-danger="true"]):not([aria-disabled="true"], :disabled) :is(.icon, svg),
+:is(.btn-outline-destructive, .btn-text-destructive):not(:disabled) :is(.icon, svg) {
+  color: var(--color-icon-danger-default, #d92d20);
+}
+
+:is(.e-permits-fo-intent-menu__item, [role="menuitem"]):is(.is-danger, [data-danger="true"])[aria-disabled="true"] :is(.icon, svg) {
+  color: var(--color-text-disabled-default, #bfbfbf);
+}
+
+/* destructive links (new-tab „Retrage cererea ↗”): visited / focus never turn the label or the icon purple */
+a:is(.btn-outline-destructive, .btn-text-destructive):is(:link, :visited, :hover, :focus-visible),
+a:is(.btn-outline-destructive, .btn-text-destructive):is(:link, :visited, :hover, :focus-visible) :is(.icon, svg) {
+  color: var(--color-text-danger-default, #d92d20);
+}

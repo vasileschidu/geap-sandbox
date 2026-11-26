@@ -6869,6 +6869,7 @@
       "red-05c": tasks(SUP, task(T_AUTO)),
       "red-05d": tasks(SUP, openCase(T_REOPEN)),
       "red-05e": tasks(DIR),
+      "red-05f": tasks(SUP, async (h) => { await h.click("[data-workplace-filter-toggle], .e-permits-workplace__advanced"); await h.wait(500); }),
       /* confirm (AC-06), Anulează keeps it (AC-07), confirmed (AC-08 / AC-09 / AC-10 / AC-13 / AC-14), act „Redeschis” (AC-11), journal (AC-20) */
       "red-06": tasks(SUP, confirmOpen(T_REOPEN)),
       "red-06a": tasks(SUP, async (h) => { await confirmOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-case-close]`); await h.wait(400); }),

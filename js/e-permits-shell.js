@@ -255,6 +255,16 @@ document.addEventListener("DOMContentLoaded", () => {
      toggles has-value / is-typing / is-ready on every search, also ones rendered later */
   const renderSearchActions = () => `<div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>`;
 
+  /* avatar-contrast-v1 (2026-11-26): ONE rule for every coloured initials avatar — the initials are the on-colour white
+     when the background gives >= 4.5:1, otherwise the dark text token (WCAG AA). Use avatarStyle(color) for any inline
+     person colour; audit rule `avatar-contrast` (component-audit.mjs) measures the rendered result. */
+  const avatarLum = (hex) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim()); if (!m) return null; const c = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const avatarStyle = (hex, fallback) => {
+    const bg = avatarLum(hex) == null ? fallback : hex; const l = avatarLum(bg);
+    const white = l == null || 1.05 / (l + 0.05) >= 4.5;
+    return `background:${bg};color:var(${white ? "--color-text-base-inverse-on-color, #fff" : "--color-text-base-default, #000"})`;
+  };
+  window.GEAPAvatar = { style: avatarStyle };
   const escapeHtml = (value) =>
     String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -3236,7 +3246,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <span class="e-permits-dosar-profil__person">
-        <span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="background:${escapeHtml(person.color || "#0058D2")}">${escapeHtml(person.initiale || "")}</span>
+        <span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="${escapeHtml(avatarStyle(person.color, "#0058d2"))}">${escapeHtml(person.initiale || "")}</span>
         <span>${escapeHtml(person.nume)}</span>
       </span>
     `;
@@ -3793,7 +3803,7 @@ document.addEventListener("DOMContentLoaded", () => {
        the drawn number marked (AC-13 / AC-14), „Ales fără extragere” (AC-15) or „Niciun candidat”. Model labels exact. */
     const val = (text) => `<span class="e-permits-dist-report__val">${text}</span>`;
     const kv = (label, text) => `${escapeHtml(label)} ${val(text)}`;
-    const avatarLead = (c) => `<span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="background:${escapeHtml(c.color || "#0058D2")}" aria-hidden="true">${escapeHtml(c.initiale || "")}</span>`;
+    const avatarLead = (c) => `<span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="${escapeHtml(avatarStyle(c.color, "#0058d2"))}" aria-hidden="true">${escapeHtml(c.initiale || "")}</span>`;
     const candidateItem = (c) => ({
       plainTitle: c.nume,
       title: escapeHtml(c.nume),
@@ -7512,7 +7522,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <span class="e-permits-workplace__person">
-        <span class="avatar avatar--xs avatar--initials e-permits-workplace__person-avatar" style="background:${escapeHtml(person.color || "#0058d2")}">${escapeHtml(person.initiale || "")}</span>
+        <span class="avatar avatar--xs avatar--initials e-permits-workplace__person-avatar" style="${escapeHtml(avatarStyle(person.color, "#0058d2"))}">${escapeHtml(person.initiale || "")}</span>
         <span class="e-permits-workplace__person-copy">
           <span class="e-permits-workplace__person-name">${escapeHtml(person.nume)}</span>
           ${subtitle ? `<span class="e-permits-workplace__person-role">${subtitle.html ?? escapeHtml(subtitle)}</span>` : ""}${extraHtml}

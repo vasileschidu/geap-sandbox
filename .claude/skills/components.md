@@ -4686,6 +4686,23 @@ modals. Back office: `showShellToast(message, tone, title?)`; front office:
 `showFrontOfficeToast`; RAP: its `showToast(message, type)` — all delegate here.
 The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are removed.
 
+**Toast tone = the outcome, not „it worked” (toast-tone-v1, 2026-11-26; user: green = „happy” is wrong for a withdrawal).**
+A confirmation of an action that ENDS or cancels something (request withdrawn „Cererea a fost retrasă”, withdrawal
+registered, dossier struck „radiat”, request / reopen / strike rejected „a fost respinsă”) uses the neutral `info`
+toast; `success` (green) stays for positive completions (filed, paid, approved, supplemented, reopen confirmed, saved).
+Never a toast for toggles. Code: `showShellToast(message, "info")`, shared helpers take a `tone` (`finish(msg, { tone })`
+in js/dosar-cereri.js, `done(msg, tone)` in js/registre.js, Cabinet `state.toastType = "info"` in solicitari.js).
+A request merely SENT for confirmation („trimisă spre confirmare”) is still `success`.
+
+**Danger = icon colour = label colour (danger-icon-v1, 2026-11-26).** One global rule at the end of css/dropdown.css:
+every danger menu item (`.is-danger`, any menu) and every outline / text destructive button paints its icon with
+`--color-icon-danger-default` (the label's red); the filled `btn-destructive` keeps white; disabled items stay grey.
+Never add a per-menu danger rule. Audit rule `danger-icon` (component-audit.mjs).
+
+**Initials avatar contrast (avatar-contrast-v1, 2026-11-26).** Any avatar with an inline person colour is built with
+`GEAPAvatar.style(color, fallback)` (js/e-permits-shell.js): initials = on-colour white when the background gives ≥ 4.5:1,
+otherwise the dark text token. Audit rule `avatar-contrast` (rendered contrast < 4.5 = major).
+
 **Failed action on a profile = error toast that stays (sm-04h-error-toast-v1, 2026-10-23; user on EVO Cabinet Figma
 1265:4451: „this one should not cut the alert and timeline in half — put it anywhere else, or as a non-auto-closing
 toast”).** When a profile action fails (Cabinet request profile: the alert card's „Completează informația” sm-04h, the

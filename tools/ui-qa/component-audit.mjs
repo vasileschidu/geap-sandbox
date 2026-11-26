@@ -20,6 +20,8 @@
 //   4. copy — copy-variant / copy-in-list / missing-copy (spec.copy).
 //   5. back navigation — crumb-trail / back-link (spec.backNav).
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
+//  14. danger-icon (major): icon inside a red-labelled item / button must be the label colour. 15. avatar-contrast (major): initials < 4.5:1.
+//  16. filter-trigger-shape (major): Filtre / Sortează chip radius = 8, never a pill.
 //  13. filter-icon (major): a visible sliders `#icon-filter` — the filter glyph is always `icon-filter-lines` (filter-2).
 //   8. tooltips — tooltip-private / tooltip-title / tooltip-arrow / tooltip-look / tooltip-centered (spec.tooltip): ONE
 //      runtime, js/icon-tooltip.js (tooltip-one-v1), ONE look css/tooltip.css, edge-aligned (tooltip-edge-v1).
@@ -691,6 +693,39 @@ const PAGE_LIB = (spec, documentedList) => {
       const svg = u.closest("svg");
       if (!svg || ignored(svg) || !vis(svg)) continue;
       add("major", "filter-icon", svg, "sliders glyph icon-filter", "icon-filter-lines (Foundations filter-2, lines)");
+    }
+    /* 14. danger-icon (danger-icon-v1, 2026-11-26): an icon inside an element whose label is danger-coloured (red) has the
+       label colour — menu items, buttons, links; disabled ones keep the grey. 15. avatar-contrast (avatar-contrast-v1):
+       initials on a coloured avatar >= 4.5:1. 16. filter-trigger-shape: the Filtre / Sortează chip = button radius 8, never a pill. */
+    const rgbOf = (c) => { const m = /rgba?\(([^)]+)\)/.exec(c || ""); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+    const lumOf = (c) => { const f = [c.r, c.g, c.b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2]; };
+    const isRed = (c) => c && c.a > 0.5 && c.r >= 170 && c.g <= 90 && c.b <= 90;
+    const near = (x, y) => Math.abs(x.r - y.r) <= 6 && Math.abs(x.g - y.g) <= 6 && Math.abs(x.b - y.b) <= 6;
+    counts.dangerIcons = 0; counts.avatars = 0;
+    for (const el of qsa("button, a, [role=menuitem], .btn")) {
+      if (ignored(el) || !vis(el) || el.matches(":disabled, [aria-disabled=true]")) continue;
+      const lab = rgbOf(getComputedStyle(el).color);
+      if (!isRed(lab)) continue;
+      for (const ic of el.querySelectorAll("svg, .icon")) {
+        if (!vis(ic) || ic.closest(".chip__badge, .status-tag, .tag")) continue;
+        const svg = ic.matches("svg") ? ic : ic.querySelector("svg") || ic; const ics = getComputedStyle(svg);
+        const paint = rgbOf(ics.fill && ics.fill !== "none" ? ics.fill : ics.stroke) || rgbOf(ics.color);
+        counts.dangerIcons++;
+        if (paint && !near(paint, lab)) add("major", "danger-icon", ic, `„${(el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40)}” label rgb(${lab.r}, ${lab.g}, ${lab.b}) · icon rgb(${paint.r}, ${paint.g}, ${paint.b})`, "icon colour = label colour (--color-icon-danger-default), css/dropdown.css „Danger = icon colour = label colour”");
+      }
+    }
+    for (const av of qsa(".avatar--initials, [class*='avatar'][class*='initials']")) {
+      if (ignored(av) || !vis(av) || !(av.textContent || "").trim()) continue;
+      const fg = rgbOf(getComputedStyle(av).color); let bg = null;
+      for (let n = av; n && !bg; n = n.parentElement) { const c = rgbOf(getComputedStyle(n).backgroundColor); if (c && c.a > 0.9) bg = c; }
+      if (!fg || !bg) continue; counts.avatars++;
+      const l1 = lumOf(fg), l2 = lumOf(bg); const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      if (ratio < 4.5) add("major", "avatar-contrast", av, `initials „${av.textContent.trim()}” contrast ${ratio.toFixed(2)}:1 (text rgb(${fg.r}, ${fg.g}, ${fg.b}) on rgb(${bg.r}, ${bg.g}, ${bg.b}))`, ">= 4.5:1 — GEAPAvatar.style(color) picks white or dark ink");
+    }
+    for (const ch of qsa(".chip.e-permits-filter-trigger")) {
+      if (ignored(ch) || !vis(ch)) continue;
+      const rad = parseFloat(getComputedStyle(ch).borderTopLeftRadius) || 0;
+      if (Math.abs(rad - 8) > 0.6) add("major", "filter-trigger-shape", ch, `radius ${rad}px`, "the Filtre / Sortează chip = button radius 8 at every width (css/facet-filter.css), never a pill");
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */
     const AI = spec.actionIcons;

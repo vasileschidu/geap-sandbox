@@ -2011,7 +2011,7 @@
       changes: [{ field: "Statut", before, after: "Retras" }, { field: "Data retragerii", before: "—", after: stamp(at) }]
     });
     wdFile = null;
-    done(`Retragerea cererii a fost înregistrată. Dosarul ${row.nr} s-a închis.`);
+    done(`Retragerea cererii a fost înregistrată. Dosarul ${row.nr} s-a închis.`, "info");
   }
   function confirmPending() {
     if (!pending) return;
@@ -2044,7 +2044,7 @@
       if (conflict(row) || actionState(action, row)) { refuse(`Dosarul ${row.nr} nu a fost radiat: a fost modificat între timp de alt utilizator. Reîncarcă registrul, verifică statutul și reîncearcă.`); return; }
       st.struck[`${def.id}:${row.id}`] = { at: nowIso(), by: userName(), reason };
       logEvent(def, row, { user: userName(), role: persona().roleLabel, type: "Radiere din registru", category: "modificare", detail: reason, changes: [{ field: "Statut", before: row.statut, after: "Radiat" }] });
-      done(`Dosarul ${row.nr} a fost radiat din registru.`);
+      done(`Dosarul ${row.nr} a fost radiat din registru.`, "info");
       return;
     }
     if (action.control === "Anonymize") {
@@ -2065,11 +2065,12 @@
       done(`Datele personale ale dosarului ${row.nr} au fost anonimizate.`);
     }
   }
-  function done(message) {
+  /* toast-tone-v1: an outcome that ENDS something (withdrawal registered, dossier struck) = the neutral info toast */
+  function done(message, tone = "success") {
     writeStore();
     pending = null;
     closeModal();
-    U().showShellToast?.(message, "success");
+    U().showShellToast?.(message, tone);
     const kind = S.card?.id || document.querySelector("[data-workplace][data-registry-kind^='reg-']")?.dataset.registryKind;
     refresh(kind);
     if (S.card && !document.querySelector("[data-dosar-profil]")?.hidden) renderCard();

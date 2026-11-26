@@ -250,15 +250,39 @@
   },
   "_tooltip": "Tooltips (rule 8, tooltip-one-v1, 2026-10-21, user: „do as you recommend” on the audit's ONE tooltip runtime). tooltip-private (major): a visible element whose class names a tooltip and is not the library .tooltip (js/icon-tooltip.js, #icon-tooltip) or the copy-value tooltip. tooltip-title (major): a native title= on an interactive element — the plain tooltip reads aria-label / data-tooltip-label, cut text = data-cell-tooltip, extra information = data-tooltip-text / -hint. titleExempt: iframes (title = the accessible name, not a tooltip). tooltip-edge-v1 (2026-11-02, user: „use the small one, left or right depending on the position, not center” + „only the body, no arrow, a bit smaller”): tooltip-arrow (major) = a visible .tooltip-arrow; tooltip-look (major) = tooltip text not left-aligned; tooltip-centered (major) = a tooltip above / below its trigger that is neither on the trigger's left edge nor on its right edge while one of those fits (8 screen edge, 16 right gutter).",
   "tooltip": {
-    "allow": [".tooltip", ".tooltip-inner", ".tooltip-close", "#icon-tooltip", ".copy-value__tooltip", ".copy-value__tooltip *", ".cell__copy-tooltip"],
+    "allow": [
+      ".tooltip",
+      ".tooltip-inner",
+      ".tooltip-close",
+      "#icon-tooltip",
+      ".copy-value__tooltip",
+      ".copy-value__tooltip *",
+      ".cell__copy-tooltip"
+    ],
     "interactive": "button, a[href], [role=button], [role=link], [role=tab], [role=menuitem], [role=option], [role=switch], [role=checkbox], [role=radio], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])",
-    "titleExempt": ["iframe"]
+    "titleExempt": [
+      "iframe"
+    ]
   },
   "_drawer": "Drawer (rule 9, drawer-v1, 2026-10-21): ONE right-hand panel = .drawer-overlay > aside.drawer (css/drawer.css + js/drawer.js; sizes default 800 / --lg 960; phones = the shared sheet). drawer-private (major): a visible dialog / aside that is a full-height panel on the right edge, or whose class names a drawer, and is not .drawer. allow = intentionally different surfaces: the library modal and bottom sheet, the Ghișeu full-screen request sheet, the template / notification editor sheets (.e-permits-ntpl-sheet), the Form Builder / Process Designer full-screen editors.",
   "drawer": {
     "canonical": ".drawer",
     "candidates": "aside, [role=dialog], [class*='drawer']",
-    "allow": [".modal-overlay", ".bottom-sheet", ".e-permits-ntpl-sheet", ".e-permits-gh-sheet", ".e-permits-builder", ".form-builder-modal-overlay", ".e-permits-filter-sheet", ".e-permits-fo-doc-modal-overlay", ".e-permits-shell__sidebar", ".drawer", ".drawer-overlay", ".msup", ".e-permits-fo-testcfg"]
+    "allow": [
+      ".modal-overlay",
+      ".bottom-sheet",
+      ".e-permits-ntpl-sheet",
+      ".e-permits-gh-sheet",
+      ".e-permits-builder",
+      ".form-builder-modal-overlay",
+      ".e-permits-filter-sheet",
+      ".e-permits-fo-doc-modal-overlay",
+      ".e-permits-shell__sidebar",
+      ".drawer",
+      ".drawer-overlay",
+      ".msup",
+      ".e-permits-fo-testcfg"
+    ]
   },
   "_skeleton": "Skeleton (rule 10, skeleton-v1, 2026-10-21): ONE loading placeholder = .skeleton + --text / --input / --block / --circle (css/skeleton.css; size from the slot, base tertiary + shimmer, none for reduced motion). skeleton-private (major): a visible element whose class names a skeleton / shimmer / placeholder shape and paints one (gradient background or a running animation) without .skeleton. Containers (page-step-skeleton, page-auth-skeleton…) paint nothing and pass.",
   "skeleton": {
@@ -356,8 +380,14 @@
     "minRadius": 4,
     "minPaddingX": 8,
     "allow": [
-      { "selector": ".date-picker__option", "reason": "month / year cell of the library date picker „advanced” header grids (components.md › Date Picker); its today ring = the day cell's, not a button" },
-      { "selector": ".badge[data-tag-more]", "reason": "the library Badge „+N” overflow counter is focusable only to show its tooltip (badge-more-v1); it is a count, not a control" },
+      {
+        "selector": ".date-picker__option",
+        "reason": "month / year cell of the library date picker „advanced” header grids (components.md › Date Picker); its today ring = the day cell's, not a button"
+      },
+      {
+        "selector": ".badge[data-tag-more]",
+        "reason": "the library Badge „+N” overflow counter is focusable only to show its tooltip (badge-more-v1); it is a count, not a control"
+      },
       {
         "selector": ".e-permits-builder__library-item",
         "reason": "Form Builder / Process Designer palette tile = a drag source (inventory row „Form Builder”: `__library-item`), not a button"
@@ -832,7 +862,10 @@
       }
     ],
     "monoAllow": "e-permits-doc-kw|e-permits-cfg-num-token|e-permits-doc-kwselect",
-    "tokenAllow": ["--color-background-base-inverse-on-color"], "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
+    "tokenAllow": [
+      "--color-background-base-inverse-on-color"
+    ],
+    "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
   },
   "fixHints": {
     "tooltip-arrow": "No arrow on any tooltip: use the shared runtime (js/icon-tooltip.js data-tooltip-label / -text / -hint / data-cell-tooltip) — css/tooltip.css hides .tooltip-arrow; never add a private arrow.",
@@ -872,7 +905,10 @@
     "role-button": "a clickable thing is a `<button type=\"button\">` (or a link) — never `role=button` on a div / span / li.",
     "native-title": "no native `title=` tooltips on controls: the library tooltip (`data-tooltip-label` + js/icon-tooltip.js) or a visible label.",
     "filter-icon": "the filter glyph is ALWAYS Foundations filter-2 = sprite `icon-filter-lines` (three shortening lines), never the sliders `icon-filter` / Figma 20/filter (memory „Filtre = filter chip”): `icon(\"filter-lines\")`, empty states `icon: \"filter-lines\"`.",
-        "monospace": "no monospace (memory „No monospace”): Onest everywhere; codes = neutral tag / copy value. Only rule-builder keywords `code.e-permits-doc-kw` are mono."
+    "monospace": "no monospace (memory „No monospace”): Onest everywhere; codes = neutral tag / copy value. Only rule-builder keywords `code.e-permits-doc-kw` are mono.",
+    "danger-icon": "One global rule (css/dropdown.css „Danger = icon colour = label colour”): `.is-danger` items and outline / text destructive buttons paint the icon with --color-icon-danger-default; never a per-menu rule.",
+    "avatar-contrast": "Build coloured initials avatars with GEAPAvatar.style(color, fallback) (js/e-permits-shell.js): white on-colour ink when >= 4.5:1, else the dark text token.",
+    "filter-trigger-shape": "Use the shared chip `chip e-permits-filter-trigger` (js/shell workplace toolbar / GEAPSortSheet): radius 8 from css/facet-filter.css, no private radius."
   },
   "libraryStatic": [
     ".status-tag",
