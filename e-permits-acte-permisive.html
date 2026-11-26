@@ -123,8 +123,9 @@
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-prod-v1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
-  <script src="js/arhivare.js?v=header-no-arh-stare-v1" defer></script>
+  <script src="js/arhivare.js?v=card-tab-icons-v1" defer></script>
   <script src="js/retragere.js?v=rtr-fo-v1" defer></script>
+  <script src="js/contestatie.js?v=con-v1" defer></script>
   <!-- red-rad-v1: Redeschiderea + Radierea dosarului (Features 97301 / 97414) — before registre.js -->
   <script src="js/dosar-cereri.js?v=status-profile-v1" defer></script>
   <script src="js/registre.js?v=status-profile-v1" defer></script>
@@ -1093,6 +1094,12 @@
            the request + consequences + reason → MSign → Finalizare, in the S4 column; renderFrontOfficeWithdraw (rtr-fo-v1) -->
       <section class="e-permits-fo-intent e-permits-fo-supplement" aria-labelledby="fo-withdraw-title" data-fo-screen="withdraw" hidden>
         <div class="e-permits-fo-intent__inner" data-fo-withdraw-body></div>
+      </section>
+
+      <!-- US-418 „Contestarea deciziei” (from EVO Cabinet › Solicitările mele › „Depune contestație”, ?contestatie=<nr>):
+           the contested decision + „Motivele contestației” + documents → MSign → Finalizare, in the S4 column (con-v1) -->
+      <section class="e-permits-fo-intent e-permits-fo-supplement" aria-labelledby="fo-appeal-title" data-fo-screen="appeal" hidden>
+        <div class="e-permits-fo-intent__inner" data-fo-appeal-body></div>
       </section>
 
       <section class="e-permits-fo-request" aria-labelledby="fo-request-title" data-fo-screen="request" hidden>

@@ -1668,7 +1668,7 @@
   }
   function cardTabs(def, row) {
     if (row.arhStare === undefined || row.arhStare === "Șters") return [];
-    return [{ id: "documente", label: "Documente", icon: "document", count: objectsOf(row).length }];
+    return [{ id: "documente", label: "Documente", count: objectsOf(row).length }];
   }
   function cardTabHtml(def, row, tab) {
     if (tab !== "documente") return null;
