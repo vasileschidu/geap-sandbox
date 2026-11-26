@@ -4590,3 +4590,10 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-26 · dig-v1: an FO form screen built from `e-permits-fo-pp-request` sections got ~100px gaps between field groups — that class is for read-only cards; editable groups = `section.e-permits-fo-form__section` + `.e-permits-fo-section-header` + `__section-body` (as step 2). FO `setGuestFieldError` did not frame selects (no `.e-permits-fo-input`) — now includes `.e-permits-fo-select`.
 - 2026-11-26 · dig-v1: a Setări demo that SAVES needs a service whose other sections validate — 003000207 has a pre-existing required-field error, the save stayed blocked (DEMO-ERROR); use SVC 003000023. A transition that is itself the result (no decision node) carries `decision` / `danger` in core/case-flow.js (`apply` + `available` pass them).
 - 2026-11-26 · dig-v2 (PO): a paper act is NOT the holder's act in Cabinet / FO before the BO confirms its digitization (US-417 AC-11) — `GEAPDigitalizare.holderAct(act)` hides `paper: true` acts and returns the digitized form after the confirmation; on/off settings in Setări = the library switch (`cfgSwitch`) even when a story says „bifă”.
+- 2026-11-26 · cab-hub-v1: turning an existing list address (`?view=solicitari`) into a hub without breaking deep links = decide
+  by an ALLOW-LIST of "hub keys" (view/as/auth/state/pps/shell/latency…) + no hash; any other param or hash = the old screen.
+  Then add the explicit list key (`lista=geap`) to the demo helper `sm()` and every FO return builder — zero demo states broke.
+- 2026-11-26 · cab-hub-v1: capture.mjs screenshots do NOT show a hint opened by `h.hover` / `GEAPTooltip.show` in a state
+  (tooltip gone at shot time) — prove hints with a real-mouse CDP probe (Input.dispatchMouseEvent) instead.
+- 2026-11-26 · cabinet-evo.css: `--focus-ring`, `--shadow-200`, `--line-height-lh-*` are NOT defined globally (only via
+  fallbacks) — always write `var(--token, value)`; focus = `0 0 0 2px var(--white-1000,#fff), 0 0 0 5px var(--blue-sky-500,#3379db)`.

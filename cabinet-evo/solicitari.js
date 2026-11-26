@@ -23,6 +23,57 @@
 
   const root = document.querySelector('[data-cab-view="solicitari"]');
   const { icon, escape, longDate, longDateTime, cabUrl, params } = C;
+
+  /* cab-hub-v1 (2026-11-26, BA question: where does a citizen reach the GEAP requests from EVO Cabinet?): „Solicitările
+     mele” = the EVO hub of service tiles (the real EVO page: one tile per EVO service); the 12th tile „Cereri din GEAP”
+     opens the GEAP request list. Addresses: hub = ?view=solicitari (only the perspective / demo keys below, no hash);
+     list = ?view=solicitari&lista=geap; profile = ?view=solicitari[&lista=geap]#dosar/<id>. Any other parameter (the
+     FOD2 / MPay returns depus, schita, achitat, achita, suplinit, contestat, retras, digitalizat, eroare, …) or a hash
+     = the list, so every existing deep link, notification and demo state keeps landing on the list. */
+  const HUB_KEYS = new Set(["view", "as", "auth", "state", "pps", "shell", "latency", "motion", "dig-permisa"]);
+  const isHubAddress = (loc = window.location) => !loc.hash && [...new URLSearchParams(loc.search).keys()].every((key) => HUB_KEYS.has(key));
+  const LIST_TITLE = "Cereri din GEAP";
+  const HUB_TITLE = "Solicitările mele";
+  const hubUrl = () => cabUrl("solicitari");
+  const listUrl = () => C.pageAddress({ lista: "geap" }, "");
+  /* the trail above the list H1 / the profile H1 (Cabinet keeps the library breadcrumb, parents only) */
+  const hubCrumb = () => ({ label: HUB_TITLE, href: hubUrl() });
+  const listCrumb = () => ({ label: LIST_TITLE, href: listUrl(), attr: "data-sm-back" });
+  /* the EVO services of the real hub — stand-ins only (they live outside the prototype): a hint says so on hover /
+     focus / click / tap; icons = our sprite (no 3D illustrations in the prototype) */
+  const HUB_TILES = [
+    { label: "Extrase companie", icon: "icon-business" },
+    { label: "Extrase bunuri imobile", icon: "icon-house" },
+    { label: "Înregistrare bun imobil", icon: "icon-page-house" },
+    { label: "Documente apostilate", icon: "icon-stamp" },
+    { label: "Caziere", icon: "icon-judge-gavel" },
+    { label: "Extrase traversări de frontieră", icon: "icon-passport" },
+    { label: "Extrase date personale", icon: "icon-id-card" },
+    { label: "Extrase permis de conducere", icon: "icon-visiting-card" },
+    { label: "Extrase vehicule", icon: "icon-car" },
+    { label: "Sesizări", icon: "icon-bubble-alert" },
+    { label: "Certificate siguranța alimentelor", icon: "icon-award" },
+    { label: LIST_TITLE, icon: "icon-permission", geap: true },
+  ];
+  const HUB_INERT_HINT = "Serviciu EVO — în afara prototipului";
+  function renderHub() {
+    C.setHeaderTitle(HUB_TITLE);
+    const tile = (item) => {
+      const inner = `<span class="cab-hub__icon">${icon(item.icon, "")}</span><span class="cab-hub__label">${escape(item.label)}</span>`;
+      return `<li class="cab-hub__item">${item.geap
+        ? `<a class="cab-hub__tile" href="${escape(listUrl())}" data-cab-hub-tile="geap" aria-label="${escape(item.label)} — Ghișeul electronic pentru acte permisive">${inner}</a>`
+        : `<button type="button" class="cab-hub__tile" data-tooltip-hint="${escape(HUB_INERT_HINT)}" data-tooltip-placement="bottom" data-cab-hub-inert>${inner}</button>`}</li>`;
+    };
+    root.innerHTML = `
+      <div class="cab-hub" data-cab-hub>
+        <section class="cab-intro" aria-labelledby="hub-title">
+          <h1 class="text-heading-h2" id="hub-title" tabindex="-1">${escape(HUB_TITLE)}</h1>
+        </section>
+        <ul class="cab-hub__grid" aria-label="Serviciile tale în EVO">${HUB_TILES.map(tile).join("")}</ul>
+      </div>`;
+    document.documentElement.dataset.smReady = "true";
+  }
+  if (isHubAddress()) { renderHub(); return; }
   const FO = "../e-permits-acte-permisive.html";
   const SPRITE = C.SPRITE;
   const TODAY = "2026-10-12";
@@ -605,8 +656,9 @@
     if (view) return view;
     root.innerHTML = `
       <div class="sm-list-view" data-sm-list-view>
-        <section class="cab-intro" aria-labelledby="sm-title">
-          <h1 class="text-heading-h2" id="sm-title" tabindex="-1">Solicitările mele</h1>
+        <section class="cab-intro cab-intro--crumb" aria-labelledby="sm-title">
+          ${window.GEAPBreadcrumbs?.html([hubCrumb(), { label: LIST_TITLE }], { parentsOnly: true }) || ""}
+          <h1 class="text-heading-h2" id="sm-title" tabindex="-1">${escape(LIST_TITLE)}</h1>
         </section>
         <div class="sm-list-view__lead" data-sm-lead></div>
         <div class="cab-toolbar" data-sm-toolbar>
@@ -654,7 +706,7 @@
   /* loading (cabinet-skeleton-v1, CabEvo.listLoader): the toolbar, facet bar and pager from the new state at once,
      the rows = the skeleton (kept while already there, so typing does not restart its shimmer) */
   function renderList({ loading = false } = {}) {
-    C.setHeaderTitle("Solicitările mele");
+    C.setHeaderTitle(LIST_TITLE);
     const view = ensureListShell();
     view.hidden = false;
     const profileView = root.querySelector("[data-sm-profile-view]");
@@ -716,6 +768,7 @@
   /* the first load (no data yet): the list shell with the real toolbar (inert), the skeleton rows, no pager — or,
      on a request address (#dosar/<id>), the profile skeleton */
   function renderFirstLoad() {
+    C.setHeaderTitle(LIST_TITLE);
     const view = ensureListShell();
     if (/^#dosar\//.test(window.location.hash)) {
       view.hidden = true;
@@ -1385,7 +1438,7 @@
 
   function renderProfile(dosar) {
     const service = serviceOf(dosar);
-    C.setHeaderTitle("Solicitările mele");
+    C.setHeaderTitle(LIST_TITLE);
     /* the tab names the request (act-profile-url-v1): the H1 + its object, as the row */
     document.title = `${[service.title || dosar.object || dosar.nr, service.title ? dosar.object : ""].filter(Boolean).join(" — ")} · EVO Cabinet`;
     const subject = state.subject;
@@ -1491,7 +1544,7 @@
     profileView.innerHTML = `
       <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.profileHeader({
-          back: { label: "Solicitările mele", href: C.pageAddress({}, ""), attr: "data-sm-back" },
+          back: [hubCrumb(), listCrumb()],
           /* type-first-v1: H1 = the service / act name, subtitle = the object / location (only when present) */
           title: service.title || dosar.object || dosar.nr,
           titleId: "sm-profile-title",
@@ -1528,6 +1581,7 @@
 
   function route(event) {
     window.GEAPTooltip?.hide();
+    if (event?.type === "popstate" && isHubAddress()) { window.location.reload(); return; }
     const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
     /* US-29 AC-02: a draft removed automatically has no profile any more — the list says why (link from the notification) */
     const removed = match && state.removed.find((item) => item.id === match[1]);
@@ -1550,7 +1604,7 @@
 
   const REQUEST_NOT_FOUND = "Solicitarea nu a fost găsită";
   function renderNotFound() {
-    C.setHeaderTitle("Solicitările mele");
+    C.setHeaderTitle(LIST_TITLE);
     document.title = `${REQUEST_NOT_FOUND} · EVO Cabinet`;
     ensureListShell().hidden = true;
     const profileView = root.querySelector("[data-sm-profile-view]");
@@ -1558,7 +1612,7 @@
     profileView.innerHTML = `
       <article class="cab-profile sm-profile" aria-label="${REQUEST_NOT_FOUND}">
         ${C.notFoundHtml({
-          back: { label: "Solicitările mele", href: C.pageAddress({}, ""), attr: "data-sm-back" },
+          back: [hubCrumb(), listCrumb()],
           title: REQUEST_NOT_FOUND,
           text: "Linkul nu mai este valabil sau solicitarea nu figurează printre solicitările tale.",
         })}
@@ -1786,7 +1840,7 @@
         root.querySelector("[data-sm-search]")?.focus();
         return;
       }
-      if (target.closest("[data-sm-retry]")) { window.location.assign(cabUrl("solicitari")); return; }
+      if (target.closest("[data-sm-retry]")) { window.location.assign(cabUrl("solicitari", { lista: "geap" })); return; }
       const redirectRetry = target.closest("[data-sm-redirect-retry]");
       if (redirectRetry) { window.location.assign(redirectRetry.dataset.smRedirectRetry); return; }
       if (target.closest("[data-sm-search-retry]")) { state.searchFailed = false; renderList(); return; }
@@ -1809,7 +1863,7 @@
         if (C.modifiedClick(event)) return;
         event.preventDefault();
         if (history.state?.smFromList) { history.back(); return; }
-        history.pushState(null, "", C.pageAddress({}, "")); route(); window.scrollTo(0, 0); return;
+        history.pushState(null, "", listUrl()); route(); window.scrollTo(0, 0); return;
       }
       if (target.closest("[data-tooltip-hint]")) { event.stopPropagation(); window.GEAPTooltip?.show(target.closest("[data-tooltip-hint]")); return; }
 
