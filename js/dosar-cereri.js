@@ -62,7 +62,7 @@
     { id: "S-2026-000412", kind: "reopen", caseId: "D-2026-004719", state: "confirmare", at: "2026-11-23T10:14:00", by: "Stela Bradu", role: "Specialist",
       reason: "Eroare materială în actul emis: suprafața încăperilor a fost preluată greșit din cerere (48 m² în loc de 84 m²)." },
     { id: "S-2026-000415", kind: "reopen", caseId: "D-2026-004734", state: "confirmare", at: "2026-11-24T16:02:00", by: "SIA GEAP", role: "Sistem",
-      reason: "Contestație aprobată în baza dosarului D-2026-004802", appeal: "D-2026-004802" },
+      reason: "Contestație aprobată în baza dosarului D-2026-004693", appeal: "D-2026-004693" },
     { id: "S-2026-000409", kind: "strike", caseId: "D-2026-004566", state: "confirmare", at: "2026-11-22T09:40:00", by: "Mihai Grosu", role: "Specialist",
       reason: "Dosar depus din eroare, dublură a dosarului D-2026-004559 (aceeași cerere, înregistrată de două ori la ghișeu)." },
     { id: "S-2026-000411", kind: "strike", caseId: "D-2026-004507", state: "confirmare", at: "2026-11-24T11:25:00", by: "Tamara Bragagiu", role: "Specialist",
@@ -101,7 +101,8 @@
   const statuses = () => A().dossierStore?.()?.statuses || {};
   const statusTag = (status) => tag(statuses()[status]?.label || status, statuses()[status]?.tone || "neutral");
   const appealIds = () => (params.get("red-contestatie") || "").split(",").map((v) => v.trim()).filter(Boolean);
-  const hasAppeal = (caseId) => appealIds().includes(caseId);
+  /* con-v1: an appeal dossier in processing on this dossier (js/contestatie.js, US-420) counts as the demo switch does */
+  const hasAppeal = (caseId) => appealIds().includes(caseId) || Boolean(window.GEAPContestatie?.pendingFor?.(caseId));
   const archived = (row) => row.src?.status === "arhivat" || (row.arhStare !== undefined && row.arhStare !== "Activ");
   const FINISHED = ["eliberat", "respins"];
 
@@ -361,6 +362,31 @@
     finish(`Radierea a fost confirmată. Dosarul ${row.nrDosar} este radiat.`, { tasks: true, tone: "info" });
   }
 
+  /* con-v1 (US-420 AC-09 / Feature 97299): the decision approving an appeal is signed → SIA GEAP creates the reopen of the
+     contested dossier „În confirmare”, reason „Contestație aprobată în baza dosarului <Nr. dosar de contestație>”, and the
+     task „Confirmarea redeschiderii” (Sarcinile mele); the contested dossier keeps its status until it is confirmed (AC-13) */
+  function fromAppeal({ caseId, appealId, at }) {
+    const row = caseRow(caseId);
+    if (!row) return null;
+    const open = pending(caseId, "reopen");
+    if (open) return open;
+    const st = store();
+    st.seq = (st.seq || 40) + 1;
+    const req = { id: `S-2026-${String(420 + st.seq).padStart(6, "0")}`, kind: "reopen", caseId, state: "confirmare", at: at || G().nowIso?.() || "", by: "SIA GEAP", role: "Sistem",
+      reason: `Contestație aprobată în baza dosarului ${appealId}`, appeal: appealId, prevStatus: row.status };
+    save(req);
+    const reg = G().findRow?.(REG, caseId) || { id: caseId };
+    G().logEvent?.(REG, reg, {
+      user: "SIA GEAP", role: "Sistem", type: "Solicitarea redeschiderii", category: "sistem",
+      detail: `Creată automat la semnarea deciziei de aprobare a contestației ${appealId}. Sarcina ${req.id} „${KINDS.reopen.task}” a fost creată.`,
+      changes: [{ field: KINDS.reopen.stateLabel, before: "—", after: "În confirmare" }]
+    });
+    G().save?.();
+    document.dispatchEvent(new CustomEvent("geap:tasks-changed"));
+    A().refreshNav?.();
+    return req;
+  }
+
   /* ---------------------------------------------------------------- after an action */
   function refuse(message) {
     G().closeModal?.();
@@ -438,6 +464,6 @@
   window.GEAPCaseRequests = {
     KINDS, SEED, all, ofCase, latest, pending, confirmed, byId,
     visible, actionState, run, routeKind, isStruck, markersHtml, cardsHtml, actStatus,
-    tasks, isTask, openTask, canConfirm
+    tasks, isTask, openTask, canConfirm, fromAppeal
   };
 })();

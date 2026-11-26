@@ -134,14 +134,18 @@
   }
   const pendingFee = (dosar) => dosar.status === "schita" && dosar.payment?.status === "În așteptare";
 
-  const appealUntil = (dosar) => (dosar.status === "finalizat" && dosar.finalized ? addDays(dosar.finalized, state.data.appealDays || 30) : "");
+  /* con-v1 (Feature 97299, US-418 AC-01…03 / AC-11): the ONE rule of js/contestatie.js (the FO flow reads the same) —
+     the service's «Contestare» block (Serviciu contestabil, Tipuri de solicitare / Decizii contestabile, Termen admisibil
+     de contestare, from the decision) + an appeal already in processing = blocked with the reason */
+  const appealState = (dosar) => window.GEAPContestatie?.requestState(dosar, { ...serviceOf(dosar), appeal: { days: state.data.appealDays || 30, ...(serviceOf(dosar).appeal || {}) } }, { allowed: !readOnly(), today: TODAY }) || { show: false, reason: "" };
+  const appealUntil = (dosar) => (dosar.status === "finalizat" && dosar.finalized ? appealState(dosar).until || addDays(dosar.finalized, state.data.appealDays || 30) : "");
   /* request-act-modal-link-v1 (2026-10-23, user: „why does it have Depune contestație?”): a contestație exists only against a
      NEGATIVE decision — the request refused, or the authority's own suspension / withdrawal / annulment of the act
      (Feature 90818) — inside the appeal term; never on an approved request (issued act, a duplicate, the holder's own
      withdrawal, a resumed validity), even when that act was withdrawn later */
-  const negativeDecision = (dosar) => dosar.result === "respins"
-    || (Boolean(dosar.decisionOnly) && dosar.initiatedBy === "autoritate" && /^(suspendare|retragere|anulare)$/.test(dosar.pp || ""));
-  const canAppeal = (dosar) => negativeDecision(dosar) && Boolean(appealUntil(dosar)) && appealUntil(dosar) >= TODAY;
+  const canAppeal = (dosar) => { const st = appealState(dosar); return st.show && !st.reason; };
+  /* AC-11: the appeal of this request is in processing (the decision has at most one) */
+  const appealPending = (dosar) => appealState(dosar).pending || "";
   const authorityLabel = (dosar) => [serviceOf(dosar).authority, dosar.subdivision].filter(Boolean).join(" · ");
   const readOnly = () => Boolean(state.perspective?.readOnly);
 
@@ -169,9 +173,11 @@
       query.set("suplinire", dosar.nr);
       return `${FO}?${query.toString()}#request-step-2`;
     }
+    /* con-v1 (US-418): the FO appeal flow of this request (decision, „Motivele contestației”, documents, MSign) */
     if (kind === "appeal") {
       query.set("contestatie", dosar.nr);
-      return `${FO}?${query.toString()}#request`;
+      ["con-contestabil", "con-decizii", "con-tipuri", "con-zile", "con-in-procesare"].forEach((key) => { if (params.get(key)) query.set(key, params.get(key)); });
+      return `${FO}?${query.toString()}#contestatie`;
     }
     /* rtr-fo-v1 (2026-11-26, PO: the Cabinet only shows, every action happens in the Front Office): the FO withdrawal
        flow of this request (summary, consequences, reason, MSign, confirmation) */
@@ -291,6 +297,8 @@
     }
     if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
+    /* con-v1 (AC-11): blocked = the disabled item + its reason (as a blocked „Retrage cererea”) */
+    else if (appealPending(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", reason: appealState(dosar).reason });
     /* rtr-v1 (US-413 AC-02…09): destructive, last after a separator; blocked = the act rows' disabled item + reason.
        rtr-fo-v1: available = a red new-tab link to the FO withdrawal flow (label + trailing external icon) */
     const wd = withdrawState(dosar);
@@ -810,6 +818,8 @@
         return notice("info", "icon-time-filled", lead, `Dosarul este la ${where}; nu trebuie să faci nimic acum.`);
       }
       case "finalizat": {
+        /* con-v1 (US-418 AC-10 / AC-11): the appeal filed = its own dossier; this request keeps its status */
+        if (appealPending(dosar)) return notice("info", "icon-time-filled", `Contestația ${escape(appealPending(dosar))} este în examinare`, "Decizia contestată rămâne în vigoare până la soluționarea contestației. O nouă contestație nu se poate depune cât timp aceasta este în procesare.");
         if (dosar.result === "respins") {
           const why = dosar.decision?.reason ? `Motivul refuzului: ${escape(dosar.decision.reason)}` : "Motivul refuzului este în fila Decizie.";
           return canAppeal(dosar)
@@ -970,6 +980,9 @@
         ...(rejected ? { tone: "danger", statusTag: false } : {}),
         detail: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis.",
       }));
+      /* con-v1 (US-418 AC-10 / AC-13): the appeal = a new dossier linked to this one; this request keeps its status */
+      const appealNr = appealPending(dosar);
+      if (appealNr) events.push(open(dosar.appealFiled?.at || dosar.finalized, "Contestație depusă", { ...applicant, detail: `Dosarul de contestație ${appealNr}, semnat prin MSign. Este în examinare la autoritate.` }));
     }
     return events.reverse();
   }
@@ -1913,6 +1926,15 @@
       if (supplemented.status === "info") Object.assign(supplemented, { status: "derulare", supplemented: `${TODAY}T14:10`, examTerm: addWorkdays(TODAY, 5) });
       supplemented.justAdded = true;
       state.toast = `Informațiile pentru dosarul ${supplemented.nr} au fost trimise. Examinarea a fost reluată.`;
+    }
+    /* con-v1 (US-418 AC-10): back from the FO appeal (?contestat=<id>&nrc=<appeal dossier>) — a new appeal dossier, linked
+       to this request, whose status does not change; the library success toast (a filed confirmation, return-toast-v1) */
+    const appealed = state.dosare.find((dosar) => dosar.id === params.get("contestat"));
+    if (appealed && params.get("nrc") && canAppeal(appealed)) {
+      window.GEAPContestatie?.remember(appealed.id, params.get("nrc"));
+      appealed.appealFiled = { nr: params.get("nrc"), at: `${TODAY}T14:30` };
+      appealed.justAdded = true;
+      state.toast = `Contestația a fost depusă. Dosarul de contestație ${params.get("nrc")} a fost transmis autorității.`;
     }
     /* rtr-v1: back from MSign with the withdrawal signed (US-413 AC-12…17) — only for a request that may be withdrawn */
     const withdrawn = state.dosare.find((dosar) => dosar.id === params.get("retras"));

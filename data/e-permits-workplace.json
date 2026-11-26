@@ -49,7 +49,8 @@
     "redeschis": {
       "label": "Redeschis",
       "tone": "warning"
-    }
+    },
+    "finalizat": { "label": "Dosar finalizat", "tone": "ok" }
   },
   "alerts": {
     "suspendat": {

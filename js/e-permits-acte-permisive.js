@@ -33,7 +33,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire", "#retragere"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire", "#retragere", "#contestatie"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -55,6 +55,8 @@
     const frontOfficeSupplementScreen = document.querySelector("[data-fo-screen='supplement']");
     /* US-413 „Retragerea cererii” (rtr-fo-v1) */
     const frontOfficeWithdrawScreen = document.querySelector("[data-fo-screen='withdraw']");
+    /* US-418 „Contestarea deciziei” (con-v1) */
+    const frontOfficeAppealScreen = document.querySelector("[data-fo-screen='appeal']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -4405,6 +4407,7 @@
         intent: frontOfficeIntentScreen,
         supplement: frontOfficeSupplementScreen,
         withdraw: frontOfficeWithdrawScreen,
+        appeal: frontOfficeAppealScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -4416,13 +4419,13 @@
          (same "keep the stepper on the left" treatment as the real wizard),
          so it needs the same full-width, top-aligned chrome — not the
          centered-card chrome auth/choice use. */
-      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement" || screen === "withdraw";
+      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal";
       frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
       frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         /* the intent screen already has an identity, so the header shows it */
-        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement" || screen === "withdraw";
+        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -4456,6 +4459,9 @@
       }
       if (screen === "withdraw") {
         frontOfficeWithdrawScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "appeal") {
+        frontOfficeAppealScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -6535,6 +6541,270 @@
       }
     });
 
+    /* ===================================================================
+       US-418 (Azure 97583) „Contestarea deciziei” in the Front Office (con-v1, 2026-11-26; Feature 97299; PO: EVO Cabinet
+       only shows and links). EVO Cabinet › Solicitările mele › „Depune contestație” (after the „Înainte să începi”
+       dialog) opens ?contestatie=<nr>#contestatie in a new tab. The withdrawal screen's pieces (S4 column), three phases:
+         form  the contested decision, read-only (Dosar contestat, Decizia contestată, Tip solicitare „Contestație” —
+               AC-04 / AC-05) · „Motivele contestației” required (AC-06, the shared FO textarea + „Câmpul este
+               obligatoriu.”) · „Documente justificative” optional (AC-07, the FO document field + picker, US-20)
+         sign  „Verificare și semnare”: the appeal, its documents, the generated „Cererea de contestare”, MSign (AC-08);
+               ?msign=eroare fails once
+         done  the FO Finalizare: the NEW appeal dossier number, „Canalul depunerii” Online (AC-09 / AC-10), the
+               contested request unchanged → „Mergi la Solicitările mele” = ?contestat=<id>&nrc=<nr> (the Cabinet toast)
+       Not the applicant's (AC-01 „Acces interzis”) / not appealable or past the term (AC-02 / AC-03) / an appeal
+       already in processing (AC-11) / unknown = the S4 alert card, never a blank page. Rule: GEAPContestatie.
+       =================================================================== */
+    const frontOfficeAppealNr = new URLSearchParams(location.search).get("contestatie") || "";
+    const frontOfficeAp = { data: null, phase: "form", reason: "", files: "", notice: "", msignFailed: false };
+    async function loadFrontOfficeAppeal() {
+      if (frontOfficeAp.data) return frontOfficeAp.data;
+      let data = null;
+      try { data = await (await fetch("data/cabinet-evo-solicitari.json", { cache: "no-store" })).json(); } catch { data = null; }
+      const subjectId = suppParam("solicitant") || "pj-global-trader";
+      const owner = Object.entries(data?.perspectives || {}).find(([, p]) => (p.dosare || []).some((d) => d.nr === frontOfficeAppealNr));
+      const dosar = owner ? owner[1].dosare.find((d) => d.nr === frontOfficeAppealNr) : null;
+      const perspective = data?.perspectives?.[subjectId] || null;
+      const service = dosar ? data.services?.[dosar.service] || null : null;
+      frontOfficeAp.data = {
+        dosar, service, today: data?.today || "", appealDays: data?.appealDays || 30,
+        /* AC-01: only the applicant (or the MPower representative acting as the applicant); an expired power reads only */
+        allowed: Boolean(owner && owner[0] === subjectId && !perspective?.readOnly)
+      };
+      return frontOfficeAp.data;
+    }
+    const appealRule = () => {
+      const { dosar, service, today, allowed, appealDays } = frontOfficeAp.data || {};
+      return window.GEAPContestatie?.requestState(dosar, { ...(service || {}), appeal: { days: appealDays, ...(service?.appeal || {}) } }, { allowed, today }) || { show: false, reason: "", why: "" };
+    };
+    /* open · blocked (an appeal in processing) · closed (not appealable / past the term) · denied · unknown */
+    function appealStatus() {
+      const { dosar, allowed } = frontOfficeAp.data || {};
+      if (!dosar) return "unknown";
+      if (!allowed) return "denied";
+      const rule = appealRule();
+      if (!rule.show) return "closed";
+      return rule.reason ? "blocked" : "open";
+    }
+    function appealCabinetUrl(extra = {}, hash = "") {
+      const query = new URLSearchParams({ view: "solicitari" });
+      const solicitant = suppParam("solicitant");
+      if (solicitant) query.set("as", solicitant);
+      ["con-contestabil", "con-decizii", "con-tipuri", "con-zile", "con-in-procesare"].forEach((key) => { if (suppParam(key)) query.set(key, suppParam(key)); });
+      Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
+      return `cabinet-evo/index.html?${query.toString()}${hash}`;
+    }
+    const appealNewNr = () => window.GEAPContestatie?.appealNumber(frontOfficeAp.data?.dosar) || "";
+    /* the contested decision = the S4 details card rows: act type, location, dossier number (copy), the decision, the type */
+    function appealCaseRows({ reason = false } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      const C = window.GEAPContestatie;
+      const { dosar, service } = frontOfficeAp.data || {};
+      if (!dosar) return "";
+      const row = (label, valueHtml) => `<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(label)}</span><span class="e-permits-dosar-profil__row-value">${valueHtml}</span></div>`;
+      const kind = C?.decisionOf(dosar);
+      const decisionTag = window.GEAPTag ? window.GEAPTag.html(kind === "respingere" ? "Respinsă" : "Aprobată", kind === "respingere" ? "danger" : "success") : "";
+      const nr = C?.decisionNr(dosar);
+      return [
+        row("Tipul actului", esc(service?.title || dosar.tip || "—")),
+        dosar.object ? row("Locația", esc(dosar.object)) : "",
+        row("Dosar contestat", copyValueButtonHtml(dosar.nr, { ariaLabel: `Copiază numărul dosarului ${dosar.nr}` })),
+        row("Decizia contestată", `<span>${esc(C?.decisionLabel(dosar) || "—")}${nr ? ` nr. ${esc(nr)}` : ""}, ${esc(supplementLongDay(dosar.finalized) || "")} ${decisionTag}</span>`),
+        row("Tip solicitare", esc("Contestație")),
+        reason && frontOfficeAp.reason ? row("Motivele contestației", esc(frontOfficeAp.reason)) : ""
+      ].join("");
+    }
+    function appealHeaderHtml(title) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="fo-appeal-title" tabindex="-1">${esc(title)}</h1>
+          ${frontOfficeSelectedSubject?.name ? `<p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Solicitant</span><span class="e-permits-fo-intent__subject-name">${esc(frontOfficeSelectedSubject.name)}</span></p>` : ""}
+        </header>`;
+    }
+    /* several files (data-fo-doc-max, as the Form Builder „Fișier”) */
+    const appealDocsField = () => postprocessDocFieldHtml({ id: "con-docs", label: "Documente justificative", description: "Documentele care susțin motivele contestației. JPG, PNG, PDF · maximum 60 MB fiecare.", required: false, filesHtml: frontOfficeAp.files })
+      .replace('data-fo-doc-field="con-docs"', 'data-fo-doc-field="con-docs" data-fo-doc-max="5"');
+    const appealFileNames = () => {
+      const box = document.createElement("div");
+      box.innerHTML = frontOfficeAp.files || "";
+      return [...box.querySelectorAll(".e-permits-fo-file-item[data-fo-doc]")].map((item) => { try { return JSON.parse(item.dataset.foDoc).fisier; } catch { return ""; } }).filter(Boolean);
+    };
+    function renderFrontOfficeAppeal() {
+      const body = frontOfficeAppealScreen?.querySelector("[data-fo-appeal-body]");
+      if (!body || !frontOfficeAp.data) return;
+      const esc = escapeFrontOfficeHtml;
+      const { dosar } = frontOfficeAp.data;
+      const status = appealStatus();
+      const rule = appealRule();
+      const cabinetFooter = foStepFooterHtml({ customHtml: `<a class="btn btn-primary e-permits-fo-finish__cta" href="${esc(appealCabinetUrl({}, dosar && status !== "denied" ? `#dosar/${dosar.id}` : ""))}" data-fo-appeal-cabinet><span>Mergi la Solicitările mele</span></a>` });
+      const section = (id, title, inner) => `
+        <section class="e-permits-fo-pp-request" aria-labelledby="${id}">
+          <h2 class="e-permits-dosar-profil__section-title" id="${id}">${esc(title)}</h2>
+          ${inner}
+        </section>`;
+      const caseSection = section("fo-appeal-case-title", "Decizia contestată", `<div class="e-permits-dosar-profil__card">${appealCaseRows()}</div>`);
+      if (status !== "open") {
+        const card = (tone, title, text) => window.GEAPAlertCard?.html({ tone, title, text, role: "alert", id: "fo-appeal-alert", sprite: "assets/icons/sprite.svg", className: "e-permits-fo-supp-alert" }) || "";
+        const notice = {
+          unknown: () => card("danger", `Nu am găsit dosarul ${esc(frontOfficeAppealNr)}`, "Deschide contestația din EVO Cabinet › Solicitările mele sau contactează autoritatea emitentă."),
+          denied: () => card("danger", "Acces interzis", "Poți contesta doar deciziile emise pe cererile tale sau ale persoanei pe care o reprezinți prin MPower."),
+          blocked: () => card("warning", "Contestația nu poate fi depusă", esc(rule.reason)),
+          closed: () => card("warning", "Decizia nu mai poate fi contestată", esc(rule.why || "Decizia nu este contestabilă."))
+        }[status]();
+        body.innerHTML = `${appealHeaderHtml("Contestarea deciziei")}${notice}${status === "blocked" || status === "closed" ? caseSection : ""}${cabinetFooter}`;
+        return;
+      }
+      if (frontOfficeAp.phase === "done") return;
+      const until = supplementLongDay(rule.until) || "";
+      const lead = foUi().renderNotice?.("info", `<strong>Poți depune contestația până la ${esc(until)}.</strong> Fără taxă. Decizia contestată rămâne în vigoare până la soluționarea contestației.`) || "";
+      if (frontOfficeAp.phase === "sign") {
+        const signer = frontOfficeSelectedSubject?.representative?.name || frontOfficeSchema?.authenticatedUser?.name || "";
+        const formDoc = { sursa: "generat", tip: "Cererea de contestare", fisier: `cerere-contestare-${dosar.nr}.pdf`, size: "72 KB", verb: "Generat", at: foDocStampNow(), de: "", semnat: false };
+        const names = appealFileNames();
+        const notes = frontOfficeAp.notice === "msign-error"
+          ? foUi().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Contestația nu a fost depusă; datele ei rămân neschimbate. Încearcă din nou.", { role: "alert" }) || ""
+          : "";
+        body.innerHTML = `
+          ${appealHeaderHtml("Verificare și semnare")}
+          ${section("fo-appeal-case-title", "Contestația", `<div class="e-permits-dosar-profil__card">${appealCaseRows({ reason: true })}</div>`)}
+          ${section("fo-appeal-docs-title", "Documente justificative", names.length ? `<div class="e-permits-fo-doc-field" data-fo-doc-field="con-docs-review"><div class="e-permits-fo-doc-field__files">${frontOfficeAp.files}</div></div>` : `<p class="e-permits-fo-doc-field__desc">Fără documente justificative.</p>`)}
+          ${section("fo-appeal-doc-title", "Cererea de semnat", `<div class="e-permits-fo-summary-docs"><div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--system" data-fo-appeal-form data-fo-doc="${esc(JSON.stringify(formDoc))}">${foDocIconHtml(formDoc, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(formDoc, { open: true })}</div></div>`)}
+          ${notes ? `<div class="e-permits-fo-supp-status" data-fo-appeal-status>${notes}</div>` : ""}
+          <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
+            <div class="e-permits-fo-form__actions">
+              <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
+                <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Contestarea deciziei" data-fo-appeal-prev>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+                </button>
+                <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-appeal-sign${signer ? ` aria-description="${esc(`Semnează ca ${signer}`)}"` : ""}>
+                  <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
+                  <span class="btn-badge__label">Semnează prin msign</span>
+                </button>
+              </div>
+            </div>
+          </footer>`;
+        /* the review lists the documents read-only (no ×) */
+        body.querySelectorAll("[data-fo-doc-field='con-docs-review'] .e-permits-fo-doc-attached-item__remove").forEach((el) => el.remove());
+        return;
+      }
+      body.innerHTML = `
+        ${appealHeaderHtml("Contestarea deciziei")}
+        ${lead}
+        ${caseSection}
+        ${section("fo-appeal-reason-title", "Contestația", window.GEAPContestatie?.reasonFieldHtml({ id: "fo-con-reason", value: frontOfficeAp.reason }) || "")}
+        ${appealDocsField()}
+        ${foStepFooterHtml({ backAttrs: "data-fo-appeal-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-appeal-next" })}`;
+      window.GEAPRetragere?.bindReason(body);
+    }
+    /* done: the FO Finalizare in this column — the NEW appeal dossier (AC-10), channel Online (AC-09) */
+    function renderFrontOfficeAppealFinish() {
+      const body = frontOfficeAppealScreen?.querySelector("[data-fo-appeal-body]");
+      const { dosar, service, today } = frontOfficeAp.data;
+      const C = window.GEAPContestatie;
+      const nr = appealNewNr();
+      const href = appealCabinetUrl({ contestat: dosar.id, nrc: nr }, `#dosar/${dosar.id}`);
+      const names = appealFileNames();
+      body.innerHTML = '<div class="e-permits-fo-finish"><div class="e-permits-fo-finish__body" data-fo-appeal-finish></div></div>';
+      renderFrontOfficeStep7FromSchema({ steps: [{
+        id: "finish",
+        title: "Contestația a fost depusă",
+        returnHref: href,
+        lead: { text: `Dosarul de contestație nr. ${nr} a fost transmis autorității. Îl urmărești în EVO Cabinet →`, link: "Solicitările mele" },
+        action: { label: "Mergi la Solicitările mele", href },
+        tracker: [
+          { label: "Depusă", state: "done" },
+          { label: "Examinare", state: "todo" },
+          { label: "Decizie", state: "todo" }
+        ],
+        summary: { rows: [
+          { label: "Numărul dosarului", value: nr, copy: true },
+          { label: "Dosar contestat", value: dosar.nr },
+          { label: "Decizia contestată", value: `${C?.decisionLabel(dosar) || ""}${C?.decisionNr(dosar) ? ` nr. ${C.decisionNr(dosar)}` : ""}` },
+          { label: "Tipul actului", value: service?.title || dosar.tip || "—" },
+          { label: "Tip solicitare", value: "Contestație" },
+          { label: "Canalul depunerii", value: "Online" },
+          { label: "Data depunerii", value: supplementLongDay(today) || "—" },
+          { label: "Documente justificative", value: names.length ? names.join(", ") : "Fără documente" }
+        ] },
+        timeline: { title: "Statutul dosarului", items: [
+          { title: "Contestație depusă", text: "Semnată prin MSign", state: "done" },
+          { title: "Dosar de contestație creat", text: `Legat de dosarul ${dosar.nr}; statutul acestuia nu se schimbă`, state: "done" },
+          { title: "Examinare", text: "Autoritatea examinează contestația; decizia vine prin MNotify și în EVO Cabinet", state: "todo" }
+        ] }
+      }] }, { target: body.querySelector("[data-fo-appeal-finish]"), titleId: "fo-appeal-title" });
+    }
+    async function showFrontOfficeAppeal({ focus = true } = {}) {
+      if (!frontOfficeAppealScreen) return;
+      await loadFrontOfficeAppeal();
+      const { service } = frontOfficeAp.data;
+      const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+      if (title && service?.title) setFoServiceTitle(title, service.title);
+      document.title = `Contestarea deciziei — ${service?.title || "EVO"}`;
+      renderFrontOfficeAppeal();
+      if (window.location.hash !== "#contestatie") history.replaceState(null, "", "#contestatie");
+      setFrontOfficeScreen("appeal", { focus });
+    }
+    function focusFrontOfficeAppeal(selector = "h1") {
+      frontOfficeAppealScreen?.querySelector(selector)?.focus({ preventScroll: true });
+      scrollFrontOfficeStepToTop();
+    }
+    /* the uploaded documents survive the phases (the field is re-rendered) */
+    const keepAppealFiles = () => {
+      const box = frontOfficeAppealScreen?.querySelector("[data-fo-doc-field='con-docs'] [data-fo-doc-field-files]");
+      if (box) frontOfficeAp.files = box.innerHTML;
+    };
+    frontOfficeAppealScreen?.addEventListener("click", (event) => {
+      const body = frontOfficeAppealScreen.querySelector("[data-fo-appeal-body]");
+      /* a restored file (back from the review) has no own × listener: remove it here, focus „Adaugă fișier” */
+      const remove = event.target.closest("[data-fo-doc-field='con-docs'] .e-permits-fo-doc-attached-item__remove");
+      if (remove) {
+        const field = remove.closest("[data-fo-doc-field]");
+        remove.closest(".e-permits-fo-file-item")?.remove();
+        field?.classList.remove("is-full");
+        field?.querySelector(".e-permits-fo-doc-field__add")?.focus();
+        return;
+      }
+      if (event.target.closest("[data-fo-appeal-back]")) {
+        window.location.href = appealCabinetUrl({}, frontOfficeAp.data?.dosar ? `#dosar/${frontOfficeAp.data.dosar.id}` : "");
+        return;
+      }
+      /* form → sign: AC-06 — the reasons are required (inline error + focus) */
+      if (event.target.closest("[data-fo-appeal-next]")) {
+        const value = window.GEAPRetragere?.readReason(body, "obligatoriu");
+        if (value === null || value === undefined) return;
+        frontOfficeAp.reason = value;
+        keepAppealFiles();
+        frontOfficeAp.phase = "sign";
+        frontOfficeAp.notice = "";
+        renderFrontOfficeAppeal();
+        focusFrontOfficeAppeal();
+        return;
+      }
+      if (event.target.closest("[data-fo-appeal-prev]")) {
+        frontOfficeAp.phase = "form";
+        frontOfficeAp.notice = "";
+        renderFrontOfficeAppeal();
+        focusFrontOfficeAppeal();
+        return;
+      }
+      /* MSign (AC-08): ?msign=eroare fails once; signed = the appeal dossier is created (AC-10) → Finalizare */
+      if (event.target.closest("[data-fo-appeal-sign]")) {
+        if (suppParam("msign") === "eroare" && !frontOfficeAp.msignFailed) {
+          frontOfficeAp.msignFailed = true;
+          frontOfficeAp.notice = "msign-error";
+          renderFrontOfficeAppeal();
+          frontOfficeAppealScreen.querySelector("[data-fo-appeal-sign]")?.focus({ preventScroll: true });
+          frontOfficeAppealScreen.querySelector("[data-fo-appeal-status]")?.scrollIntoView({ block: "center" });
+          return;
+        }
+        frontOfficeAp.phase = "done";
+        frontOfficeAp.notice = "";
+        renderFrontOfficeAppealFinish();
+        focusFrontOfficeAppeal();
+      }
+    });
+
     function closeFrontOfficeIntentMenus(except = null) {
       frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
         const menu = document.getElementById(trigger.getAttribute("aria-controls"));
@@ -7342,7 +7612,11 @@
     /* US-25: a „Suplinire informații” landing shows S4 before the form (once per request and tab) */
     let supplementSeen = "";
     try { supplementSeen = sessionStorage.getItem(SUPPLEMENT_SEEN) || ""; } catch { supplementSeen = ""; }
-    if (frontOfficeWithdrawNr) {
+    if (frontOfficeAppealNr) {
+      /* US-418 (con-v1): the appeal of a decision, from EVO Cabinet › Solicitările mele › „Depune contestație” */
+      history.replaceState(null, "", "#contestatie");
+      frontOfficeSchemaLoadPromise.then(() => showFrontOfficeAppeal({ focus: false }));
+    } else if (frontOfficeWithdrawNr) {
       /* US-413 (rtr-fo-v1): the withdrawal flow of a filed request, from EVO Cabinet › Solicitările mele */
       history.replaceState(null, "", "#retragere");
       frontOfficeSchemaLoadPromise.then(() => showFrontOfficeWithdraw({ focus: false }));

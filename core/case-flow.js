@@ -173,7 +173,30 @@
     return f;
   }
 
-  var FLOWS = { complex: complexFlow(), simplified: simplifiedFlow() };
+  /* con-v1 (US-420 „Proces Contestație”, diagram «PostProces_ContestatieRefuz»): the generic steps of the complex flow —
+     distribution, examination, suspension, the DECISION project, coordination, MSign — for both outcomes: „Aprobarea
+     contestației” and „Respingerea contestației” each get a decision project (no fees, no act); the end = „Dosar finalizat” */
+  function appealFlow() {
+    var f = complexFlow();
+    var n = f.nodes;
+    f.id = "appeal";
+    f.name = "PostProces_ContestatieRefuz";
+    n.node12 = { kind: "decision", question: "Decizia asupra contestației", guard: "WithExpertise", choice: { aprobare: "node14", respingere: "node14" } };
+    n.node14.name = "Crearea proiectului deciziei asupra contestației";
+    n.node14.bpmn = "Creează proiectul deciziei (aprobarea sau respingerea contestației)";
+    n.node14.form = "decizieContestatie";
+    n.node14.transitions = [
+      { id: "inainteRespingere", label: "Înainte", target: "RecordState2", kind: "advance", category: "proiectDecizie", icon: "document" },
+      { id: "cerereIncompletaR", label: "Revino la examinare", target: "node6", kind: "return", category: "proiectDecizie", icon: "arrow-left" }
+    ];
+    n.RecordState2.name = "Coordonarea proiectului deciziei";
+    f.order = f.order.filter(function (id) { return ["node9", "node15", "node16", "node17", "RecordState8"].indexOf(id) === -1; });
+    ["node9", "node15", "RecordState5", "node16", "node17", "RecordState8"].forEach(function (id) { delete n[id]; });
+    n.end = { kind: "terminal", statusId: 9, name: "Dosar finalizat" };
+    return f;
+  }
+
+  var FLOWS = { complex: complexFlow(), simplified: simplifiedFlow(), appeal: appealFlow() };
 
   function getFlow(id) { return FLOWS[id] || FLOWS.complex; }
 
@@ -313,7 +336,7 @@
         return flow.nodes.RecordState2 ? { stateId: "RecordState2", suspended: false } : resolve(flow, "node18", opts.vars);
       case "spreSemnare":
         return resolve(flow, "node18", opts.vars);
-      case "semnat": case "eliberat": case "respins": case "arhivat":
+      case "semnat": case "eliberat": case "respins": case "arhivat": case "finalizat":
         return { stateId: "end", suspended: false };
       default:
         return null;
@@ -322,7 +345,7 @@
 
   /* the list's coarse status for a resting node (keeps the registry in step) */
   function listStatus(flow, state) {
-    if (state.stateId === "end") return state.decision === "respingere" ? "respins" : "semnat";
+    if (state.stateId === "end") return flow.id === "appeal" ? "finalizat" : state.decision === "respingere" ? "respins" : "semnat";
     if (state.stateId === "node5") return "depus";
     if (state.stateId === "RecordState2") return "spreCoordonare";
     /* fees issued, waiting for MPay — public status 4 (Achitare) */

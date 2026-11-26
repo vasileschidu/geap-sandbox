@@ -298,11 +298,16 @@
   };
   const actById = (d, id) => actsOf(d).find((a) => a.id === id) || null;
   /* the post-processes an act's status allows (AC-28) + Contestație on decisions in the term (AC-31/32) */
+  /* con-v1 (US-419 AC-11): a decision with an appeal in processing (seed `appealPending`, demo con-in-procesare=<act id>) */
+  const appealPendingOf = (act) => act.appealPending || ((params.get("con-in-procesare") || "").split(",").includes(act.id) ? `D-2026-00${String(act.nr).replace(/\D/g, "").slice(-4)}7` : "");
+  /* the contested dossier of a decision (the decision's own dossier number) */
+  const appealDossierOf = (act) => act.dosar || `D-2026-0${String(act.nr).replace(/\D/g, "").slice(-5)}`;
+  const isAppealDraft = (d) => d.requestType === "Contestație" && Boolean(d.act);
   function postprocessesOf(d, act) {
     const desk = deskOf(d.service) || {};
     if (act.kind === "decizie") {
       const within = (act.emisZileInUrma ?? 999) <= (desk.termenContestare || 0);
-      return desk.contestabil && within ? ["Contestație"] : [];
+      return desk.contestabil && within && !appealPendingOf(act) ? ["Contestație"] : [];
     }
     return [...(desk.postprocese?.[act.status] || []), ...(desk.contestabil && act.status === "valabil" && (act.emisZileInUrma ?? 999) <= (desk.termenContestare || 0) ? ["Contestație"] : [])];
   }
@@ -471,6 +476,8 @@
     const list = form.docs.filter((doc) => !doc.onlyPJ || d.personType === "PJ");
     /* US-251 data model: „Documente suplimentare” = what the Specialist asked for — required when the suspension is
        about documents (conditional); the documents filed with the request follow, as filed and replaceable */
+    /* con-v1 (US-419 AC-07): an appeal asks only for the optional supporting documents (US-20) */
+    if (isAppealDraft(d)) return [{ id: "justificative", label: "Documente justificative", description: "Documentele care susțin motivele contestației. JPG, PNG, PDF · maximum 60 MB.", required: false }, ...(d.procura ? [PROCURA_DOC] : [])];
     if (isSup(d)) return [{ id: SUP_DOC_ID, label: "Documentele solicitate de Specialist", description: "Documentele cerute în mesajul Specialistului. JPG, PNG, PDF · maximum 60 MB.", required: Boolean(d.sup?.docRequired) }, ...list];
     return d.procura ? [PROCURA_DOC, ...list] : list;
   }
@@ -1478,7 +1485,13 @@
       summaryRow("Autoritatea", [esc(authority)]),
       summaryRow("Tipul solicitării", [esc(d.requestType)])
     ].join("");
-    const request = [
+    const request = isAppealDraft(d) && act ? [
+      summaryRow("Dosar contestat", [esc(appealDossierOf(act))]),
+      summaryRow("Decizia contestată", [esc(`${act.decizie || "Decizie"} nr. ${act.nr}`)]),
+      summaryRow("Tip solicitare", ["Contestație"]),
+      summaryRow("Motivele contestației", [esc(d.details.appealReason || "—")]),
+      summaryRow("Canalul depunerii", ["Ghișeu"])
+    ].join("") : [
       ...form.fields.map((f) => summaryRow(f.label, [esc(d.details.values[f.key] || "—")])),
       form.address ? summaryRow("Adresa obiectului", [esc(addressText(d.details.address) || "—")]) : ""
     ].join("");
@@ -2130,6 +2143,7 @@
     const desk = deskOf(d.service) || {};
     if (type === "Contestație") {
       if (!desk.contestabil) return "Serviciul nu este contestabil.";
+      if (appealPendingOf(act)) return `Contestația ${appealPendingOf(act)} pentru această decizie este în procesare.`;
       if (act.kind === "act" && act.status !== "valabil") return "Contestația se inițiază din decizie sau din actul valabil.";
       return `Termenul admisibil de contestare (${desk.termenContestare} de zile) a expirat.`;
     }
@@ -2162,8 +2176,10 @@
       menuId: `gh-act-menu-${act.id}`, items, attrs,
       place: actTypeOf(d, act), placeIcon: false, actionIcon: "icon-more-vertical",
       metaSlots: { number: act.nr, numberLabel: `Copiază numărul actului ${act.nr}`, authority: authorityCodeOf(d), subdivision: act.subdiviziune, date },
-      pendingTitle: act.pending ? `${act.pending.type} în curs` : "",
-      pendingText: act.pending ? `· dosar ${act.pending.dossier}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
+      pendingTitle: act.pending ? `${act.pending.type} în curs` : appealPendingOf(act) ? "Contestație în procesare" : "",
+      pendingText: act.pending ? `· dosar ${act.pending.dossier}. Un alt postproces se inițiază după finalizarea acestuia.`
+        /* con-v1 (US-419 AC-11): a decision has at most one appeal in processing */
+        : appealPendingOf(act) ? `· dosar ${appealPendingOf(act)}. O a doua contestație se depune după soluționarea acesteia.` : ""
     }) || "";
   }
   /* many acts → the library search above the list (from 8 = the facet-filter SEARCH_MIN, js/facet-filter.js), live,
@@ -2552,6 +2568,21 @@
       ${section(form.address ? "Obiectul autorizat" : "Produsul", `<div class="e-permits-fo-form__section-body">${fields}${form.address ? address : ""}</div>`, { id: "gh-obj-title" })}
       ${footerHtml(d)}`;
     }
+    const exam = section("Examinare", `<div class="e-permits-fo-form__section-body">${subdivisionBlockHtml(d)}${termBlockHtml(d)}${(desk.subdiviziuni || []).length <= 1 && termsOf(d).length <= 1 ? `<div class="e-permits-fo-field e-permits-fo-field--span-12">${U().renderInfoNote?.(`Serviciul se examinează de ${esc(desk.subdiviziuni?.[0]?.name || "subdiviziunea autorității")}, în termenul unic de ${esc(termsOf(d)[0]?.label || "—")}.`) || ""}</div>` : ""}</div>`, { id: "gh-exam-title" });
+    /* con-v1 (US-419 AC-04…06): the appeal = the contested dossier + decision and the type, read-only, then the required
+       „Motivele contestației” (instead of the service's object form) */
+    if (isAppealDraft(d) && act) {
+      return `
+      ${stepHeader("Detalii serviciu")}
+      ${section("Cererea de contestare", `<div class="e-permits-fo-form__section-body">
+        ${readonlyField({ id: "gh-con-dosar", label: "Dosar contestat", value: appealDossierOf(act), span: 6 })}
+        ${readonlyField({ id: "gh-con-tip", label: "Tip solicitare", value: "Contestație", span: 6 })}
+        ${readonlyField({ id: "gh-con-decizie", label: "Decizia contestată", value: `${act.decizie || "Decizie"} nr. ${act.nr}`, span: 12, hint: `Emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}; termenul admisibil de contestare este de ${desk.termenContestare} de zile de la emitere.` })}
+        ${R().fieldHtml({ id: "gh-con-reason", type: "textarea", label: "Motivele contestației", required: true, span: 12, rows: 4, maxLength: 2000, charCounter: true, value: d.details.appealReason || "", placeholder: "Argumentele solicitantului față de decizia contestată" })}
+      </div>`, { id: "gh-con-title" })}
+      ${exam}
+      ${footerHtml(d)}`;
+    }
     const reds = reductionsOf(d);
     const redHtml = reds.length ? section("Reduceri aplicate", `
       <div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">
@@ -2563,7 +2594,7 @@
     return `
       ${stepHeader("Detalii serviciu")}${act ? U().renderInfoNote?.(`Postproces „${esc(d.requestType)}” pe ${esc(act.nr)}: datele actului sunt precompletate.`) || "" : ""}
       ${section(form.address ? "Obiectul autorizat" : "Produsul", `<div class="e-permits-fo-form__section-body">${fields}${form.address ? address : ""}</div>`, { id: "gh-obj-title" })}
-      ${section("Examinare", `<div class="e-permits-fo-form__section-body">${subdivisionBlockHtml(d)}${termBlockHtml(d)}${(desk.subdiviziuni || []).length <= 1 && termsOf(d).length <= 1 ? `<div class="e-permits-fo-field e-permits-fo-field--span-12">${U().renderInfoNote?.(`Serviciul se examinează de ${esc(desk.subdiviziuni?.[0]?.name || "subdiviziunea autorității")}, în termenul unic de ${esc(termsOf(d)[0]?.label || "—")}.`) || ""}</div>` : ""}</div>`, { id: "gh-exam-title" })}
+      ${exam}
       ${redHtml}
       ${footerHtml(d)}`;
   }
@@ -2610,7 +2641,9 @@
     const d = S.cur;
     if (isOfc(d)) { collectDetaliiOfc(); return; }
     const form = formOf(d);
-    form.fields.forEach((f) => {
+    const conReason = S.page.querySelector("#fo-gh-con-reason");
+    if (conReason) d.details.appealReason = conReason.value.trim();
+    if (!isAppealDraft(d)) form.fields.forEach((f) => {
       const id = `#fo-${f.id}`;
       if (f.type === "select") {
         const v = S.page.querySelector(`${id}`)?.closest("[data-fo-select]")?.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value;
@@ -2638,6 +2671,12 @@
     if (isOfc(d)) return checkDetaliiOfc(d);
     const errs = [];
     const form = formOf(d);
+    /* con-v1 (US-419 AC-06): „Câmpul este obligatoriu.” under „Motivele contestației” */
+    if (isAppealDraft(d)) {
+      if (!d.details.appealReason) errs.push({ input: "#fo-gh-con-reason", msg: REQUIRED, step: STEP_INDEX.detalii });
+      if ((deskOf(d.service)?.subdiviziuni || []).length > 1 && !d.details.subdivision) errs.push({ key: "subdiv", focus: "#fo-gh-subdiv", msg: REQUIRED, step: STEP_INDEX.detalii });
+      return errs;
+    }
     form.fields.forEach((f) => { const msg = fieldError(f, d.details.values[f.key]); if (msg) errs.push({ input: `#fo-${f.id}`, select: f.type === "select", msg, step: STEP_INDEX.detalii }); });
     if (form.address) {
       if (!d.details.address?.district) errs.push({ input: "[data-fo-cascade-raion] .e-permits-fo-select__button", select: true, msg: REQUIRED, step: STEP_INDEX.detalii });
@@ -3126,6 +3165,7 @@
             ${detailRow("Termen de examinare", `${esc(longDate(d.examDeadline))}${termOf(d)?.label ? ` (${esc(termOf(d).label)})` : ""}`)}
             ${detailRow("Statut", `${tagHtml("În procesare", "info")}${tagHtml("Spre distribuire", "info")}`)}
             ${detailRow("Canal de depunere", "Ghișeu")}
+            ${isAppealDraft(d) && actById(d, d.act) ? detailRow("Dosar contestat", `${esc(appealDossierOf(actById(d, d.act)))} <span class="e-permits-dosar-profil__termen-meta">statutul nu se schimbă</span>`) : ""}
           </section>
           ${U().renderNotice?.("info", "<strong>Dosarul a fost trimis la distribuire.</strong> Apare în „Dosare noi” › „Dosare nedistribuite”; evenimentul depunerii a fost publicat în MConnect Event Bus.") || ""}
         </div>
@@ -3151,7 +3191,9 @@
     d.examDeadline = addDays(d.submittedAt, Number((termOf(d)?.label || "").match(/\d+/)?.[0] || 15) + 6);
     d.step = STEP_INDEX.confirmare; d.maxStep = d.step;
     d.certError = settingsOf(d.service).certificat && params.get("certerr") === "1";
-    audit("Depunere cerere", d, `Dosar ${d.nr} · canal Ghișeu · trimis la distribuire`);
+    /* con-v1 (US-419 AC-13): the user, the channel, the contested dossier, the appeal dossier number, the time (audit stamps) */
+    if (isAppealDraft(d)) audit("Depunere contestație", d, `Dosar de contestație ${d.nr} · canal Ghișeu · dosar contestat ${appealDossierOf(actById(d, d.act) || {})} · statutul acestuia nu se schimbă · trimis la distribuire`);
+    else audit("Depunere cerere", d, `Dosar ${d.nr} · canal Ghișeu · trimis la distribuire`);
     audit("Publicare eveniment MConnect Event Bus", d, "cerere.depusa", { system: true });
     audit("Notificare MNotify: depunere", d, `Identificator ${d.nr}, termen ${longDate(d.examDeadline)}`, { system: true });
     persist({ silent: true });
@@ -3761,7 +3803,14 @@
         } else {
           R().setFieldError?.(el, e.msg);
           /* the FO error helper colours inputs; a textarea's frame gets its error look here (as „Motivul eliminării”) */
-          el.closest(".e-permits-fo-textarea")?.classList.add("is-error");
+          const area = el.closest(".e-permits-fo-textarea");
+          area?.classList.add("is-error");
+          /* con-v1: the FO helper finds no input frame / hint in a textarea field → the message under the frame, as selects */
+          if (area && !el.closest(".e-permits-fo-field")?.querySelector(".e-permits-fo-field__error")) {
+            area.insertAdjacentHTML("afterend", `<span class="message message--inline message--error e-permits-fo-field__error" id="${esc(el.id)}-error" data-gh-select-err>${ERR_ICON}<span>${esc(e.msg)}</span></span>`);
+            el.setAttribute("aria-invalid", "true");
+            el.setAttribute("aria-describedby", `${el.id}-error`);
+          }
         }
       } else {
         const sel = e.field || ERR_FIELD[e.key];

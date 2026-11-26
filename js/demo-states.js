@@ -4052,6 +4052,61 @@
       };
     })(),
 
+    /* ---- Contestarea deciziei (con-v1, 2026-11-26; Feature 97299 · US-418 97583; js/contestatie.js). EVO Cabinet only shows
+       and links (d-nota = Bar „Nota”, refused 25 septembrie 2026, appeal term 30 days): 01 the profile alert + header
+       „Depune contestație” (AC-01 / AC-02) · 01a row ⋮ · 01b „Înainte să începi” → the FO in a new tab · 01c service not
+       appealable (hidden, AC-02) · 01d a POSITIVE decision listed in „Decizii contestabile” (d-izvoras-dup, AC-02) · 01e
+       term expired (hidden, AC-03) · 01f / 01g an appeal in processing = info alert + blocked ⋮ item (AC-11) · 05 back from
+       the FO: the new appeal dossier, the request keeps its status (toast + Istoric, AC-10). FO ?contestatie=<nr>#contestatie:
+       02 form (AC-04 / AC-05) · 02a reasons required (AC-06) · 02b filled + a document (AC-07) · 03 Verificare și semnare
+       (AC-08) · 03a MSign error · 04 Finalizare = the new dossier, Online (AC-09 / AC-10) · 06 someone else's request =
+       „Acces interzis” (AC-01) · 06a term expired (AC-03) · 06b appeal in processing (AC-11) · 06c unknown · 06d service not
+       appealable (AC-02) ---- */
+    ...(() => {
+      const NOTA = "GEAP-2026-009-04254";
+      const settle = async (h) => { await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400); };
+      const fo = (nr, run, params = {}) => ({ page: PP_FO, flow: "full", hash: "#contestatie", params: { solicitant: "pj-global-trader", contestatie: nr, ...params }, ready: "#fo-appeal-title", run: async (h) => { await clearToasts(h); await h.wait(300); if (run) await run(h); } });
+      const WHY = "Spațiul de producție are fluxuri separate din 1 septembrie 2026: zona de preparare a fost reamenajată, conform planului anexat și procesului-verbal de recepție.";
+      const fill = async (h) => { await h.fill("#fo-con-reason", WHY, { leave: false }); };
+      const upload = async (h) => {
+        await h.click('[data-fo-doc-field="con-docs"] [data-fo-open-doc-modal]'); await h.wait(300);
+        const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+        if (tab && !tab.closest("[hidden]")) { tab.click(); await h.wait(300); }
+        const input = document.querySelector("[data-fo-doc-file-input]");
+        const files = new DataTransfer();
+        files.items.add(new File([new Uint8Array(820000)], "proces-verbal-receptie.pdf", { type: "application/pdf" }));
+        input.files = files.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+        await h.wait(1200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(500);
+        document.activeElement?.blur?.();
+      };
+      const next = async (h) => { await h.click("[data-fo-appeal-next]"); await h.wait(300); };
+      const toSign = async (h) => { await fill(h); await upload(h); await next(h); await h.find("[data-fo-appeal-sign]"); };
+      const sign = async (h) => { await toSign(h); await h.click("[data-fo-appeal-sign]"); await h.find("[data-fo-appeal-finish] h1"); await h.wait(300); };
+      return {
+        "con-01": smDosar("d-nota", settle),
+        "con-01a": sm(smMenu("d-nota")),
+        "con-01b": smDosar("d-nota", async (h) => { await settle(h); await h.click('[data-sm-profile] [data-sm-action="appeal"]'); await h.find("#start-dialog.is-active"); await h.wait(300); }),
+        "con-01c": smDosar("d-nota", settle, { ["con-contestabil"]: "0" }),
+        "con-01d": smDosar("d-izvoras-dup", settle, { ["con-decizii"]: "aprobare,respingere", ["con-zile"]: "90" }),
+        "con-01e": smDosar("d-nota", settle, { ["con-zile"]: "10" }),
+        "con-01f": smDosar("d-nota", settle, { ["con-in-procesare"]: "d-nota" }),
+        "con-01g": sm(async (h) => { await smMenu("d-nota")(h); await h.hover('#sm-menu-d-nota [data-sm-action="appeal"]'); }, { ["con-in-procesare"]: "d-nota" }),
+        "con-05": smDosar("d-nota", settle, { contestat: "d-nota", nrc: "GEAP-2026-009-04865" }),
+        "con-05a": smDosar("d-nota", async (h) => { await settle(h); await h.scroll("#sm-sec-istoric"); }, { contestat: "d-nota", nrc: "GEAP-2026-009-04865" }),
+        "con-02": fo(NOTA),
+        "con-02a": fo(NOTA, next),
+        "con-02b": fo(NOTA, async (h) => { await fill(h); await upload(h); }),
+        "con-03": fo(NOTA, toSign),
+        "con-03a": fo(NOTA, async (h) => { await toSign(h); await h.click("[data-fo-appeal-sign]"); await h.find("[data-fo-appeal-status]"); await h.wait(200); }, { msign: "eroare" }),
+        "con-04": fo(NOTA, sign),
+        "con-06": fo("GEAP-2025-009-02654"),
+        "con-06a": fo(NOTA, null, { ["con-zile"]: "10" }),
+        "con-06b": fo(NOTA, null, { ["con-in-procesare"]: "d-nota" }),
+        "con-06c": fo("GEAP-2026-009-09999"),
+        "con-06d": fo(NOTA, null, { ["con-contestabil"]: "0" }),
+      };
+    })(),
+
     /* ---- EVO catalog (US-10): list, search, service 09, „Solicită online” per session ---- */
     "cat-01": cat(),
     "cat-01a": cat(async (h) => { await h.fill("[data-cat-search]", "sanitar", { leave: false }); }),
@@ -4822,6 +4877,7 @@
        timp · 09 fără permisiune; rad-01 ⋮ rules · 02 dialog · 03 trimisă · 04 fără drept · 05 sarcina · 06 confirmare ·
        07 respingere · 08 fără permisiune */
     ...crqDemoStates(),
+    ...conDemoStates(),
 
     /* ---- Registre — the register builder in the AdminPortal, phase 2 (Feature 94523, js/registre-admin.js,
        registre-v2 2026-10-24): reg-a01 listă · a02 creare · a03 profil · a04 editare · a05 coloane · a06 filtru ·
@@ -6804,6 +6860,67 @@
      AUT-2026-004719) · reopen by SIA GEAP for D-2026-004734 (contestație aprobată) · strikes asked for D-2026-004566 /
      D-2026-004507 · D-2026-004561 = „Dosar radiat” · D-2026-004713 = a rejected reopen. Submit on D-2026-004707 (reopen) /
      D-2026-004559 (strike). red-contestatie=<id> = an active appeal. */
+  /* ---- Contestarea dosarelor (con-v1, 2026-11-26; Feature 97299 · US-420 97585 Proces Contestație; js/contestatie.js +
+     core/case-flow.js appealFlow). BO desktop only. Appeal dossiers (CSP Chișinău): D-2026-004598 în examinare (contestă
+     D-2026-004729) · D-2026-004647 spre semnare, aprobare (contestă D-2026-004726) · D-2026-004631 spre semnare, respingere
+     (contestă D-2026-004722) · D-2026-004474 depus, spre distribuire (contestă D-2026-004716) · D-2026-004693 finalizat,
+     aprobat (contestă D-2026-004734 → the reopen S-2026-000415 in „Sarcinile mele”). ---- */
+  function conDemoStates() {
+    const ADMIN = "ansp-central-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau";
+    const EXAM = "D-2026-004598", OK = "D-2026-004647", NO = "D-2026-004631", NEW = "D-2026-004474", DONE = "D-2026-004693";
+    const C_EXAM = "D-2026-004729", C_DONE = "D-2026-004734";
+    const PROFILE = ".e-permits-trajectory, .e-permits-dosar-profil__section";
+    const MODAL = "#case-action-modal.is-active";
+    const prof = (id, as, tab = "general", run, params) => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, params, ready: PROFILE, run });
+    /* a step action: the header button when it is one, else the step menu */
+    const action = (id) => async (h) => {
+      const sel = `[data-case-action='${id}']`;
+      const visible = [...document.querySelectorAll(sel)].find((el) => el.getClientRects().length && !el.closest("#case-actions-menu"));
+      if (visible) visible.click();
+      else { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); await h.click(`#case-actions-menu ${sel}`); }
+      await h.find(MODAL); await h.wait(300);
+    };
+    const submit = async (h) => { await h.click(`${MODAL} [data-case-submit]`); await h.wait(500); };
+    const choose = (value) => async (h) => { await h.click(`${MODAL} [data-case-choice="${value}"]`); await h.wait(200); };
+    const signed = (id) => async (h) => { await action(id)(h); await submit(h); await h.find(".toast"); await h.wait(300); };
+    const WHY = "Buletinul de analiză nr. 2211 este emis de un laborator acreditat (certificat MOLDAC LÎ-118); motivul refuzului nu se confirmă.";
+    const toProject = (value) => async (h) => { await action("dosarExaminat")(h); await choose(value)(h); await submit(h); await action("inainteRespingere")(h); };
+    const scrollTo = (text) => async (h) => { await h.scroll(".e-permits-dosar-profil__section-title", text); await h.wait(200); };
+    return {
+      /* AC-04: the appeal dossier — „Dosarul contestat” + „Cererea de contestare” read-only; AC-13: the contested dossier
+         keeps its status and shows its appeal; Redeschide hidden while the appeal is in processing (US-411 AC-04) */
+      "con-20": prof(EXAM, SPEC),
+      "con-20a": prof(EXAM, SPEC, "general", scrollTo("Cererea de contestare")),
+      "con-20b": prof(C_EXAM, SPEC, "general", scrollTo("Contestație")),
+      "con-20c": prof(EXAM, SPEC, "jurnal"),
+      /* AC-02 / AC-03: the appeal dossier „Spre distribuire” — the supervisor distributes it (US-114) */
+      "con-21": prof(NEW, SUP),
+      "con-21a": prof(NEW, SUP, "general", async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); await h.click("[data-case-action='distribuie']"); await h.find(`${MODAL} #case-instructiuni`); await h.wait(250); }),
+      /* AC-06: „Dosar examinat” = „Aprobarea contestației” / „Respingerea contestației” · AC-05 the suspension */
+      "con-22": prof(EXAM, SPEC, "general", action("dosarExaminat")),
+      "con-22a": prof(EXAM, SPEC, "general", async (h) => { await action("dosarExaminat")(h); await choose("respingere")(h); }),
+      "con-22b": prof(EXAM, SPEC, "general", action("suspendare")),
+      /* the decision project (US-121): empty → „Câmpul este obligatoriu.”, filled; sent to coordination (AC-07) */
+      "con-23": prof(EXAM, SPEC, "general", toProject("aprobare")),
+      "con-23a": prof(EXAM, SPEC, "general", async (h) => { await toProject("aprobare")(h); await submit(h); }),
+      "con-23b": prof(EXAM, SPEC, "general", async (h) => { await toProject("respingere")(h); await h.fill("#case-motiv", WHY, { leave: false }); }),
+      "con-23c": prof(EXAM, SPEC, "general", async (h) => { await toProject("aprobare")(h); await h.fill("#case-motiv", WHY, { leave: false }); await submit(h); await h.find(".toast"); await h.wait(300); }),
+      /* AC-08 / AC-09: the approval signed → success toast + the reopen of the contested dossier „În confirmare” + the task;
+         AC-10: the rejection signed → info toast, no task; AC-12 „Dosar finalizat”; AC-14 the journal */
+      "con-24": prof(OK, SUP, "general", action("semneaza")),
+      "con-24a": prof(OK, SUP, "general", signed("semneaza")),
+      "con-24b": prof(OK, SUP, "general", async (h) => { await signed("semneaza")(h); window.location.hash = "#sarcini"; await h.find("[data-registry-kind='sarcini'] tr[data-workplace-row]"); await h.wait(300); await h.click('[data-workplace-tab="redeschidere"]'); await h.wait(400); }),
+      "con-24c": prof(OK, SUP, "general", async (h) => { await signed("semneaza")(h); window.location.hash = `#dosar/${OK}/jurnal`; await h.wait(900); }),
+      "con-25": prof(NO, SUP, "general", signed("semneaza")),
+      "con-25a": prof(NO, SUP, "general", async (h) => { await signed("semneaza")(h); window.location.hash = "#sarcini"; await h.find("[data-registry-kind='sarcini'] tr[data-workplace-row]"); await h.wait(300); await h.click('[data-workplace-tab="redeschidere"]'); await h.wait(400); }),
+      /* the finished appeal (approved) and the dossier it reopens — the reopen task of SIA GEAP (US-412) */
+      "con-26": prof(DONE, SUP),
+      "con-26a": prof(C_DONE, SUP, "general", scrollTo("Contestație")),
+      /* a role without the right to sign / examine sees the step without actions */
+      "con-27": prof(OK, SPEC)
+    };
+  }
+
   function crqDemoStates() {
     const ADMIN = "ansp-central-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau";
     const LIST = "[data-registry-kind='reg-dosare'] tr[data-workplace-row], [data-registry-kind='reg-dosare'] .e-permits-empty";
@@ -7567,6 +7684,26 @@
          ⋮ „Schimbă procesul” (confirm when data would be lost) */
       "gh-02r": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, primar)),
       /* gh-02k-step2-v1: „Reperfectare” on ASF-2026-04521 → Continuă → step 2 „Detalii serviciu” (notice + object / address pre-filled, as Figma GH-02k) */
+      /* con-v1 (US-419 97584 „Inițierea contestației la ghișeu”): 10 the decision's ⋮ offers „Contestație” (AC-02) · 10a an
+         appeal already in processing = disabled + reason (AC-11) · 11 Detalii = the contested dossier / decision / type
+         read-only (AC-04 / AC-05) + „Motivele contestației” · 11a required (AC-06) · 12 the optional supporting documents
+         (AC-07) · 13 Verificare (AC-08) · 14 submitted: the new appeal dossier, channel Ghișeu (AC-09 / AC-10) · 15 no right
+         = the desk's no-rights state (AC-01) */
+      ...(() => {
+        const appeal = seq(service("003000118"), pjAdmin, cont, chooseAct("dec-terasa", "Contestație"), next, async (h) => { await h.find('#gh-request-modal.is-active [data-gh-panel="detalii"]'); await h.wait(300); });
+        const reason = async (h) => { await h.fill("#fo-gh-con-reason", "Avizul de securitate la incendiu nr. 412 din 3 mai 2026 a fost depus cu cererea; refuzul îl declară lipsă.", { leave: false }); };
+        const panel = (name) => async (h) => { for (let i = 0; i < 6 && !document.querySelector(`#gh-request-modal.is-active [data-gh-panel="${name}"]`); i += 1) await next(h); await h.find(`#gh-request-modal.is-active [data-gh-panel="${name}"]`); await h.wait(300); };
+        return {
+          "con-10": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("dec-terasa"))),
+          "con-10a": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="dec-terasa"]'); await h.wait(300); }), { ["con-in-procesare"]: "dec-terasa" }),
+          "con-11": gh("#ghiseu/nou", appeal),
+          "con-11a": gh("#ghiseu/nou", seq(appeal, next)),
+          "con-12": gh("#ghiseu/nou", seq(appeal, reason, panel("documente"))),
+          "con-13": gh("#ghiseu/nou", seq(appeal, reason, panel("verificare"))),
+          "con-14": gh("#ghiseu/nou", seq(appeal, reason, panel("verificare"), ghReady, panel("confirmare"), async (h) => { await h.click("[data-gh-submit]"); await h.wait(600); })),
+          "con-15": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: ".e-permits-empty, #gh-start-modal.is-active", run: null }
+        };
+      })(),
       "gh-02k": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, chooseAct("act-izvoras", "Reperfectare"), next, async (h) => { await h.find('#gh-request-modal.is-active [data-gh-panel="detalii"]'); await h.wait(300); })),
       "gh-02w": gh("#ghiseu/gh-4790/detalii", async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-change-process]"); }),
       /* the service list open (a fixed layer over the dialog: never cut by the modal body) */
