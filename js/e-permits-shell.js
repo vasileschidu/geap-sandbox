@@ -3260,7 +3260,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const renderTermenMeta = (row) => {
-    const done = ["eliberat", "respins", "arhivat", "semnat"].includes(row.status);
+    const done = ["eliberat", "respins", "arhivat", "semnat", "retras"].includes(row.status);
 
     if (done) {
       return "";
@@ -3291,7 +3291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Termen", escapeHtml(formatDate(row.termenExaminare)), termenMeta ? escapeHtml(termenMeta) : ""],
       row.alerte?.length ? ["Alerte", renderAlerts(row.alerte)] : null,
       ["Specialist", renderAvatarChip(row.specialist), distCaption(distRecordOf(row))],
-      ["Statut", `${renderTag(status?.label, status?.tone)}${window.GEAPCaseRequests?.markersHtml?.(row.id) || ""}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
+      ["Statut", `${renderTag(status?.label, status?.tone)}${window.GEAPCaseRequests?.markersHtml?.(row.id) || ""}`]
     ]);
   };
 
@@ -3372,7 +3372,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDosarTrajectory = (row) => {
     const isOficiu = row.sursa === "OFICIU";
     const rejected = row.decizia === "respingere" && ["respins", "arhivat"].includes(row.status);
-    const current = { schita: 0, depus: 1, inExaminare: 1, asteaptaPlata: 1, spreCoordonare: 2, spreSemnare: 3, semnat: 5, eliberat: 6, respins: 6, arhivat: 6, redeschis: 1 }[row.status] ?? 0;
+    const STEP_OF = { schita: 0, depus: 1, inExaminare: 1, asteaptaPlata: 1, spreCoordonare: 2, spreSemnare: 3, semnat: 5, eliberat: 6, respins: 6, arhivat: 6, redeschis: 1 };
+    /* status-profile-v1 (US-422 / US-410 / US-412): a withdrawn dossier is closed (statut „Retras”), a struck one has its
+       examination stopped („Dosar radiat” marker, statut unchanged), a reopened one waits at the decision step */
+    const CR = window.GEAPCaseRequests;
+    const wd = row.status === "retras" ? (window.GEAPRegistre?.store?.()?.withdrawals?.[row.id] || {}) : null;
+    const strike = row.status !== "retras" && (STEP_OF[row.status] ?? 0) < 6 ? CR?.confirmed?.(row.id, "strike") : null;
+    const reopen = row.status === "redeschis" ? CR?.confirmed?.(row.id, "reopen") : null;
+    const closed = wd ? "retras" : strike ? "radiat" : null;
+    const prevKey = wd ? Object.keys(workplaceDb.statuses).find((k) => workplaceDb.statuses[k].label === wd.prev) : null;
+    const current = closed ? 6 : STEP_OF[row.status] ?? 0;
+    const reached = closed ? STEP_OF[prevKey || row.status] ?? 1 : current;
     const flowCtx = caseFlowOf(row);
     const suspended = Boolean(flowCtx?.state.suspended);
     const today = parseIsoDate(workplaceDb.today) || new Date();
@@ -3393,29 +3403,36 @@ document.addEventListener("DOMContentLoaded", () => {
       { key: "coordonare", label: "Coordonare", who: row.repartizatDe?.nume || "Șeful subdiviziunii" },
       { key: "semnare", label: "Semnare", who: "Conducătorul autorității" },
       { key: "semnat", label: "Semnat", who: "Conducătorul autorității" },
-      { key: "final", label: rejected ? "Respins" : "Eliberat", who: rejected ? "Solicitant notificat" : row.modLivrare || "Ghișeu" }
+      { key: "final", label: closed === "retras" ? "Retras" : closed === "radiat" ? "Radiat" : rejected ? "Respins" : "Eliberat", who: closed === "retras" ? (wd.by || "Solicitant") : closed === "radiat" ? (strike.decidedBy || "Supervizor") : rejected ? "Solicitant notificat" : row.modLivrare || "Ghișeu" }
     ];
+    /* the closing step carries the date of the withdrawal / of the confirmed strike */
+    const closeAt = closed === "retras" ? wd.at : closed === "radiat" ? strike.decidedAt : "";
+    if (closeAt) dates[5] = parseIsoDate(String(closeAt).slice(0, 10)) || dates[5];
     /* waiting for payment: the deadline that matters is the payment note's */
     const payDue = row.status === "asteaptaPlata" ? (buildDosarProfile(row).taxe.filter((t) => t.status === "neachitat").map((t) => t.termen).sort()[0] || null) : null;
-    const overdue = payDue ? parseIsoDate(payDue) < today : current >= 1 && current <= 3 && row.termenExaminare && parseIsoDate(row.termenExaminare) < today;
-    const stateOf = (i) => (i < current || (current === 6 && i <= 5) ? "done" : i === current ? (suspended ? "paused" : "current") : "todo");
+    const overdue = closed ? false : payDue ? parseIsoDate(payDue) < today : current >= 1 && current <= 3 && row.termenExaminare && parseIsoDate(row.termenExaminare) < today;
+    const stateOf = (i) => (closed ? (i < reached ? "done" : i === 5 ? (closed === "retras" ? "done" : "rejected") : "skipped")
+      : i < current || (current === 6 && i <= 5) ? "done" : i === current ? (suspended ? "paused" : "current") : "todo");
     const short = (date) => date.toLocaleDateString("ro-RO", { day: "numeric", month: "short", year: "numeric" });
     const stepNow = steps[Math.min(current, 5)];
     const daysIn = Math.max(0, Math.round((today - dates[Math.min(current, 5)]) / 86400000));
     /* "Acum / Urmează" — a callout under the path (Figma GEAP 2.0 8440:119598, flat light
        blue): the timeline's clock icon (pause when suspended), what is happening now and since when, and what comes next */
-    const nowTitle = current >= 6 ? (rejected ? "Dosar respins" : "Dosar finalizat")
+    const nowTitle = closed === "retras" ? "Dosar retras" : closed === "radiat" ? "Dosar radiat" : current >= 6 ? (rejected ? "Dosar respins" : "Dosar finalizat")
       : row.nedistribuit && row.nedist ? "Acum: Spre distribuire"
       : `Acum: ${{ depus: "Așteaptă repartizarea", asteaptaPlata: "Așteaptă plata taxelor", semnat: "Așteaptă eliberarea" }[row.status] || stepNow.label}`;
-    const nowMeta = current >= 6
+    const nowMeta = closed === "retras" ? `Cererea a fost retrasă${closeAt ? ` la ${formatLongDate(closeAt)}` : ""}. Dosarul s-a închis fără act permisiv.`
+      : closed === "radiat" ? `Radiat la ${formatLongDate(closeAt)}. Dosarul rămâne în registru, cu documentele lui.`
+      : current >= 6
       ? (rejected ? "Decizia de respingere a fost comunicată solicitantului." : `Actul a fost eliberat${row.modLivrare ? ` (${row.modLivrare})` : ""}.`)
+      : reopen ? `redeschis la ${formatLongDate(reopen.decidedAt)}`
       : [daysIn ? `de ${plural(daysIn, "zi", "zile")}` : "de azi", suspended ? "suspendat" : "", payDue ? `plată până la ${formatLongDate(payDue)}` : row.termenExaminare && current <= 3 ? `termen ${formatLongDate(row.termenExaminare)}` : ""].filter(Boolean).join(" · ");
-    const nextText = current >= 6 ? "" : TRAJECTORY_NEXT[["depus", "asteaptaPlata", "semnat"].includes(row.status) ? row.status : stepNow.key] || "";
+    const nextText = closed ? "" : reopen ? "Specialistul care a examinat dosarul selectează decizia (aprobare / respingere)." : current >= 6 ? "" : TRAJECTORY_NEXT[["depus", "asteaptaPlata", "semnat"].includes(row.status) ? row.status : stepNow.key] || "";
     /* the integrated callout = GEAPTrajectory's `callout` option — the same element as the EVO Cabinet request
        (cabinet-header-v1, 2026-10-21) */
     const callout = {
-      tone: "info",
-      icon: current >= 6 ? (rejected ? "circle-error-filled" : "circle-checkmark-filled") : suspended ? "pause" : "time-filled",
+      tone: closed === "radiat" ? "danger" : "info",
+      icon: closed === "radiat" ? "circle-error-filled" : current >= 6 ? (rejected ? "circle-error-filled" : "circle-checkmark-filled") : suspended ? "pause" : "time-filled",
       titleHtml: `${escapeHtml(nowTitle)}${overdue ? renderTag("Termen depășit", "danger") : ""}`,
       metaHtml: nowMeta ? escapeHtml(nowMeta) : "",
       textHtml: nextText ? `<strong>Urmează:</strong> ${escapeHtml(nextText)}` : ""
@@ -3427,7 +3444,7 @@ document.addEventListener("DOMContentLoaded", () => {
           steps: steps.map((step, i) => {
             const state = stateOf(i);
             const failed = state === "done" && step.key === "final" && rejected;
-            return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" ? "" : [short(dates[i]), step.who, step.dist] };
+            return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" || state === "skipped" ? "" : [short(dates[i]), step.who, step.dist] };
           }),
           callout
         }) || ""}
@@ -4995,9 +5012,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* the header action: the current step's name on the library btn-primary btn-md (Figma
      6675:158399), opening the stack-menu component with the role's actions */
+  /* status-profile-v1 (US-410): a struck dossier is a dossier with the examination finished — no process step to act on */
+  const caseStruck = (row) => row.status !== "eliberat" && Boolean(window.GEAPCaseRequests?.isStruck?.(row.id));
   const renderCaseActions = (row) => {
     const ctx = caseAvailable(row);
-    if (!ctx) return "";
+    if (!ctx || caseStruck(row)) return "";
     const { avail, state } = ctx;
     const finished = state.stateId === "end";
     const label = finished ? "Dosar finalizat" : avail.step.name;
@@ -5036,7 +5055,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const caseActionCaption = (row) => {
     const ctx = caseFlowOf(row);
-    if (!ctx || ctx.state.stateId === "end") return "";
+    if (!ctx || ctx.state.stateId === "end" || caseStruck(row)) return "";
     const lane = caseFlow.laneOf(ctx.flow, ctx.state.stateId);
     return lane ? `Responsabil: ${lane.title}` : "";
   };

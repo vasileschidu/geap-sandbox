@@ -122,7 +122,7 @@
   /* the marker tags after the status tag (register row, record card meta, dossier profile header) */
   function markersHtml(caseId) {
     return [confirmed(caseId, "reopen") && KINDS.reopen, confirmed(caseId, "strike") && KINDS.strike].filter(Boolean)
-      .map((k) => tag(k.marker, k.markerTone)).join("");
+      .map((k) => tag(k.marker, k.markerTone, { icon: k.markerIcon })).join("");
   }
   /* AC-14 (US-412) / AC-09 (US-410): one details card per kind with the latest request — state, reason, who / when, the
      decision; the reason is shown read-only (it never changes, US-410 AC-13, US-411 Constraints) */

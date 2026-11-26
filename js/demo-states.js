@@ -6833,7 +6833,7 @@
     const rejectOpen = (id) => async (h) => { await task(id)(h); await h.click(`${MODAL} [data-crq-reject]`); await h.find(`${MODAL} #crq-reject-reason`); await h.wait(250); };
     const rejected = (id, why) => async (h) => { await rejectOpen(id)(h); await fillReason("#crq-reject-reason", why)(h); await h.click(`${MODAL} [data-crq-reject-final]`); await h.find(".toast"); await h.wait(300); };
     const openCase = (id) => async (h) => { await task(id)(h); await h.click(`${MODAL} [data-crq-open-case]`); await h.find(PROFILE); await h.wait(600); };
-    const toProfile = (id) => async (h) => { window.location.hash = `#dosar/${id}/general`; await h.find(PROFILE); await h.wait(700); };
+    const toProfile = (id) => async (h) => { if (!document.querySelector("[data-registry-kind='sarcini']")) { window.location.hash = "#sarcini"; await h.wait(900); } window.location.hash = `#dosar/${id}/general`; await h.find(PROFILE); await h.wait(700); };
     const then = (...steps) => async (h) => { for (const step of steps) await step(h); };
     /* the journal tab needs „Audit.Journal.View” (not the supervisor's): the Administrator central (implicit confirmation
        permission, no „Sarcinile mele” item) opens the task by its address */
@@ -6855,6 +6855,8 @@
       "red-03": reg(ADMIN, submitted(R_NEW, "reopen", REOPEN_WHY)),
       "red-03a": reg(ADMIN, then(submitted(R_NEW, "reopen", REOPEN_WHY), toCard(R_NEW, "detalii"))),
       "red-03b": reg(ADMIN, then(submitted(R_NEW, "reopen", REOPEN_WHY), toCard(R_NEW, "jurnal"))),
+      /* status-profile-v1: the dossier PROFILE while the reopen is „În confirmare” (statut unchanged „Eliberat” — US-411) */
+      "red-03c": reg(SUP, then(submitted(R_NEW, "reopen", REOPEN_WHY), toProfile(R_NEW))),
       /* AC-01 / AC-02: the director has no „Redeschide”; the direct call without the right / outside the perimeter = „Acces interzis”;
          with the right the direct call opens the dialog */
       "red-04": reg(DIR, rowMenu(R_NEW)),
@@ -6882,6 +6884,7 @@
       "red-07": tasks(SUP, rejectOpen(T_REOPEN)),
       "red-07a": tasks(SUP, async (h) => { await rejectOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-crq-reject-final]`); await h.wait(300); }),
       "red-07b": tasks(SUP, rejected(T_REOPEN, "Eroarea se corectează prin reperfectarea actului; redeschiderea nu este necesară.")),
+      "red-07d": tasks(SUP, then(rejected(T_REOPEN, "Eroarea se corectează prin reperfectarea actului; redeschiderea nu este necesară."), toProfile(R_PEND))),
       "red-07c": tasks(SUP, then(rejected(T_REOPEN, "Eroarea se corectează prin reperfectarea actului; redeschiderea nu este necesară."), toCard(R_PEND, "detalii"))),
       /* AC-19: an appeal arrived meanwhile → „Dosarul nu mai poate fi redeschis.” */
       "red-08": tasks(SUP, async (h) => { await confirmOpen(T_REOPEN)(h); await h.click(`${MODAL} [data-crq-confirm-final]`); await h.find(".toast"); await h.wait(300); }, { ["red-contestatie"]: R_PEND }),
@@ -6903,6 +6906,7 @@
       "rad-03": reg(ADMIN, submitted(S_NEW, "strike", STRIKE_WHY)),
       "rad-03a": reg(ADMIN, then(submitted(S_NEW, "strike", STRIKE_WHY), toCard(S_NEW, "detalii"))),
       "rad-03b": reg(ADMIN, then(submitted(S_NEW, "strike", STRIKE_WHY), toCard(S_NEW, "jurnal"))),
+      "rad-03c": reg(SUP, then(submitted(S_NEW, "strike", STRIKE_WHY), toProfile(S_NEW))),
       "rad-04": reg(DIR, rowMenu(S_NEW)),
       "rad-04a": { flow: "back-office", as: DIR, hash: `#registru/reg-dosare/${S_NEW}/radiere`, ready: DENIED },
       "rad-04b": { flow: "back-office", as: SPEC, hash: `#registru/reg-dosare/${OUT}/radiere`, ready: DENIED },
@@ -6994,6 +6998,8 @@
       "rtr-12": reg("reg-dosare", ADMIN, wdCard("detalii")),
       "rtr-12a": reg("reg-dosare", ADMIN, wdCard("documente")),
       "rtr-12b": reg("reg-dosare", ADMIN, wdCard("jurnal")),
+      /* rtr-profile-v1: the BO dossier PROFILE of the withdrawn dossier (statut „Retras”, trajectory closed as withdrawn) */
+      "rtr-12d": reg("reg-dosare", "ansp-supervisor-chisinau", async (h) => { await wdOpen(VIS)(h); await wdFill(h); await h.click(`${W_MODAL} [data-reg-confirm]`); await h.wait(600); window.location.hash = "#sarcini"; await h.wait(900); window.location.hash = `#dosar/${VIS}/general`; await h.find(".e-permits-trajectory, .e-permits-dosar-profil__section"); await h.wait(700); }),
       "rtr-12c": reg("reg-dosare", ADMIN, async (h) => { await wdOpen(VIS)(h); await wdFill(h); await h.click(`${W_MODAL} [data-reg-confirm]`); await h.wait(500); await h.fill("[data-workplace-search]", VIS); await h.wait(400); }),
       "rtr-13": reg("reg-dosare", DIRECTOR, rowMenu(VIS)),
       "rtr-13a": reg("reg-dosare", DIRECTOR, async (h) => { window.location.hash = `#registru/reg-dosare/${VIS}/retragere`; await h.find("[data-reg-page]:not([hidden]) .e-permits-empty"); await h.wait(300); }),
