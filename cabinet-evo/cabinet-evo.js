@@ -620,7 +620,7 @@
     const query = new URLSearchParams({ flow: "full", solicitant: SUBJECT, digitalizare: "1" });
     if (params.get("dig-permisa")) query.set("dig-permisa", params.get("dig-permisa"));
     intro.classList.add("cab-intro--action");
-    intro.insertAdjacentHTML("beforeend", `<a class="btn btn-neutral btn-md" href="../e-permits-acte-permisive.html?${escape(query.toString())}#digitalizare"${newTabAttrs(DG.ACTION)} data-cab-digitize><span>${escape(DG.ACTION)}</span>${icon("icon-external-link")}</a>`);
+    intro.insertAdjacentHTML("beforeend", `<a class="btn btn-secondary btn-md" href="../e-permits-acte-permisive.html?${escape(query.toString())}#digitalizare"${newTabAttrs(DG.ACTION)} data-cab-digitize><span>${escape(DG.ACTION)}</span>${icon("icon-external-link")}</a>`);
   }
 
   /* ---------- GEAP acts (post-processes) ---------- */
