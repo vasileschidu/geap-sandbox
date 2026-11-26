@@ -10,7 +10,7 @@
    BackOffice (US-417): five generated dossiers of CSP Chișinău become digitization dossiers (decorate, never new rows),
    the read-only „Actul declarat” card (AC-04), the result card, the RAP duplicate check (Constraints), onDecision =
    the confirmation enters the act in the Registrul actelor permisive (registre.js attach, AC-12…17) / the rejection
-   creates nothing (AC-20). Cabinet + FO: demoRequest / demoAct (?dig-cerere=depusa|respinsa|confirmata).
+   creates nothing (AC-20). Cabinet + FO: demoRequests / holderAct (a paper act only after the confirmation, AC-11) (?dig-cerere=depusa|respinsa|confirmata).
    Demo overrides (every page, ?state= links): dig-permisa=0 (no service allows it) · dig-permisa=<code,…> (only those).
    ========================================================================================================== */
 (function () {
@@ -130,13 +130,13 @@
   /* the act entered when the seed dossier D-2026-004653 was confirmed (AC-12…17): same structure as a GEAP act, origin
      „Digitalizare”, source „Digitalizat la cererea titularului”, the scanned copy attached, dates unchanged */
   const SEED_ACT = {
-    id: "act-dig-001", nr: "ASF-1187/2022", series: "AS", name: "Autorizație sanitară de funcționare", type: "Autorizație", authority: "ANSP", subdivision: "CSP Chișinău",
-    service: "Autorizația sanitară de funcționare", beneficiary: holderGT, place: "Patiseria „Dulce”, mun. Chișinău, str. Ismail 88", dossier: "D-2026-004653",
-    status: "Valabil", tacit: false, issued: "2022-03-14T00:00:00", validUntil: "2027-03-13", statusChange: null,
+    id: "act-dig-001", nr: "AS-2019-0412", series: "AS", name: "Autorizație sanitară de funcționare", type: "Autorizație", authority: "ANSP", subdivision: "CSP Chișinău",
+    service: "Autorizația sanitară de funcționare", beneficiary: holderGT, place: "Cofetăria „Dulce”, mun. Chișinău", dossier: "D-2026-004653",
+    status: "Valabil", tacit: false, issued: "2019-11-21T00:00:00", validUntil: "2029-11-21", statusChange: null,
     versions: [{ v: 1, event: "Înscriere prin digitalizare", at: "2026-07-03T11:40:00", reason: "Act emis pe hârtie, înscris la confirmarea cererii de digitalizare (dosarul D-2026-004653)." }],
     fields: [["Tipul activității", "Producerea produselor de patiserie"], ["Suprafața încăperilor", "86 m²"], ["Capacitatea", "24 locuri"]],
     origin: "Digitalizare", source: SOURCE, legal: "Legea nr. 10/2009 privind supravegherea de stat a sănătății publice, art. 21",
-    scan: { fisier: "copia-ASF-1187-2022.pdf", kb: 1840, at: "2026-06-24T10:12:00" },
+    scan: { fisier: "copia-AS-2019-0412.pdf", kb: 1840, at: "2026-06-24T10:12:00" },
     dossiers: [{ nr: "D-2026-004653", process: TYPE, status: "finalizat", submitted: "2026-06-24T10:12:00", specialist: "Elena Caragia" }]
   };
   /* registre.js load(): the digitized acts join its acts (the confirmed ones of this page view too) */
@@ -166,10 +166,10 @@
     { id: "D-2026-004542", status: "inExaminare", channel: "Ghișeu", filedAt: "2026-06-30T14:05:00",
       holder: { kind: "PJ", name: "SRL Agrotehnica", idno: "1009227656586", representative: "Ion Rusu" },
       act: { subdiviziune: "CSP Chișinău", tip: "Autorizație sanitară de funcționare", serie: "", numar: "AUT-2024-001200", dataEmiterii: "2024-05-06", valabilPana: "2029-05-05" }, annexes: 0 },
-    /* confirmed → the act ASF-1187/2022 in the register (SEED_ACT) and in the holder's EVO Cabinet */
+    /* confirmed → the act AS-2019-0412 in the register (SEED_ACT) and in the holder's EVO Cabinet */
     { id: "D-2026-004653", status: "finalizat", decision: "confirmare", channel: "Online", filedAt: "2026-06-24T10:12:00", decidedAt: "2026-07-03T11:40:00", holder: holderGT,
-      act: { subdiviziune: "CSP Chișinău", tip: "Autorizație sanitară de funcționare", serie: "AS", numar: "ASF-1187/2022", dataEmiterii: "2022-03-14", valabilPana: "2027-03-13" }, annexes: 1,
-      legal: SEED_ACT.legal, actId: SEED_ACT.id, object: "Patiseria „Dulce”, mun. Chișinău" },
+      act: { subdiviziune: "CSP Chișinău", tip: "Autorizație sanitară de funcționare", serie: "AS", numar: "AS-2019-0412", dataEmiterii: "2019-11-21", valabilPana: "2029-11-21" }, annexes: 1,
+      legal: SEED_ACT.legal, actId: SEED_ACT.id, object: "Cofetăria „Dulce”, mun. Chișinău" },
     /* rejected: the copy is not readable — the reason goes to the holder (MNotify + Solicitările mele) */
     { id: "D-2026-004691", status: "finalizat", decision: "respingere", channel: "Ghișeu", filedAt: "2026-06-19T11:30:00", decidedAt: "2026-06-27T15:05:00", holder: holderGT,
       act: { subdiviziune: "CSP Bălți", tip: "Autorizație sanitară de funcționare", serie: "", numar: "112/2018", dataEmiterii: "2018-04-10", valabilPana: "" }, annexes: 0,
@@ -322,16 +322,19 @@
     if (mode === "respinsa" || mode === "toate") out.push({ id: "d-dig-respinsa", nr: "GEAP-2026-009-04873", service: "09", tip: TYPE, pp: "digitalizare", object: "",
       subdivision: "CSP Bălți", status: "finalizat", result: "respins", submitted: "2026-06-19T11:30", examTerm: "2026-07-04", finalized: "2026-06-27",
       decision: { nr: "", signedBy: "Elena Caragia", reason: SEED[4].reason }, digitalizare: { numar: "112/2018", tip: "Autorizație sanitară de funcționare", rejected: true } });
-    if (mode === "confirmata" || mode === "toate") out.push({ id: "d-dig-confirmata", nr: "GEAP-2026-009-04861", service: "09", tip: TYPE, pp: "digitalizare", object: "Patiseria „Dulce”, mun. Chișinău",
-      subdivision: "CSP Chișinău", status: "finalizat", result: "aprobat", submitted: "2026-06-24T10:12", examTerm: "2026-07-09", finalized: "2026-07-03", actId: "act-dig-dulce",
-      digitalizare: { numar: "ASF-1187/2022", tip: "Autorizație sanitară de funcționare" } });
+    if (mode === "confirmata" || mode === "toate") out.push({ id: "d-dig-confirmata", nr: "GEAP-2026-009-04861", service: "09", tip: TYPE, pp: "digitalizare", object: "Cofetăria „Dulce”, mun. Chișinău",
+      subdivision: "CSP Chișinău", status: "finalizat", result: "aprobat", submitted: "2026-06-24T10:12", examTerm: "2026-07-09", finalized: "2026-07-03", actId: CONFIRMED_PAPER,
+      digitalizare: { numar: "AS-2019-0412", tip: "Autorizație sanitară de funcționare" } });
     return out;
   }
-  /* the act in the FO / Cabinet acts shape (data/acte-permisive.json › intent.acts) */
-  function demoAct() {
-    if (!["confirmata", "toate"].includes(cabinetMode())) return null;
-    return { id: "act-dig-dulce", service: "09", name: "Patiseria „Dulce”, mun. Chișinău", number: "ASF-1187/2022", status: "valabil", statusLabel: "Valabil", issued: "14.03.2022", validUntil: "13.03.2027",
-      subdivision: "CSP Chișinău", digitized: true, source: SOURCE };
+  /* US-417 AC-11 (PO 2026-11-26): a paper act is NOT the holder's act in EVO Cabinet / FO until the BO confirms its
+     digitization — the paper act of the seed (act-cofetaria) is hidden, and appears as a digitized act (source, post-
+     processes) only after the confirmation (demo ?dig-cerere=confirmata|toate); FO / Cabinet acts shape */
+  const CONFIRMED_PAPER = "act-cofetaria";
+  function holderAct(act) {
+    if (!act?.paper) return act;
+    if (act.id !== CONFIRMED_PAPER || !["confirmata", "toate"].includes(cabinetMode())) return null;
+    return { ...act, paper: false, digitized: true, source: SOURCE };
   }
 
   /* the shell may have built its dossiers before this deferred module ran: decorate them now (idempotent) */
@@ -341,6 +344,6 @@
   window.GEAPDigitalizare = {
     REQUIRED, DATE_ERROR, SOURCE, PROCESS, TYPE, ACTION, SERVICES, DOCS, KEYS,
     serviceOf, allowed, seedAllowed, allowedServices, fields, validate, summaryRows, longDate, isoOf, newNumber,
-    attach, inRap, isDigitized, decorate, isDig, rowOf, deniedFor, documents, cardsHtml, onDecision, demoRequests, demoAct, SEED, SEED_ACT
+    attach, inRap, isDigitized, decorate, isDig, rowOf, deniedFor, documents, cardsHtml, onDecision, demoRequests, holderAct, SEED, SEED_ACT
   };
 })();

@@ -20280,7 +20280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   };
 
-  const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable", "refusal", "wdActive"];
+  const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable", "refusal", "wdActive", "digitization"];
   const renderCfgForm = (service) => {
     const v = cfgDraft.v, r = cfgRssp(service), rts = service.geap.requestTypes.map((rt) => rt.name);
     switch (cfgDraft.section) {
@@ -20330,9 +20330,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ${cfgRadios("wdReason", "Motivul retragerii", CFG_WD_REASONS, { required: true })}
           ${cfgRadios("wdFee", "Taxa achitată", CFG_WD_FEES, { required: true })}
           ${cfgFlag("wdNotify", "Notifică ceilalți participanți", "Reprezentantul împuternicit, autoritățile avizatoare și autoritatea de control, după caz.")}`))}`);
-      /* dig-v1 (US-414 AC-03…06): the „bifă” = the checkbox option; the hint says what it does now */
+      /* dig-v1 (US-414 AC-03…06; PO 2026-11-26): the library switch, as every other Setări section; the description says what it does now */
       case "digitization": return `
-        ${cfgGrid(cfgFlag("digitization", "Digitalizare permisă", v.digitization
+        ${cfgGrid(cfgSwitch("digitization", "Digitalizare permisă", v.digitization
           ? "Titularii actelor emise prin serviciu pot cere înscrierea lor în Registrul actelor permisive, în FrontOffice și la ghișeu."
           : "Nu se pot depune cereri noi de digitalizare. Cererile depuse deja se examinează până la decizie."))}
         ${renderInfoNote("Se aplică după publicarea versiunii noi a pașaportului serviciului.")}`;

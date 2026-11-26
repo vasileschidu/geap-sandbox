@@ -635,9 +635,9 @@
     const config = data.frontOfficeFlows?.[0]?.intent || {};
     const subjectId = SUBJECT;
     /* demo only (?acte=multe): the subject's acts + numbered copies, so the list paginates (> 10) */
-    /* dig-v1 (US-417 AC-18, demo ?dig-cerere=confirmata): the act entered by digitization is the holder's act like any other */
-    const digAct = subjectId === "pj-global-trader" ? window.GEAPDigitalizare?.demoAct?.() : null;
-    const own = [...(digAct ? [digAct] : []), ...(config.acts?.[subjectId] || [])].map(withScenario);
+    /* dig-v1 (US-417 AC-11 / AC-18): a paper act is listed only once its digitization is confirmed — then as a digitized act */
+    const DG = window.GEAPDigitalizare;
+    const own = (config.acts?.[subjectId] || []).map((act) => (DG ? DG.holderAct(act) : act)).filter(Boolean).map(withScenario);
     const source = params.get("acte") === "multe"
       ? [...own, ...own.flatMap((act, round) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, number: `${act.number}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null, ...(round + n) % 3 ? {} : { status: "expirat", statusLabel: "Expirat" } })))]
       : own;

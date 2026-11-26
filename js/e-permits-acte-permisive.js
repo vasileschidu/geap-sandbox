@@ -5731,9 +5731,9 @@
     }
 
     function intentAllActs(subject, config = frontOfficeIntentConfig()) {
-      /* dig-v1 (US-417 AC-13, demo ?dig-cerere=confirmata): the digitized act can start the service's post-processes */
-      const digAct = subject?.id === "pj-global-trader" ? window.GEAPDigitalizare?.demoAct?.() : null;
-      return [...(digAct ? [digAct] : []), ...(config?.acts?.[subject?.id] || [])]
+      /* dig-v1 (US-417 AC-11 / AC-13): a paper act only once digitized (?dig-cerere=confirmata) — then with its post-processes */
+      const DG = window.GEAPDigitalizare;
+      return (config?.acts?.[subject?.id] || []).map((act) => (DG ? DG.holderAct(act) : act)).filter(Boolean)
         .map((act) => ({ ...act, postProcesses: availablePostprocesses(act, config) }));
     }
 

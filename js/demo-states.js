@@ -2180,7 +2180,8 @@
     "pp-01c": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] [data-cab-menu-trigger]"); }),
     "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); }),
     "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .e-permits-fo-lib-item__title"); }),
-    "pp-01f": ppCab(async (h) => { await cabFind(h, "act-cofetaria"); }),
+    /* dig-v1 (US-417 AC-11): the paper act is listed only after its digitization is confirmed */
+    "pp-01f": { ...ppCab(async (h) => { await cabFind(h, "act-cofetaria"); }), params: { ["dig-cerere"]: "confirmata" } },
     /* start-dialog-v1: the list item → „Before you start” (pp-01a2 Reperfectare; pp-01g Retragere = the merged consequence) */
     "pp-01a2": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='reperfectare']")(h); await h.find("#start-dialog.is-active"); await h.wait(250); }),
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']")(h); }),
@@ -2248,7 +2249,7 @@
        skeleton rows), pp-03-loading the act profile opened by its address (header + sections skeleton) */
     "pp-01-loading": { page: "cabinet-evo/index.html", params: { latency: "freeze" }, ready: "[data-cab-skeleton] .cab-skeleton-row", run: null },
     "pp-03-loading": { page: "cabinet-evo/index.html", params: { as: "pf-anastasia", act: "act-ana-anulat", latency: "freeze" }, ready: "[data-cab-profile-skeleton]", run: null },
-    "pp-03a": { page: "cabinet-evo/index.html", params: { act: "act-cofetaria" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03a": { page: "cabinet-evo/index.html", params: { act: "act-cofetaria", ["dig-cerere"]: "confirmata" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03b": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03c": { page: "cabinet-evo/index.html", params: { as: "pj-vita-plant", act: "act-vita-farm" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03d": { page: "cabinet-evo/index.html", params: { act: "act-izvoras" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.scroll("#cab-act-history"); } },
@@ -6869,7 +6870,7 @@
   /* ---- Digitalizarea actelor emise pe hârtie (dig-v1, 2026-11-26; Feature 97576: US-414 97577 · US-415 97578 · US-416 97579
      · US-417 97580; js/digitalizare.js + core/case-flow.js digitizationFlow). Seeds (CSP Chișinău, BO): D-2026-004468 depus ·
      D-2026-004560 în examinare (Elena Caragia, subdivision not declared) · D-2026-004542 the act is already in the register ·
-     D-2026-004653 confirmed → act ASF-1187/2022 (act-dig-001) · D-2026-004691 rejected. Switches: dig-permisa=0|<codes> ·
+     D-2026-004653 confirmed → act AS-2019-0412 (act-dig-001; Cabinet act-cofetaria, shown only with dig-cerere=confirmata) · D-2026-004691 rejected. Switches: dig-permisa=0|<codes> ·
      dig-auth=0 (FO before MPass) · dig-cerere=depusa|respinsa|confirmata (Cabinet / FO intent). ---- */
   function digDemoStates() {
     const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", GH = "ansp-ghiseu-chisinau";
@@ -6943,9 +6944,9 @@
          01c saved (toast, after publication — AC-07) · 01d the service journal (AC-08) · 01e no right = denial (AC-01) */
       "dig-01": svc("settings", cfgNav("digitization"), "003000118"),
       "dig-01a": svc("settings", cfgNav("digitization"), SVC),
-      "dig-01b": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(400); }, SVC),
-      "dig-01c": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.find(".toast"); await h.wait(300); }, SVC),
-      "dig-01d": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(600); window.location.hash = `#serviciu/${SVC}/events`; await h.wait(900); }, SVC),
+      "dig-01b": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-switch="digitization"]'); await h.wait(400); }, SVC),
+      "dig-01c": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-switch="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.find(".toast"); await h.wait(300); }, SVC),
+      "dig-01d": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-switch="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(600); window.location.hash = `#serviciu/${SVC}/events`; await h.wait(900); }, SVC),
       "dig-01e": { flow: "back-office", as: "ansp-local-admin", hash: "#serviciu/003000118/settings", ready: ".e-permits-empty, .permits-profile", run: null },
       /* US-415 EVO Cabinet: 10 „Digitalizează un act istoric” next to the acts list (AC-02) · 10a no service allows it = no action */
       "dig-10": { page: CAB, params: { view: "acte" }, ready: "[data-cab-card], [data-cab-digitize]", run: async (h) => { await h.wait(500); } },
@@ -6977,7 +6978,7 @@
       "dig-18": smDosar("d-dig-respinsa", settle, { ["dig-cerere"]: "respinsa" }),
       "dig-18a": smDosar("d-dig-confirmata", settle, { ["dig-cerere"]: "confirmata" }),
       "dig-18b": sm(null, { ["dig-cerere"]: "toate" }),
-      "dig-19": { page: CAB, params: { act: "act-dig-dulce", ["dig-cerere"]: "confirmata" }, ready: "#cab-act-title", run: async (h) => { await h.wait(400); } },
+      "dig-19": { page: CAB, params: { act: "act-cofetaria", ["dig-cerere"]: "confirmata" }, ready: "#cab-act-title", run: async (h) => { await h.wait(400); } },
       "dig-19a": { ...ppIntent(), params: { solicitant: "pj-global-trader", ["dig-cerere"]: "confirmata" } },
       /* US-416 Ghișeu: 20 „Ce se solicită?” = the process next to „Solicitare nouă” (AC-03) · 20a not allowed · 21 Detalii
          (AC-04 / AC-05) · 21a one subdivision = read-only (AC-05) · 21b required (AC-07) · 22 Acte necesare = copy + annexes
