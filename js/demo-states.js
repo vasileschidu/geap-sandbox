@@ -3977,11 +3977,11 @@
     "sm-08a": sm(null, { schita: "1", pas: "3", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
     "sm-08b": sm(null, { depus: "GEAP-2026-009-04521", pp: "reperfectare", act: "act-izvoras", obiect: "Cafeneaua „Izvoraș”, mun. Bălți", subdiviziune: "CSP Bălți" }),
 
-    /* ---- „Retrage cererea” (rtr-v1, US-413 97574): the red header action (max-2 rule: button, or in the „⋯” at ≥ 3 / narrow), the start dialog with the
-       consequences + „Motivul retragerii” per service (09 obligatoriu / restituire · 10 opțional / fără restituire ·
-       ?rtr-motiv=exclus), the MSign step, the return (?retras=) = „Retrasă” + toast + Istoric; blocked (signing started /
-       supus continuării din oficiu) = disabled item + reason; hidden variants (draft, inactive service, past the limit,
-       finished, ex officio); the MPower representative; „Acces interzis” for someone else's request ---- */
+    /* ---- „Retrage cererea” (rtr-v1 → rtr-fo-v1 2026-11-26, US-413 97574; PO: the Cabinet only shows and links, every
+       action happens in the Front Office). Cabinet: the red „Retrage cererea ↗” = a new-tab link to the FO flow (header,
+       max-2 rule: button, or in the „⋯” at ≥ 3 / narrow; the row ⋮); the return (?retras=) = „Retrasă” + toast + Istoric;
+       blocked (signing started / supus continuării din oficiu) = disabled + reason; hidden variants (draft, inactive
+       service, past the limit, finished, ex officio); the MPower representative. The flow itself = rtr-fo-… below ---- */
     ...(() => {
       /* rtr-header-v1: „Retrage cererea” follows the max-2 header rule — a visible button when it fits, else in the „⋯” */
       const WD_BTN = '[data-sm-profile] [data-cab-profile-header] [data-sm-action="withdraw"]';
@@ -3992,18 +3992,11 @@
         await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]"); await h.find("#sm-header-more:not([hidden])");
       };
       const wdTarget = () => (wdButton() ? WD_BTN + ":not(.cab-menu *)" : '#sm-header-more [data-sm-action="withdraw"]');
-      const open = async (h) => { await more(h); await h.click(wdTarget()); await h.find("#start-dialog.is-active"); await h.wait(350); };
-      const sign = async (h) => { await h.fill("#sm-rtr-reason", "Am renunțat la deschiderea magazinului.", { leave: false }); await h.click("#start-dialog [data-start-dialog-start]"); await h.find("#start-dialog.is-active [data-sm-msign]"); await h.wait(350); };
       const back = { retras: "d-fresh", motiv: "Am renunțat la deschiderea magazinului." };
       const noMenu = async (h) => { await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400); };
       return {
         "rtr-01": smDosar("d-fresh", more),
-        "rtr-01a": smDosar("d-fresh", open),
-        "rtr-01b": smDosar("d-fresh", async (h) => { await open(h); await h.click("#start-dialog [data-start-dialog-start]"); await h.wait(250); }),
-        "rtr-01c": smDosar("d-lab-prelungire", open),
-        "rtr-01d": smDosar("d-fresh", open, { ["rtr-motiv"]: "exclus" }),
-        "rtr-01e": smDosar("d-fresh", async (h) => { await open(h); await sign(h); }),
-        "rtr-01f": smDosar("d-sud", open),
+        "rtr-01a": smDosar("d-fresh", async (h) => { await more(h); await h.hover(wdTarget()); }),
         "rtr-02": smDosar("d-fresh", null, back),
         "rtr-02a": smDosar("d-fresh", async (h) => { await h.scroll("#sm-sec-istoric"); }, back),
         "rtr-02b": sm(async (h) => { await smFind(h, "d-fresh"); }, back),
@@ -4016,9 +4009,46 @@
         "rtr-04c": smDosar("d-izvoras", noMenu),
         "rtr-04d": smDosar("d-fresh", noMenu, { ["rtr-oficiu"]: "d-fresh" }),
         "rtr-05": smDosar("d-vita-reperf", more, { as: "pj-vita-plant" }),
-        "rtr-06": { ...sm(null, {}, "#dosar/d-ana/retragere"), ready: "[data-sm-denied]" },
-        "rtr-06a": sm(async (h) => { await h.find("#start-dialog.is-active"); await h.wait(350); }, {}, "#dosar/d-fresh/retragere"),
         "rtr-07": sm(smMenu("d-fresh")),
+        "rtr-07a": sm(async (h) => { await smMenu("d-fresh")(h); await h.hover('#sm-menu-d-fresh [data-sm-action="withdraw"]'); }),
+      };
+    })(),
+
+    /* ---- „Retragerea cererii” in the Front Office (rtr-fo-v1, US-413 97574): ?retragere=<nr>#retragere from the Cabinet
+       link. 01 form (09: motiv obligatoriu · restituire — AC-10 / AC-11) · 01a required error · 01b filled · 01c service 10
+       (motiv opțional · fără restituire) · 01d motiv exclus · 01e unpaid note (anulată — AC-14) · 02 Verificare și
+       semnare (MSign — AC-12) · 02a MSign error · 03 Finalizare (Retrasă — AC-13…17) · 04 blocked: signing started
+       (AC-05) · 04a supus continuării din oficiu (AC-09) · 04b finished (AC-06 / 07) · 04c draft (AC-03) · 04d service
+       inactive (AC-02) · 04e past „Până la începerea examinării” (AC-04) · 04f ex officio (AC-08) · 05 someone else's
+       request = „Acces interzis” (AC-01) · 05a unknown number · 06 the MPower representative (AC-01 / AC-17) ---- */
+    ...(() => {
+      const NR = { fresh: "GEAP-2026-009-04502", lab: "GEAP-2026-010-00877", sud: "GEAP-2026-009-04431", gara: "GEAP-2026-009-04310", izvoras: "GEAP-2025-009-03187", spicul: "GEAP-2026-009-04588", ana: "GEAP-2025-009-02654", vita: "GEAP-2026-009-04490" };
+      const fo = (nr, run, params = {}) => ({ page: PP_FO, flow: "full", hash: "#retragere", params: { solicitant: "pj-global-trader", retragere: nr, ...params }, ready: "#fo-withdraw-title", run: async (h) => { await clearToasts(h); await h.wait(300); if (run) await run(h); } });
+      const REASON = "Am renunțat la deschiderea magazinului.";
+      const fill = async (h) => { await h.fill("#fo-rtr-reason", REASON, { leave: false }); };
+      const next = async (h) => { await h.click("[data-fo-withdraw-next]"); await h.wait(300); };
+      const toSign = async (h) => { await fill(h); await next(h); await h.find("[data-fo-withdraw-sign]"); };
+      const sign = async (h) => { await toSign(h); await h.click("[data-fo-withdraw-sign]"); await h.find("[data-fo-withdraw-finish] h1"); await h.wait(300); };
+      return {
+        "rtr-fo-01": fo(NR.fresh),
+        "rtr-fo-01a": fo(NR.fresh, next),
+        "rtr-fo-01b": fo(NR.fresh, fill),
+        "rtr-fo-01c": fo(NR.lab),
+        "rtr-fo-01d": fo(NR.fresh, null, { ["rtr-motiv"]: "exclus" }),
+        "rtr-fo-01e": fo(NR.sud),
+        "rtr-fo-02": fo(NR.fresh, toSign),
+        "rtr-fo-02a": fo(NR.fresh, async (h) => { await toSign(h); await h.click("[data-fo-withdraw-sign]"); await h.find("[data-fo-withdraw-status]"); await h.wait(200); }, { msign: "eroare" }),
+        "rtr-fo-03": fo(NR.fresh, sign),
+        "rtr-fo-04": fo(NR.fresh, null, { ["rtr-semnare"]: "d-fresh" }),
+        "rtr-fo-04a": fo(NR.gara, null, { ["rtr-continuare"]: "d-gara" }),
+        "rtr-fo-04b": fo(NR.izvoras),
+        "rtr-fo-04c": fo(NR.spicul),
+        "rtr-fo-04d": fo(NR.fresh, null, { ["rtr-activa"]: "0" }),
+        "rtr-fo-04e": fo(NR.fresh, null, { ["rtr-limita"]: "examinare" }),
+        "rtr-fo-04f": fo(NR.fresh, null, { ["rtr-oficiu"]: "d-fresh" }),
+        "rtr-fo-05": fo(NR.ana),
+        "rtr-fo-05a": fo("GEAP-2026-009-09999"),
+        "rtr-fo-06": fo(NR.vita, null, { solicitant: "pj-vita-plant" }),
       };
     })(),
 

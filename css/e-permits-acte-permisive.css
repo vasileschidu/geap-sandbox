@@ -16428,13 +16428,15 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 
   
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row {
+  /* rtr-fo-v1: the FO request card (S4 suplinire, Retragerea cererii) stacks too — the desktop :is() rule kept the
+     256 label basis in the column (a 256-tall label per row on phones) */
+  :is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row {
     align-items: flex-start;
     flex-direction: column;
     gap: var(--spacing-4, 4px);
   }
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row-label {
+  :is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row-label {
     flex-basis: auto;
     max-width: none;
   }
@@ -21292,6 +21294,18 @@ button.e-permits-steps-strip__cell:focus-visible {
   flex-basis: 20px;
   height: 20px;
   width: 20px;
+}
+
+/* phones: a plain alert under the path — full content width (no 20 inset) and all four corners round
+   (user, 2026-11-26, callout-phone-v1) */
+@media (max-width: 760px) {
+  .e-permits-trajectory + .e-permits-callout-wrap {
+    margin: var(--spacing-16, 16px) 0 0;
+  }
+
+  .e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout {
+    border-radius: var(--border-radius-20, 20px);
+  }
 }
 
 

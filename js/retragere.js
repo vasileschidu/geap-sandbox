@@ -67,6 +67,26 @@
     return { show: true, reason: "" };
   }
 
+  /* rtr-fo-v1 (2026-11-26): the request-level rule (US-413 AC-01…09) for a Cabinet / FO request record (data/cabinet-
+     evo-solicitari.json) — ONE place, so the Cabinet link „Retrage cererea ↗” and the FO withdrawal flow never disagree.
+     „Până la începerea examinării” = before „În derulare” / „Informații suplimentare” (a fee asked during the
+     examination counts as started). */
+  function requestState(dosar, service, { allowed = true } = {}) {
+    if (!dosar) return { show: false, reason: "" };
+    const cfg = config(service?.withdrawal);
+    const examStarted = ["derulare", "info"].includes(dosar.status) || Boolean(dosar.feeDuringExam);
+    return state({
+      cfg,
+      allowed,
+      draft: dosar.status === "schita",
+      closed: ["finalizat", "retras"].includes(dosar.status) || Boolean(dosar.archived),
+      exOfficio: dosar.initiatedBy === "autoritate" || demo.exOfficio(dosar.id),
+      pastLimit: cfg.limit === "examinare" && examStarted,
+      signingStarted: Boolean(dosar.signingStarted) || demo.signing(dosar.id),
+      continuation: Boolean(dosar.continuation) || demo.continuation(dosar.id)
+    });
+  }
+
   /* US-413 AC-10: what happens, and the fee rule of the service */
   const consequence = () => "Procedura se închide, iar actul permisiv nu se emite. După semnare, retragerea nu se mai poate anula.";
   function feeFact(cfg, { unpaid = false } = {}) {
@@ -132,7 +152,7 @@
 
   window.GEAPRetragere = {
     LIMITS, REASONS, FEES, labelOf: (kind, key) => labelOf({ limit: LIMITS, reason: REASONS, fee: FEES }[kind] || [], key),
-    config, demo, state, BLOCKED, consequence, feeFact,
+    config, demo, state, requestState, BLOCKED, consequence, feeFact,
     reasonFieldHtml, bindReason, readReason, setError, fieldErrorHtml, MAX
   };
 })();

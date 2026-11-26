@@ -33,7 +33,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire", "#retragere"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -53,6 +53,8 @@
     const frontOfficeIntentScreen = document.querySelector("[data-fo-screen='intent']");
     /* US-25 S4 (suplinire informații) */
     const frontOfficeSupplementScreen = document.querySelector("[data-fo-screen='supplement']");
+    /* US-413 „Retragerea cererii” (rtr-fo-v1) */
+    const frontOfficeWithdrawScreen = document.querySelector("[data-fo-screen='withdraw']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -3706,11 +3708,12 @@
     /* US-18: the certificate retry state survives a re-render */
     let frontOfficeCertRetried = false;
     let frontOfficeLastFinishSchema = null;
-    function renderFrontOfficeStep7FromSchema(schema) {
-      frontOfficeLastFinishSchema = schema;
-      const panel = document.querySelector("[data-fo-step-panel='7']");
+    /* target / titleId (rtr-fo-v1): another FO screen shows the same confirmation in its own column (the withdrawal) */
+    function renderFrontOfficeStep7FromSchema(schema, { target = null, titleId = "fo-request-step-7-title" } = {}) {
+      if (!target) frontOfficeLastFinishSchema = schema;
+      const panel = target || document.querySelector("[data-fo-step-panel='7']");
       let step = schema?.steps?.find((item) => item.id === "finish" || Number(item.index) === 7);
-      const body = panel?.querySelector("[data-fo-finish-body]");
+      const body = target || panel?.querySelector("[data-fo-finish-body]");
       if (!panel || !step || !body) return;
       const esc = escapeFrontOfficeHtml;
       const filedNr = (step.summary?.rows || []).find((row) => row.label === "Numărul dosarului")?.value || "";
@@ -3804,7 +3807,7 @@
         : "";
 
       body.innerHTML = `
-        ${foFinishHeroHtml({ title: step.title || step.label || "Finalizare", titleId: "fo-request-step-7-title", leadHtml: lead })}
+        ${foFinishHeroHtml({ title: step.title || step.label || "Finalizare", titleId, leadHtml: lead })}
         <div class="e-permits-fo-finish__content">
           ${tracker}
           ${doc}
@@ -4401,6 +4404,7 @@
         guest: frontOfficeGuestScreen,
         intent: frontOfficeIntentScreen,
         supplement: frontOfficeSupplementScreen,
+        withdraw: frontOfficeWithdrawScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -4412,13 +4416,13 @@
          (same "keep the stepper on the left" treatment as the real wizard),
          so it needs the same full-width, top-aligned chrome — not the
          centered-card chrome auth/choice use. */
-      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement";
+      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement" || screen === "withdraw";
       frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
       frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         /* the intent screen already has an identity, so the header shows it */
-        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement";
+        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement" || screen === "withdraw";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -4449,6 +4453,9 @@
       }
       if (screen === "supplement") {
         frontOfficeSupplementScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "withdraw") {
+        frontOfficeWithdrawScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -6289,6 +6296,245 @@
       }
     }, true);
 
+    /* ===================================================================
+       US-413 (Azure 97574) „Retragerea cererii” in the Front Office (rtr-fo-v1, 2026-11-26; PO: EVO Cabinet only shows
+       and links — every action other than viewing happens in the FO). EVO Cabinet › Solicitările mele › „Retrage
+       cererea ↗” opens ?retragere=<nr>#retragere in a new tab. One screen (the S4 „Motivul suspendării” column, reused
+       1:1), three phases:
+         form     the request (the S4 details card: act type, location, dossier number + copy, status), the consequence
+                  notice (procedure closes, no act, fee rule of the service — AC-10), „Motivul retragerii” per the
+                  service (AC-11, GEAPRetragere.reasonFieldHtml, „Câmpul este obligatoriu.”) · ← Solicitările mele · Continuă
+         sign     „Verificare și semnare” (the S7 pieces): the request + reason, „Cererea de semnat” (generated PDF card),
+                  ← · „Semnează prin msign” (AC-12); ?msign=eroare fails once
+         done     the FO Finalizare (renderFrontOfficeStep7FromSchema, same markup) — „Mergi la Solicitările mele” returns
+                  with ?retras=<id>&motiv=… = the Cabinet's „Retrasă” + success toast (AC-13…17)
+       Not withdrawable any more (the shared rule GEAPRetragere.requestState: status changed, signing started, supus
+       continuării din oficiu, service inactive…) / not yours (AC-01 „Acces interzis”) / unknown number = the S4 alert
+       card + „Mergi la Solicitările mele”, never a blank page. Demo: the rtr-* params of js/retragere.js travel along.
+       =================================================================== */
+    const frontOfficeWithdrawNr = new URLSearchParams(location.search).get("retragere") || "";
+    const frontOfficeWd = { data: null, phase: "form", reason: "", notice: "", msignFailed: false };
+    async function loadFrontOfficeWithdraw() {
+      if (frontOfficeWd.data) return frontOfficeWd.data;
+      let data = null;
+      try { data = await (await fetch("data/cabinet-evo-solicitari.json", { cache: "no-store" })).json(); } catch { data = null; }
+      const subjectId = suppParam("solicitant") || "pj-global-trader";
+      const owner = Object.entries(data?.perspectives || {}).find(([, p]) => (p.dosare || []).some((d) => d.nr === frontOfficeWithdrawNr));
+      const dosar = owner ? owner[1].dosare.find((d) => d.nr === frontOfficeWithdrawNr) : null;
+      const perspective = data?.perspectives?.[subjectId] || null;
+      const service = dosar ? data.services?.[dosar.service] || null : null;
+      frontOfficeWd.data = {
+        dosar, service, today: data?.today || "", statuses: data?.statuses || {},
+        /* AC-01: only the holder or the MPower representative acting as the holder; an expired power reads only */
+        allowed: Boolean(owner && owner[0] === subjectId && !perspective?.readOnly)
+      };
+      return frontOfficeWd.data;
+    }
+    const withdrawRule = () => window.GEAPRetragere?.requestState(frontOfficeWd.data?.dosar, frontOfficeWd.data?.service, { allowed: frontOfficeWd.data?.allowed }) || { show: false, reason: "" };
+    const withdrawCfg = () => window.GEAPRetragere?.config(frontOfficeWd.data?.service?.withdrawal) || { reason: "exclus", fee: "fara" };
+    const withdrawUnpaid = (dosar) => Boolean(dosar?.payment) && !["Achitat", "Anulat"].includes(dosar.payment.status) && dosar.status === "achitare";
+    /* open · blocked (shown in Cabinet, but disabled — the reason) · closed (no longer withdrawable) · denied · unknown */
+    function withdrawStatus() {
+      const { dosar, allowed } = frontOfficeWd.data || {};
+      if (!dosar) return "unknown";
+      if (!allowed) return "denied";
+      const rule = withdrawRule();
+      if (!rule.show) return "closed";
+      return rule.reason ? "blocked" : "open";
+    }
+    function withdrawCabinetUrl(extra = {}, hash = "") {
+      const query = new URLSearchParams({ view: "solicitari" });
+      const solicitant = suppParam("solicitant");
+      if (solicitant) query.set("as", solicitant);
+      Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
+      return `cabinet-evo/index.html?${query.toString()}${hash}`;
+    }
+    /* the request = the S4 details card rows (supp-s4-card-v1): act type, location, dossier number (copy), status */
+    const WD_TAG_TONE = { schita: "neutral", info: "warning", achitare: "warning", derulare: "info", finalizat: "success", retras: "muted" };
+    function withdrawCaseRows({ reason = false } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      const { dosar, service, statuses } = frontOfficeWd.data || {};
+      if (!dosar) return "";
+      const row = (label, valueHtml) => `<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(label)}</span><span class="e-permits-dosar-profil__row-value">${valueHtml}</span></div>`;
+      const label = statuses?.[dosar.status]?.label || dosar.status;
+      const tag = window.GEAPTag ? window.GEAPTag.html(label, WD_TAG_TONE[dosar.status] || "neutral") : esc(label);
+      return [
+        row("Tipul actului", esc(service?.title || dosar.tip || "—")),
+        dosar.object ? row("Locația", esc(dosar.object)) : "",
+        row("Numărul dosarului", copyValueButtonHtml(dosar.nr, { ariaLabel: `Copiază numărul dosarului ${dosar.nr}` })),
+        row("Statutul dosarului", tag),
+        reason && frontOfficeWd.reason ? row("Motivul retragerii", esc(frontOfficeWd.reason)) : ""
+      ].join("");
+    }
+    function withdrawFeeText() {
+      const { dosar } = frontOfficeWd.data || {};
+      return window.GEAPRetragere?.feeFact(withdrawCfg(), { unpaid: withdrawUnpaid(dosar) }) || "";
+    }
+    function withdrawHeaderHtml(title) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="fo-withdraw-title" tabindex="-1">${esc(title)}</h1>
+          ${frontOfficeSelectedSubject?.name ? `<p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Solicitant</span><span class="e-permits-fo-intent__subject-name">${esc(frontOfficeSelectedSubject.name)}</span></p>` : ""}
+        </header>`;
+    }
+    function renderFrontOfficeWithdraw() {
+      const body = frontOfficeWithdrawScreen?.querySelector("[data-fo-withdraw-body]");
+      if (!body || !frontOfficeWd.data) return;
+      const esc = escapeFrontOfficeHtml;
+      const R = window.GEAPRetragere;
+      const { dosar } = frontOfficeWd.data;
+      const status = withdrawStatus();
+      const cabinetFooter = foStepFooterHtml({ customHtml: `<a class="btn btn-primary e-permits-fo-finish__cta" href="${esc(withdrawCabinetUrl({}, dosar && status !== "denied" ? `#dosar/${dosar.id}` : ""))}" data-fo-withdraw-cabinet><span>Mergi la Solicitările mele</span></a>` });
+      /* the S4 section (h2 + the BO details card) */
+      const section = (id, title, inner) => `
+        <section class="e-permits-fo-pp-request" aria-labelledby="${id}">
+          <h2 class="e-permits-dosar-profil__section-title" id="${id}">${esc(title)}</h2>
+          ${inner}
+        </section>`;
+      const caseSection = section("fo-withdraw-case-title", "Cererea", `<div class="e-permits-dosar-profil__card">${withdrawCaseRows()}</div>`);
+      if (status !== "open") {
+        /* the S4 status card (supp-s4-card-v1) — what happened, never a blank page */
+        const card = (tone, title, text) => window.GEAPAlertCard?.html({ tone, title, text, role: "alert", id: "fo-withdraw-alert", sprite: "assets/icons/sprite.svg", className: "e-permits-fo-supp-alert" }) || "";
+        const closedText = dosar?.status === "retras" ? "Cererea a fost deja retrasă. Dosarul este închis, fără act permisiv."
+          : dosar?.status === "finalizat" ? "Autoritatea a emis decizia, iar procedura s-a încheiat."
+          : dosar?.status === "schita" ? "Cererea nu a fost depusă încă. O schiță nu se retrage — o poți elimina din EVO Cabinet › Solicitările mele."
+          : "Starea dosarului s-a schimbat și retragerea nu mai este disponibilă pentru această cerere.";
+        const notice = {
+          unknown: () => card("danger", `Nu am găsit dosarul ${esc(frontOfficeWithdrawNr)}`, "Deschide retragerea din EVO Cabinet › Solicitările mele sau contactează autoritatea emitentă."),
+          denied: () => card("danger", "Acces interzis", "Poți retrage doar cererile tale sau ale persoanei pe care o reprezinți prin MPower."),
+          blocked: () => card("warning", "Cererea nu mai poate fi retrasă", esc(withdrawRule().reason)),
+          closed: () => card("warning", "Cererea nu mai poate fi retrasă", esc(closedText))
+        }[status]();
+        body.innerHTML = `${withdrawHeaderHtml("Retragerea cererii")}${notice}${status === "blocked" || status === "closed" ? caseSection : ""}${cabinetFooter}`;
+        return;
+      }
+      const cfg = withdrawCfg();
+      if (frontOfficeWd.phase === "done") return;
+      if (frontOfficeWd.phase === "sign") {
+        const signer = frontOfficeSelectedSubject?.representative?.name || frontOfficeSchema?.authenticatedUser?.name || "";
+        const formDoc = { sursa: "generat", tip: "Cererea de retragere", fisier: `cerere-retragere-${dosar.nr}.pdf`, size: "64 KB", verb: "Generat", at: foDocStampNow(), de: "", semnat: false };
+        const notes = frontOfficeWd.notice === "msign-error"
+          ? foUi().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost retrasă; dosarul rămâne neschimbat. Încearcă din nou.", { role: "alert" }) || ""
+          : "";
+        body.innerHTML = `
+          ${withdrawHeaderHtml("Verificare și semnare")}
+          ${foUi().renderNotice?.("warning", `<strong>${esc(R.consequence().split(". ")[0])}.</strong> După semnare, retragerea nu se mai poate anula. ${esc(withdrawFeeText())}.`) || ""}
+          ${section("fo-withdraw-case-title", "Cererea", `<div class="e-permits-dosar-profil__card">${withdrawCaseRows({ reason: true })}</div>`)}
+          ${section("fo-withdraw-doc-title", "Cererea de semnat", `<div class="e-permits-fo-summary-docs"><div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--system" data-fo-withdraw-form data-fo-doc="${esc(JSON.stringify(formDoc))}">${foDocIconHtml(formDoc, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(formDoc, { open: true })}</div></div>`)}
+          ${notes ? `<div class="e-permits-fo-supp-status" data-fo-withdraw-status>${notes}</div>` : ""}
+          <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
+            <div class="e-permits-fo-form__actions">
+              <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
+                <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Retragerea cererii" data-fo-withdraw-prev>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+                </button>
+                <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-withdraw-sign${signer ? ` aria-description="${esc(`Semnează ca ${signer}`)}"` : ""}>
+                  <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
+                  <span class="btn-badge__label">Semnează prin msign</span>
+                </button>
+              </div>
+            </div>
+          </footer>`;
+        return;
+      }
+      body.innerHTML = `
+        ${withdrawHeaderHtml("Retragerea cererii")}
+        ${foUi().renderNotice?.("warning", `<strong>${esc(R.consequence().split(". ")[0])}.</strong> După semnare, retragerea nu se mai poate anula. ${esc(withdrawFeeText())}.`) || ""}
+        ${caseSection}
+        ${R.reasonFieldHtml({ id: "fo-rtr-reason", mode: cfg.reason, value: frontOfficeWd.reason })}
+        ${foStepFooterHtml({ backAttrs: "data-fo-withdraw-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-withdraw-next" })}`;
+      R.bindReason(body);
+    }
+    /* done: the FO Finalizare, in this column (renderFrontOfficeStep7FromSchema target) */
+    function renderFrontOfficeWithdrawFinish() {
+      const body = frontOfficeWithdrawScreen?.querySelector("[data-fo-withdraw-body]");
+      const { dosar, service, today } = frontOfficeWd.data;
+      const href = withdrawCabinetUrl({ retras: dosar.id, motiv: frontOfficeWd.reason }, `#dosar/${dosar.id}`);
+      body.innerHTML = '<div class="e-permits-fo-finish"><div class="e-permits-fo-finish__body" data-fo-withdraw-finish></div></div>';
+      renderFrontOfficeStep7FromSchema({ steps: [{
+        id: "finish",
+        title: "Cererea a fost retrasă",
+        returnHref: href,
+        lead: { text: `Dosarul nr. ${dosar.nr} s-a închis fără act permisiv. Îl găsești în EVO Cabinet →`, link: "Solicitările mele" },
+        action: { label: "Mergi la Solicitările mele", href },
+        tracker: [
+          { label: "Depusă", state: "done" },
+          { label: "Examinare", state: "skipped" },
+          { label: "Retrasă", state: "done" }
+        ],
+        summary: { rows: [
+          { label: "Numărul dosarului", value: dosar.nr, copy: true },
+          { label: "Tipul actului", value: service?.title || dosar.tip || "—" },
+          ...(dosar.object ? [{ label: "Locația", value: dosar.object }] : []),
+          { label: "Data retragerii", value: supplementLongDay(today) || "—" },
+          ...(frontOfficeWd.reason ? [{ label: "Motivul retragerii", value: frontOfficeWd.reason }] : []),
+          { label: "Regimul taxei", value: withdrawFeeText() }
+        ] },
+        timeline: { title: "Statutul dosarului", items: [
+          { title: "Cerere retrasă", text: "Semnată prin MSign", state: "done" },
+          { title: "Dosar închis", text: "Automat, fără acțiunea autorității; actul permisiv nu se emite", state: "done" },
+          { title: "Notificare trimisă", text: "Prin MNotify, ție și autorității emitente", state: "done" }
+        ] }
+      }] }, { target: body.querySelector("[data-fo-withdraw-finish]"), titleId: "fo-withdraw-title" });
+    }
+    async function showFrontOfficeWithdraw({ focus = true } = {}) {
+      if (!frontOfficeWithdrawScreen) return;
+      await loadFrontOfficeWithdraw();
+      const { service } = frontOfficeWd.data;
+      const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+      if (title && service?.title) setFoServiceTitle(title, service.title);
+      document.title = `Retragerea cererii — ${service?.title || "EVO"}`;
+      renderFrontOfficeWithdraw();
+      if (window.location.hash !== "#retragere") history.replaceState(null, "", "#retragere");
+      setFrontOfficeScreen("withdraw", { focus });
+    }
+    function focusFrontOfficeWithdraw(selector = "h1") {
+      frontOfficeWithdrawScreen?.querySelector(selector)?.focus({ preventScroll: true });
+      scrollFrontOfficeStepToTop();
+    }
+    frontOfficeWithdrawScreen?.addEventListener("click", (event) => {
+      const R = window.GEAPRetragere;
+      const body = frontOfficeWithdrawScreen.querySelector("[data-fo-withdraw-body]");
+      if (event.target.closest("[data-fo-withdraw-back]")) {
+        window.location.href = withdrawCabinetUrl({}, frontOfficeWd.data?.dosar ? `#dosar/${frontOfficeWd.data.dosar.id}` : "");
+        return;
+      }
+      /* form → sign: AC-11 — a required reason is checked here (inline error + focus) */
+      if (event.target.closest("[data-fo-withdraw-next]")) {
+        const value = R.readReason(body, withdrawCfg().reason);
+        if (value === null) return;
+        frontOfficeWd.reason = value;
+        frontOfficeWd.phase = "sign";
+        frontOfficeWd.notice = "";
+        renderFrontOfficeWithdraw();
+        focusFrontOfficeWithdraw();
+        return;
+      }
+      if (event.target.closest("[data-fo-withdraw-prev]")) {
+        frontOfficeWd.phase = "form";
+        frontOfficeWd.notice = "";
+        renderFrontOfficeWithdraw();
+        focusFrontOfficeWithdraw();
+        return;
+      }
+      /* MSign (AC-12): ?msign=eroare fails once; signed = the request is withdrawn (AC-13) → Finalizare */
+      if (event.target.closest("[data-fo-withdraw-sign]")) {
+        if (suppParam("msign") === "eroare" && !frontOfficeWd.msignFailed) {
+          frontOfficeWd.msignFailed = true;
+          frontOfficeWd.notice = "msign-error";
+          renderFrontOfficeWithdraw();
+          frontOfficeWithdrawScreen.querySelector("[data-fo-withdraw-sign]")?.focus({ preventScroll: true });
+          frontOfficeWithdrawScreen.querySelector("[data-fo-withdraw-status]")?.scrollIntoView({ block: "center" });
+          return;
+        }
+        frontOfficeWd.phase = "done";
+        frontOfficeWd.notice = "";
+        renderFrontOfficeWithdrawFinish();
+        focusFrontOfficeWithdraw();
+      }
+    });
+
     function closeFrontOfficeIntentMenus(except = null) {
       frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
         const menu = document.getElementById(trigger.getAttribute("aria-controls"));
@@ -7096,7 +7342,11 @@
     /* US-25: a „Suplinire informații” landing shows S4 before the form (once per request and tab) */
     let supplementSeen = "";
     try { supplementSeen = sessionStorage.getItem(SUPPLEMENT_SEEN) || ""; } catch { supplementSeen = ""; }
-    if (frontOfficeSupplementNr && (window.location.hash === "#suplinire" || (bootStep === 2 && supplementSeen !== frontOfficeSupplementNr))) {
+    if (frontOfficeWithdrawNr) {
+      /* US-413 (rtr-fo-v1): the withdrawal flow of a filed request, from EVO Cabinet › Solicitările mele */
+      history.replaceState(null, "", "#retragere");
+      frontOfficeSchemaLoadPromise.then(() => showFrontOfficeWithdraw({ focus: false }));
+    } else if (frontOfficeSupplementNr && (window.location.hash === "#suplinire" || (bootStep === 2 && supplementSeen !== frontOfficeSupplementNr))) {
       /* at once, so nothing that routes by the step hash while the schema loads opens S5 (and a new-draft toast) */
       history.replaceState(null, "", "#suplinire");
       frontOfficeSchemaLoadPromise.then(() => showFrontOfficeSupplement({ focus: false }));

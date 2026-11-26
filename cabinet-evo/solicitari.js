@@ -146,26 +146,11 @@
   const readOnly = () => Boolean(state.perspective?.readOnly);
 
   /* rtr-v1 (US-413): the service's „Retragerea cererii” block (Admin passport; demo seed services[code].withdrawal) and the
-     request's state → hidden / blocked with the reason / available. The holder and the MPower representative see the same
-     (AC-01, AC-17); a read-only perspective (expired power) sees nothing. „Până la începerea examinării” = before
-     „În derulare” / „Informații suplimentare” (a fee asked during the examination counts as started). */
+     request's state → hidden / blocked with the reason / available (the shared rule, GEAPRetragere.requestState — the FO
+     flow reads the same). The holder and the MPower representative see the same (AC-01, AC-17); a read-only perspective
+     (expired power) sees nothing. */
   const wdConfig = (dosar) => W()?.config(serviceOf(dosar).withdrawal) || { active: false };
-  const examStarted = (dosar) => ["derulare", "info"].includes(dosar.status) || Boolean(dosar.feeDuringExam);
-  function withdrawState(dosar) {
-    const R = W();
-    if (!R) return { show: false, reason: "" };
-    const cfg = wdConfig(dosar);
-    return R.state({
-      cfg,
-      allowed: !readOnly(),
-      draft: dosar.status === "schita",
-      closed: ["finalizat", "retras"].includes(dosar.status) || Boolean(dosar.archived),
-      exOfficio: dosar.initiatedBy === "autoritate" || R.demo.exOfficio(dosar.id),
-      pastLimit: cfg.limit === "examinare" && examStarted(dosar),
-      signingStarted: Boolean(dosar.signingStarted) || R.demo.signing(dosar.id),
-      continuation: Boolean(dosar.continuation) || R.demo.continuation(dosar.id),
-    });
-  }
+  const withdrawState = (dosar) => W()?.requestState(dosar, serviceOf(dosar), { allowed: !readOnly() }) || { show: false, reason: "" };
 
   /* the FOD2 entry points (US-29 AC-01 last saved step, US-24 AC-02 suplinire). The
      cabinet's current instance travels along (?solicitant=, EVO → service hand-over):
@@ -187,6 +172,13 @@
     if (kind === "appeal") {
       query.set("contestatie", dosar.nr);
       return `${FO}?${query.toString()}#request`;
+    }
+    /* rtr-fo-v1 (2026-11-26, PO: the Cabinet only shows, every action happens in the Front Office): the FO withdrawal
+       flow of this request (summary, consequences, reason, MSign, confirmation) */
+    if (kind === "withdraw") {
+      query.set("retragere", dosar.nr);
+      ["rtr-motiv", "rtr-activa", "rtr-limita", "rtr-semnare", "rtr-continuare", "rtr-oficiu"].forEach((key) => { if (params.get(key)) query.set(key, params.get(key)); });
+      return `${FO}?${query.toString()}#retragere`;
     }
     return FO;
   }
@@ -299,9 +291,12 @@
     }
     if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
-    /* rtr-v1 (US-413 AC-02…09): destructive, last after a separator; blocked = the act rows' disabled item + reason */
+    /* rtr-v1 (US-413 AC-02…09): destructive, last after a separator; blocked = the act rows' disabled item + reason.
+       rtr-fo-v1: available = a red new-tab link to the FO withdrawal flow (label + trailing external icon) */
     const wd = withdrawState(dosar);
-    if (wd.show) items.push({ separator: true }, { action: "withdraw", icon: "icon-circle-x", label: "Retrage cererea", danger: true, reason: wd.reason });
+    if (wd.show) items.push({ separator: true }, wd.reason
+      ? { action: "withdraw", icon: "icon-circle-x", label: "Retrage cererea", danger: true, reason: wd.reason }
+      : { action: "withdraw", label: "Retrage cererea", href: foUrl(dosar, "withdraw"), newTab: true, danger: true });
     return items;
   }
 
@@ -329,7 +324,7 @@
             ? `<li role="separator" class="cab-menu__separator"></li>`
             : item.newTab
               /* a new-tab link = label then the trailing external icon, as the header „⋯” (C.newTabAttrs) */
-              ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(item.href)}"${C.newTabAttrs(item.label)} data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}"><span>${escape(item.label)}</span>${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}</a></li>`
+              ? `<li role="none"><a class="e-permits-fo-intent-menu__item${item.danger ? " is-danger" : ""}" role="menuitem" href="${escape(item.href)}"${C.newTabAttrs(item.label)} data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}"><span>${escape(item.label)}</span>${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}</a></li>`
             : item.href
               ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(item.href)}" data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}">${icon(item.icon, "medium")}<span>${escape(item.label)}</span></a></li>`
               : `<li role="none"><button class="e-permits-fo-intent-menu__item${item.action === "delete" || item.danger ? " is-danger" : ""}" type="button" role="menuitem" data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}"${item.kind ? ` data-sm-kind="${item.kind}"` : ""}${item.reason ? ` aria-disabled="true" data-tooltip-reason="${escape(item.reason)}" aria-description="${escape(item.reason)}"` : ""}>${icon(item.icon, "medium")}<span>${escape(item.label)}</span>${item.reason ? `<span class="e-permits-fo-intent-menu__reason" aria-hidden="true">${escape(item.reason)}</span>` : ""}</button></li>`).join("")}
@@ -727,47 +722,11 @@
     window.GEAPStartDialog.appeal({ subtitle: dosar.object || serviceOf(dosar).title || "", href, newTab: true, trigger });
   }
 
-  /* ---------- „Retrage cererea” (rtr-v1, US-413) ----------
-     1. the shared „Before you start” dialog (js/start-dialog.js): the consequence notice (procedure closes, no act — AC-10),
-        the facts (fee rule of the service · MSign), „Motivul retragerii” per the service (AC-11; required → „Câmpul este
-        obligatoriu.”), red „Retrage cererea →”;
-     2. the MSign step (AC-12): the same dialog with the MSign badge — „Anulează” leaves everything as it was;
-     3. back from MSign (?retras=<id>&motiv=…, like ?achitat= from MPay): „Retrasă”, unpaid note cancelled, refund only
-        for „Restituire”, Istoric + MNotify, the library success toast (return-toast-v1). */
+  /* ---------- „Retrage cererea” (rtr-v1, US-413; rtr-fo-v1 2026-11-26) ----------
+     The Cabinet only links to the Front Office withdrawal flow (foUrl(dosar, "withdraw"), new tab): summary, consequences,
+     „Motivul retragerii”, MSign, confirmation. Back with ?retras=<id>&motiv=… (like ?achitat= from MPay): „Retrasă”,
+     unpaid note cancelled, refund only for „Restituire”, Istoric + MNotify, the library success toast (return-toast-v1). */
   const newRequestUrl = () => `${FO}?${new URLSearchParams({ flow: "full", solicitant: C.SUBJECT }).toString()}#request`;
-  const MSIGN_LOGO = C.SPRITE.replace(/icons\/sprite\.svg.*$/, "logos/m-platforms/m-sign.svg");
-  function confirmWithdraw(dosar, trigger) {
-    const R = W();
-    const cfg = wdConfig(dosar);
-    const unpaid = Boolean(dosar.payment) && !["Achitat", "Anulat"].includes(dosar.payment.status) && dosar.status === "achitare";
-    let reason = "";
-    window.GEAPStartDialog.open({
-      title: "Retragerea cererii",
-      subtitle: dosar.object || serviceOf(dosar).title || "",
-      consequence: R.consequence(),
-      tone: "error",
-      destructive: true,
-      primaryLabel: "Retrage cererea",
-      facts: [{ icon: "credit-card", text: R.feeFact(cfg, { unpaid }) }, { icon: "signature", text: "Semnare MSign" }],
-      fieldsHtml: R.reasonFieldHtml({ id: "sm-rtr-reason", mode: cfg.reason }),
-      onOpen: (el) => R.bindReason(el),
-      focus: cfg.reason === "exclus" ? "" : "#sm-rtr-reason",
-      validate: (el) => { const value = R.readReason(el, cfg.reason); if (value === null) return false; reason = value; return true; },
-      onStart: () => signWithdrawal(dosar, reason, trigger),
-      trigger,
-    });
-  }
-  function signWithdrawal(dosar, reason, trigger) {
-    window.GEAPStartDialog.open({
-      title: "Semnare prin MSign",
-      subtitle: dosar.object || serviceOf(dosar).title || "",
-      text: "Semnezi cererea de retragere cu semnătura ta electronică. După semnare, dosarul se închide automat, fără acțiunea autorității.",
-      facts: [{ icon: "document", text: "Cererea de retragere" }, { icon: "person", text: state.user?.name || "Solicitant" }],
-      primaryHtml: `<button class="btn btn-badge btn-badge--primary btn-badge--msign" type="button" data-start-dialog-start data-sm-msign><span class="btn-badge__logo" aria-hidden="true"><img src="${escape(MSIGN_LOGO)}" alt=""></span><span class="btn-badge__label">Semnează prin msign</span></button>`,
-      onStart: () => window.location.assign(cabUrl("solicitari", { retras: dosar.id, motiv: reason }, `#dosar/${dosar.id}`)),
-      trigger,
-    });
-  }
   /* back from MSign: the request closes (AC-13…17) */
   function applyWithdrawal(dosar, reason) {
     const cfg = wdConfig(dosar);
@@ -783,25 +742,6 @@
     dosar.status = "retras";
     dosar.justAdded = true;
   }
-  /* AC-01: a direct call for a request that is not yours (or a read-only power) */
-  function renderDenied() {
-    C.setHeaderTitle("Solicitările mele");
-    document.title = "Acces interzis · EVO Cabinet";
-    ensureListShell().hidden = true;
-    const profileView = root.querySelector("[data-sm-profile-view]");
-    profileView.hidden = false;
-    profileView.innerHTML = `
-      <article class="cab-profile sm-profile" aria-label="Acces interzis" data-sm-denied>
-        ${C.notFoundHtml({
-          back: { label: "Solicitările mele", href: C.pageAddress({}, ""), attr: "data-sm-back" },
-          title: "Acces interzis",
-          text: "Poți retrage doar cererile tale sau ale persoanei pe care o reprezinți prin MPower.",
-          icon: "lock",
-        })}
-      </article>`;
-    window.scrollTo(0, 0);
-  }
-
   /* ---------- profile (US-161) ---------- */
 
   /* BO detail rows / card / section (CabEvo, css/bo-profile-parts.css) */
@@ -1098,9 +1038,11 @@
         break;
     }
     /* rtr-v1 (US-413): „Retrage cererea” = red outline, last; header-max-two-v1 like every action (≤ 2 = buttons,
-       ≥ 3 = 2 + „⋯”, rtr-header-v1 2026-11-25); blocked = aria-disabled + the reason (tooltip / reason line in the menu) */
+       ≥ 3 = 2 + „⋯”, rtr-header-v1 2026-11-25). rtr-fo-v1 (2026-11-26): a new-tab link to the FO withdrawal flow, as
+       „Depune o cerere nouă”; blocked = the same look, aria-disabled + the reason (tooltip / reason line in the menu) */
     const wd = withdrawState(dosar);
-    if (wd.show) buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="withdraw" data-sm-id="${escape(dosar.id)}"${wd.reason ? ` aria-disabled="true" data-tooltip-reason="${escape(wd.reason)}" aria-description="${escape(wd.reason)}"` : ""}>${icon("icon-circle-x")}<span>Retrage cererea</span></button>`);
+    if (wd.show && !wd.reason) buttons.push(newTabLink("btn-outline-destructive", foUrl(dosar, "withdraw"), "Retrage cererea", `data-sm-action="withdraw" data-sm-id="${escape(dosar.id)}"`));
+    else if (wd.show) buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="withdraw" data-sm-id="${escape(dosar.id)}" aria-disabled="true" data-tooltip-reason="${escape(wd.reason)}" aria-description="${escape(wd.reason)}"><span>Retrage cererea</span>${icon("icon-external-link")}</button>`);
     /* profile-phone-v1 (2026-10-21): the secondaries give way first — what does not fit beside the primary goes into
        the trailing „⋯” (C.watchHeaderActions, the act header's priority+); never wraps to a second row */
     const secondaries = buttons.filter((html) => !html.includes("btn-primary"));
@@ -1549,16 +1491,6 @@
       state.notice = { tone: "banner--info", icon: "icon-circle-info-filled", html: `Schița <strong>${escape(removed.object)}</strong> (${escape(removed.nr)}) a fost eliminată automat pe ${escape(longDate(removed.draft?.expires))}, la expirarea termenului de păstrare. Datele nu mai pot fi recuperate; poți începe o solicitare nouă din <a class="link link-primary link-sm" href="${escape(cabUrl("catalog"))}">Catalogul serviciilor</a>.`, attrs: "data-sm-removed-notice" };
     }
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
-    /* rtr-v1 (US-413 AC-01): #dosar/<id>/retragere = the direct call — yours and available → the profile + the dialog;
-       not yours → „Acces interzis” */
-    if (match?.[2] === "retragere") {
-      if (!dosar) { renderDenied(); return; }
-      state.tab = "general";
-      renderProfile(dosar);
-      const wd = withdrawState(dosar);
-      if (wd.show && !wd.reason) confirmWithdraw(dosar, [...root.querySelectorAll('[data-sm-profile] [data-sm-action="withdraw"], [data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]')].find((el) => el.getClientRects().length));
-      return;
-    }
     state.tab = match?.[2] || "general";
     if (dosar) renderProfile(dosar);
     /* act-profile-url-v1: an address that matches no request = the not-found state (breadcrumb back to the list) */
@@ -1862,17 +1794,9 @@
           confirmAppeal(dosar, action.getAttribute("href"), trigger);
           return;
         }
-        /* rtr-v1: a blocked „Retrage cererea” does nothing (its reason is the tooltip / the line under it); otherwise the
-           dialog, focus back on the ⋮ / „⋯” that opened the menu */
-        if (action.dataset.smAction === "withdraw") {
-          event.preventDefault();
-          if (action.getAttribute("aria-disabled") === "true" || !dosar) return;
-          const menu = action.closest(".cab-menu");
-          const trigger = menu ? root.querySelector(`[aria-controls="${menu.id}"]`) : action;
-          C.closeMenus();
-          confirmWithdraw(dosar, trigger);
-          return;
-        }
+        /* rtr-v1: a blocked „Retrage cererea” does nothing (its reason is the tooltip / the line under it); available =
+           the FO link (rtr-fo-v1), handled as every link below */
+        if (action.dataset.smAction === "withdraw" && action.getAttribute("aria-disabled") === "true") { event.preventDefault(); return; }
         if (action.tagName === "A") { C.closeMenus(); return; } /* links navigate (FOD2, act profile) */
         event.preventDefault();
         C.closeMenus();
