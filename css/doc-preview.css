@@ -1425,11 +1425,12 @@
     border-top: 0;
   }
 
-  /* the canvas = its page(s): no window of its own */
+  /* the canvas = its page(s): no window of its own, but the grey fills the body */
   .modal.e-permits-detail-modal--doc > .modal-content > .e-permits-detail-modal__preview:not(.e-permits-doc-peek__canvas--state),
   .rap-act-modal__dialog > .rap-act-modal__body > .rap-act-modal__canvas:not(.e-permits-doc-peek__canvas--state),
   .e-permits-fo-doc-modal > .cab-doc-modal__body--doc > .cab-doc-modal__preview {
-    flex: none;
+    /* doc-canvas-fill-v1: grows to the whole body when the page is shorter (never shrinks below its pages) */
+    flex: 1 0 auto;
     max-height: none;
     overflow: visible;
   }
