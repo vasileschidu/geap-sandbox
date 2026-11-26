@@ -85,3 +85,7 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 
 ## Lessons
 Lessons live in `.claude/playbooks/proto-engineer-lessons.md` (archive, ~114k tokens). Never read it whole: grep it for the topic of your job (component, board, screen, API call) and read only the matching lessons. Append new lessons there, ≤ 3 lines each.
+
+- **Reuse existing patterns (user rule 2026-11-24):** before building, find where the same data / situation is already shown (grep helpers + components.md, screenshot it) and reuse that pattern or layout 1:1 — shared helper in code, same instance in Figma. Two renderings of one thing = unify, never add a third.
+
+- **HARD RULE (2026-11-26, user „DO A RULE”, repeated misses): icon colour = label colour on EVERY control** — red (danger) label → red icon (Figma: bind to icon/danger/default; code: one global rule), disabled grey → grey icon; never a purple/black/filled icon next to a red label. Avatar initials white on dark seeds. Ending outcomes (retras/radiat/respins) = neutral Info toast. Check every block/state before reporting (audit rule `danger-icon-colour`).

@@ -55,6 +55,8 @@ no remove). The main session fixes what you report.
 - tight gaps (< 8px between text / notices / cards and neighbours) and off-rhythm block gaps vs the code;
 - `dropdown-effect` (menus: style + clip + radius token, no border), cut / clipped content or menus;
 - `table-clip`: every table frame and its scroll box clip content (GEAP 12593:37279); open menus / tooltips live outside it;
+- `container-clip` (2026-11-20, major): containers AROUND a screen (Block · …, column / section wrappers, „Ecrane” wrappers) have clip content OFF — clipping cuts the screen's 4px outside border (ref GEAP 2.0 · Admin 145:7832); only the screen frame and table scroll boxes clip;
+- `filter-square` (2026-11-20, major): every Filtrare / Filtre / Sortează trigger = filter chip 1244:34029 with the BUTTON radius (8 at 40 and 48, token-bound), never a round pill (ref GEAP 2.0 · Admin 136:4498);
 - `viewport-fit` (user 2026-10-25): a screen with an open modal / dialog / drawer / sheet that fits the viewport (desktop 900,
   phone 812; dialog h + 48, phone sheet content + 16, drawer content, full-window sheet content + top inset) is FIXED at
   900 / 812 with clip on — the page behind is cut at the viewport bottom (not a `clipped-content` finding), screen radius +
@@ -65,6 +67,10 @@ no remove). The main session fixes what you report.
   page's bottom padding as drawn from the code, lowest open menu / popover + 24 so it is never cut). ≥ 8 px more = FAIL.
   Ghișeu full-window sheets hug their sheet; screens with a fitting open dialog stay FIXED 900 / 812 (`viewport-fit`).
   Fix with `tools/figma/viewport-fit/hug.js` (dry run → apply → dry run `todo` 0), columns restacked with gaps unchanged;
+- `responsive` (user 2026-11-12): run figma-audit.js with RESPONSIVE = true. Widened to 1920 (1920 screens → 2560): sidebar fixed,
+  gov bar / top bar / page header / tab bar + track line = screen − sidebar; content FILL + maxWidth (1280 two-column / lists / dashboards /
+  report results, 1024 single-column profiles / forms; the 16 gutter outside the cap) and centred; tables FILL in a clipping scroll frame;
+  no FIXED > 400 except icons / avatars / buttons / dialogs / drawers / sheets; open overlays stretch, dialogs stay centred. Any resp-* = FAIL.
 - differences from the code capture (content, states, components, layout).
 Report PASS / FAIL per block. Any FAIL = not done.
 
@@ -75,3 +81,5 @@ Write `tools/ui-qa/out/figma/qa.json` — an array of
 style / spacing token to use" }` and reply with: counts by severity, the major findings one line
 each (with node ids), and the false positives you dropped.
 - Tabs track line (user 2026-11-07, „border missing… do rule for future”): every tab bar has the grey 1 px bottom track line (stroke bottom 1, INSIDE, `border/base/default`) on the bar or its full-width wrapper; the selected tab's blue line sits on it. Captures drop it — add it after every capture; figma-audit rule `tabs-track` flags it.
+
+- **HARD RULE (2026-11-26, user „DO A RULE”, repeated misses): icon colour = label colour on EVERY control** — red (danger) label → red icon (Figma: bind to icon/danger/default; code: one global rule), disabled grey → grey icon; never a purple/black/filled icon next to a red label. Avatar initials white on dark seeds. Ending outcomes (retras/radiat/respins) = neutral Info toast. Check every block/state before reporting (audit rule `danger-icon-colour`).

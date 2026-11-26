@@ -38,7 +38,7 @@
 //                       (user rule: whole pixels only) — fix the cause (odd centring space, FILL split, captured fractions)
 //  tight-gap            (2026-10-16) a vertical auto-layout gap < 8 next to a block-like child (notice / message / card /
 //                       field / document / identity / authorization card, or a filled / stroked frame with radius ≥ 8); a block right
-//                       under a `Section header` instance is exempt (padding, no gap — the heading's own 11 px inset, 2026-11-02)
+//                       under a `Section header` instance is exempt (padding, no gap — the heading's own 11 px inset, 2026-11-02; or right above one, 2026-11-09)
 //  filter-icon-sliders  (2026-11-02, user: „again wrong icon”) a „20/filter” (SLIDERS glyph) inside a chip / button whose
 //                       name or label says Filtr* — must be Foundations „filter-2, sort” 9644:319 (= code icon-filter-lines);
 //                       swapComponent the nested icon, keep the colour binding
@@ -79,7 +79,15 @@
 //  ring-no-clip         (2026-10-26) an open / focused control with the focus-ring effect but clip content OFF (ring invisible)
 //  nav-active-icon-colour (2026-10-24) an Active sidebar-list-item whose icon (masked slot „Icon colour”, or the glyph's own
 //                       paint) resolves to a different colour than its label — code: active icon = label = brand
+//  responsive           (2026-11-12, user: „a screen made wider must behave like the code”) OPT-IN: set RESPONSIVE = true. Every
+//                       desktop screen under ROOTS (≥ 1000 wide, child of a Block / Screens frame) is duplicated off-canvas,
+//                       widened (1440 → 1920, 1920 → 2560), measured and the duplicate deleted — see RESPONSIVE_CHECK below
+//                       (rules resp-shell / header-width / no-cap / cap / cap-padding / left-stuck / not-centred / fixed-width /
+//                       overflow / clipped / overlay). The only write is the temporary duplicate. A stored copy of the function lives
+//                       in root shared plugin data „qaresp” / „fn” for batch drivers: new Function("return (" + src + ")")().
+//                       Keep calls ≤ ~45 s (≈ 8–25 screens): longer calls drop the MCP transport.
 const ROOTS = ["PUT:NODE-IDS-HERE"];
+const RESPONSIVE = false;
 const SPACING = [0, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240]; // 1 removed 2026-10-15: 1 px padding = border artifact
 const TOKENS = [2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 120]; // Foundations › 3. Sizes spacings/*
 const RADIUS = [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 999, 9999];
@@ -218,7 +226,9 @@ for (const rid of ROOTS) {
       const kids = n.children.filter((k) => k.visible !== false && k.layoutPositioning !== "ABSOLUTE");
       const blocky = (k) => (k.type === "INSTANCE" && /message|info-note|inline-message|Document|Identity card|Authorization card|New request|Act row|lookup|select|text-input|search/i.test(k.name)) || (k.type === "FRAME" && typeof k.cornerRadius === "number" && k.cornerRadius >= 8 && ((Array.isArray(k.fills) && k.fills.some((p) => p.visible !== false)) || (Array.isArray(k.strokes) && k.strokes.some((p) => p.visible !== false))));
       /* padding, no gap (2026-11-02, aut col 04): a block right under a section-header instance (its 48 heading = 11 px own inset) stacks at gap 0 */
-      const padded = (k, i, arr) => i > 0 && arr[i - 1].type === "INSTANCE" && /^Section header|section-heading/i.test(arr[i - 1].name);
+      /* + (2026-11-09, rapoarte 06b) a block right ABOVE a section header (or a section frame that starts with one) = same 11 px inset */
+      const isHead = (x) => !!x && x.type === "INSTANCE" && /^Section header|section-heading/i.test(x.name);
+      const padded = (k, i, arr) => (i > 0 && isHead(arr[i - 1])) || (i < arr.length - 1 && (isHead(arr[i + 1]) || ("children" in arr[i + 1] && isHead(arr[i + 1].children[0]))));
       if (kids.length > 1 && kids.some((k, i, arr) => blocky(k) && !padded(k, i, arr))) add("tight-gap", n, `gap ${n.itemSpacing} [${kids.map((k) => k.name.slice(0, 14)).join(", ").slice(0, 80)}]`);
     }
     // Filtre / Filtrare chip icon = filter-2 (lines), never 20/filter (sliders) (2026-10-30 / 2026-11-02)
@@ -304,6 +314,30 @@ for (const rid of ROOTS) {
         if (a && b && a !== b) add("icon-colour-override", n, `icon ${b} ≠ label ${a} (resolved)`);
       }
     }
+    /* danger-icon-colour (2026-11-26, user: „DO A RULE”): ANY control — button, link, menu item, row action, whatever its
+       name — whose label is danger red must have a red icon too (icon = label colour). Catches menu items („Item · …”),
+       link-buttons and captured frames the button rule above misses. Fix: bind the icon paints to icon/danger/default. */
+    if ((n.type === "INSTANCE" || n.type === "FRAME") && n.height <= 64 && "findAll" in n) {
+      const texts = n.findAll((k) => k.type === "TEXT" && k.visible !== false);
+      const lab = texts.length === 1 ? texts[0] : null;
+      const lp = lab && Array.isArray(lab.fills) && lab.fills[0] && lab.fills[0].type === "SOLID" ? lab.fills[0] : null;
+      if (lp) {
+        const a = (await rgbOf(lab, lp) || "").split(",").map(Number);
+        const isRed = (c) => c.length === 3 && c[0] > 180 && c[1] < 90 && c[2] < 90;
+        if (isRed(a)) {
+          const icons = n.findAll((k) => (k.type === "INSTANCE" || k.type === "FRAME") && k !== n && k.width <= 24 && k.height <= 24 && k.visible !== false && !(k.findOne && k.findOne((x) => x.type === "TEXT")));
+          for (const ic of icons) {
+            const shapes = ic.findAll ? ic.findAll((x) => /VECTOR|BOOLEAN_OPERATION|ELLIPSE|LINE|RECTANGLE|POLYGON|STAR/.test(x.type) && x.visible !== false) : [];
+            for (const s of shapes) for (const prop of ["fills", "strokes"]) {
+              const p = Array.isArray(s[prop]) && s[prop][0] && s[prop][0].type === "SOLID" && s[prop][0].visible !== false ? s[prop][0] : null;
+              if (!p) continue;
+              const b = (await rgbOf(s, p) || "").split(",").map(Number);
+              if (!isRed(b)) { add("danger-icon-colour", n, `red label „${lab.characters.slice(0, 30)}” but icon ${b.join(",")} (${ic.id}) — bind to icon/danger/default`); break; }
+            }
+          }
+        }
+      }
+    }
     /* side-menu item (2026-10-24, sidebar-active-icon-v1): an Active item's icon = its label colour (brand).
        GEAP sidebar-list-item 6347:28130 colours the glyph through a masked slot: Icon › Glyph (mask) + „Icon colour” rect. */
     if (n.type === "INSTANCE" && /State=Active/.test(n.name + " " + ((n.mainComponent && n.mainComponent.name) || "")) && n.mainComponent && n.mainComponent.parent && /sidebar-list-item/.test(n.mainComponent.parent.name)) {
@@ -320,4 +354,127 @@ for (const rid of ROOTS) {
     }
   }
 }
+if (RESPONSIVE) {
+  for (const rid of ROOTS) {
+    const root = await figma.getNodeByIdAsync(rid); if (!root || !("findAll" in root)) continue;
+    let pg = root; while (pg && pg.type !== "PAGE") pg = pg.parent; if (pg) await figma.setCurrentPageAsync(pg);
+    const screens = [root, ...root.findAll(() => true)].filter((s) => s.type === "FRAME" && s.width >= 1000 && s.height >= 400 && s.parent &&
+      (/^Block\s*[·-]/.test(s.parent.name || "") || /^(Screens|Screen pair|Row)/i.test(s.parent.name || "")) && !/^(Screen label|Note|Label|Screens)/i.test(s.name));
+    for (const s of screens) { const r = await RESPONSIVE_CHECK(s, { width: s.width >= 1900 ? 2560 : 1920 }); for (const f of r.findings) add(f.rule, { id: f.nodeId, name: f.name }, f.detail); }
+  }
+}
 return { roots: ROOTS, counts, findings };
+
+// >>> responsive (2026-11-12, user: „a screen made wider must behave like the code”) — reusable, self-contained.
+// RESPONSIVE_CHECK(screen, opts) duplicates the screen off-canvas, resizes the copy to opts.width (1920), measures, deletes the
+// copy (always, try/finally) and returns { id, name, w0, edge, counts, findings: [{ rule, nodeId, name, detail }] } — node ids are the
+// ORIGINAL nodes. The only write is the temporary duplicate. Rules:
+//  resp-shell        Main (everything right of the fixed sidebar) is not screen − sidebar wide
+//  resp-header-width gov bar / top bar / page header / page tab bar (+ its track line) not edge to edge (screen − sidebar; gov bar = screen)
+//  resp-no-cap       content (grid, table, card, row, leaf stack) stretches past the cap (1280) — no maxWidth
+//  resp-cap          a content box that stopped growing is still wider than the cap
+//  resp-cap-padding  a capped box whose maxWidth (1024 / 1280) includes its own padding → content 32 narrower than the code
+//  resp-left-stuck   a content box stopped growing and kept its left x (margins unequal) — should centre (parent counter-axis CENTER)
+//  resp-not-centred  a content box stopped growing, margins unequal (moved, but not centred)
+//  resp-fixed-width  in-flow FIXED width > 400 in a parent that grew, not an allowed fixed type (icon, avatar, button, sidebar, dialog, drawer…)
+//  resp-overflow     a child extends past its parent (no clip) at the new width but not at the original
+//  resp-clipped      a child is cut by a clipping parent at the new width but not at the original (tables in scroll boxes exempt)
+//  resp-overlay      an open overlay does not stretch with the screen / its dialog is not centred / its drawer leaves the right edge
+async function RESPONSIVE_CHECK(screen, opts) {
+  opts = opts || {};
+  const W = opts.width || 1920, CAP = opts.cap || 1280, TOL = 1, MIN = opts.minWidth || 400, MAXF = opts.maxFindings || 30;
+  const findings = [], counts = {};
+  const add = (rule, o, detail) => { counts[rule] = (counts[rule] || 0) + 1; if (findings.length < MAXF) findings.push({ rule, nodeId: o.id, name: String(o.name || "").slice(0, 40), detail }); };
+  const OVL = /overlay|scrim|backdrop|modal|dialog|drawer|sheet|popover|dropdown|\bmenu\b|tooltip|toast|cursor|anchor/i;
+  const HEAD = /^(Shell \/ (Gov bar|Header)|Profile \/ Header|Page header|page-header|Top ?bar|Header|Main Navigation)\b|\/ Top bar\b|^Header \(|page header/i;
+  const NOT_HEAD = /section|table|card|cell|column|drawer|modal|sheet|dialog|\brow\b|group|list|widget|filter|note|label/i;
+  const ALLOW_FIXED = /icon|avatar|button|btn|sidebar|\bnav\b|navigation|dialog|modal|drawer|sheet|overlay|scrim|menu|dropdown|popover|tooltip|toast|cursor|anchor|glyph|badge|\btag\b|logo|palette|properties/i;
+  const isHead = (n) => HEAD.test(n.name) && !NOT_HEAD.test(n.name);
+  const isTabBar = (n) => (n.type === "INSTANCE" && /(profile|status) tabs|^tabs\b/i.test(n.name)) || (n.type !== "INSTANCE" && "children" in n && n.children.filter((k) => k.type === "INSTANCE" && /^tab/i.test(k.name) && k.visible !== false).length >= 2);
+  const inFlow = (k) => k.visible !== false && k.layoutPositioning !== "ABSOLUTE" && k.type !== "CONNECTOR";
+  const relX = (n, root) => Math.round(n.absoluteTransform[0][2] - root.absoluteTransform[0][2]);
+  const box = (n, root) => ({ x: relX(n, root) + (n.paddingLeft || 0), w: n.width - (n.paddingLeft || 0) - (n.paddingRight || 0) });
+  const R = Math.round;
+  const clone = screen.clone();
+  figma.currentPage.appendChild(clone);
+  try {
+    clone.x = -400000; clone.y = -400000;
+    const al = clone.layoutMode === "VERTICAL" || clone.layoutMode === "HORIZONTAL";
+    const hugV = al && (clone.layoutMode === "VERTICAL" ? clone.primaryAxisSizingMode === "AUTO" : clone.counterAxisSizingMode === "AUTO");
+    clone.resize(W, clone.height);
+    if (hugV) { if (clone.layoutMode === "VERTICAL") clone.primaryAxisSizingMode = "AUTO"; else clone.counterAxisSizingMode = "AUTO"; }
+    const pairs = [];
+    const walk = (o, c, d, ov) => { pairs.push([o, c, d, ov]); if (o.type === "INSTANCE" || !("children" in o) || d > 16) return; const n = Math.min(o.children.length, c.children.length); for (let i = 0; i < n; i++) walk(o.children[i], c.children[i], d + 1, ov || OVL.test(o.children[i].name)); };
+    walk(screen, clone, 0, false);
+    const origOf = new Map(pairs.map((p) => [p[1].id, p[0]]));
+    // shell: fixed sidebar + Main
+    let side = null, main = null;
+    for (const [o, c, d, ov] of pairs) if (!side && !ov && d <= 4 && c.visible !== false && /^sidebar/i.test(c.name) && o.width <= 400 && inFlow(c)) side = c;
+    if (side) main = side.parent.children.find((k) => k.id !== side.id && inFlow(k) && k.width > 300) || null;
+    const edge = side ? W - R(side.width) : W;
+    const mainC = main || clone, mainO = origOf.get(mainC.id) || screen;
+    const oEdge = R(mainO.width);
+    if (main && Math.abs(main.width - edge) > TOL) add("resp-shell", mainO, `Main ${R(main.width)} ≠ ${edge} (screen ${W} − sidebar ${R(side.width)})`);
+    // headers + page tab bars
+    for (const [o, c, d, ov] of pairs) {
+      if (ov || d === 0 || !inFlow(c) || d > 9) continue;
+      if (/gov bar/i.test(c.name) && isHead(c)) { if (c.width < W - TOL) add("resp-header-width", o, `gov bar ${R(c.width)} ≠ ${W}`); continue; }
+      if (isHead(c) && (c.name !== "Header" || o.width >= oEdge - TOL)) { if (c.width < edge - TOL) add("resp-header-width", o, `${R(c.width)} ≠ edge ${edge} (was ${R(o.width)} / ${oEdge})`); continue; }
+      if (isTabBar(c) && o.width >= 0.6 * oEdge) {
+        let carrier = c; const line = (x) => x && Array.isArray(x.strokes) && x.strokes.some((q) => q.visible !== false) && (x.strokeBottomWeight || 0) >= 1;
+        if (!line(c) && line(c.parent) && c.parent.type !== "PAGE") carrier = c.parent;
+        if (carrier.width < edge - TOL) add("resp-header-width", origOf.get(carrier.id) || o, `tab bar track ${R(carrier.width)} ≠ edge ${edge}`);
+      }
+    }
+    // content: FILL to the cap, then centred
+    const leafy = (n) => n.type === "INSTANCE" || n.type === "TEXT" || !("children" in n) || n.layoutMode === "GRID" || (n.layoutMode === "HORIZONTAL" && n.children.filter(inFlow).length >= 2) ||
+      (Array.isArray(n.strokes) && n.strokes.some((s) => s.visible !== false)) || (typeof n.cornerRadius === "number" && n.cornerRadius > 0) || !n.children.some((k) => inFlow(k) && "children" in k);
+    const content = (c, d) => {
+      if (d > 12 || !("children" in c) || c.type === "INSTANCE") return;
+      const pb = box(c, clone), o = origOf.get(c.id);
+      for (const k of c.children) {
+        if (!inFlow(k) || OVL.test(k.name) || isHead(k) || isTabBar(k) || /sidebar/i.test(k.name)) continue;
+        const ko = origOf.get(k.id); if (!ko || ko.width < MIN || k.type === "TEXT") continue;
+        if (c.layoutMode === "HORIZONTAL") { content(k, d + 1); continue; } // columns: resp-fixed-width covers them
+        const w = k.width, kx = relX(k, clone);
+        if (w >= pb.w - TOL) { if (w > CAP + TOL && leafy(k)) add("resp-no-cap", ko, `stretches to ${R(w)} — no maxWidth ${CAP}`); else content(k, d + 1); continue; }
+        const pads = (k.paddingLeft || 0) + (k.paddingRight || 0);
+        if (w - pads > CAP + TOL) add("resp-cap", ko, `content box ${R(w)} (content ${R(w - pads)}) > cap ${CAP}`);
+        if (k.maxWidth && pads > 0 && k.type !== "INSTANCE" && [1024, 1280].includes(R(k.maxWidth))) add("resp-cap-padding", ko, `maxWidth ${R(k.maxWidth)} includes padding ${k.paddingLeft}/${k.paddingRight} → content ${R(w - pads)}; code = content ${R(k.maxWidth)}, gutter outside (maxWidth ${R(k.maxWidth) + pads})`);
+        const l = kx - pb.x, r = pb.x + pb.w - (kx + w);
+        if (Math.abs(l - r) > TOL) {
+          const ob = o ? box(o, screen) : null, ol = ob ? relX(ko, screen) - ob.x : null;
+          if (ol !== null && Math.abs(ol - l) <= TOL) add("resp-left-stuck", ko, `${R(w)} wide, x stays ${R(l)} — margins ${R(l)} / ${R(r)}`);
+          else add("resp-not-centred", ko, `${R(w)} wide, margins ${R(l)} / ${R(r)}`);
+        }
+      }
+    };
+    content(mainC, 0);
+    // fixed widths, overflow, clipping
+    for (const [o, c, d, ov] of pairs) {
+      if (ov || d === 0 || !inFlow(c) || !c.parent || c.parent.type === "PAGE") continue;
+      const p = c.parent, po = o.parent;
+      const pal = p.layoutMode === "VERTICAL" || p.layoutMode === "HORIZONTAL" || p.layoutMode === "GRID";
+      if (pal && c.layoutSizingHorizontal === "FIXED" && c.width > MIN && !ALLOW_FIXED.test(c.name) && p.width > po.width + TOL) add("resp-fixed-width", o, `FIXED ${R(c.width)} while ${String(p.name).slice(0, 24)} grew ${R(po.width)}→${R(p.width)}`);
+      const over = Math.max(c.x + c.width - p.width, -c.x), oOver = Math.max(o.x + o.width - po.width, -o.x);
+      if (over > TOL && oOver <= TOL) {
+        if (p.clipsContent) { if (!/table|scroll/i.test(c.name + " " + p.name)) add("resp-clipped", o, `cut ${R(over)} by ${String(p.name).slice(0, 24)}`); }
+        else add("resp-overflow", o, `extends ${R(over)} past ${String(p.name).slice(0, 24)}`);
+      }
+    }
+    // open overlays
+    for (const c of clone.children) {
+      if (c.visible === false || !(c.layoutPositioning === "ABSOLUTE" || !al) || !/overlay|scrim|backdrop/i.test(c.name)) continue;
+      const o = origOf.get(c.id); if (!o || o.width < screen.width - TOL) continue;
+      if (c.width < W - TOL) { add("resp-overlay", o, `overlay ${R(c.width)} ≠ ${W}`); continue; }
+      if (!("children" in c)) continue;
+      let dl = null; for (const k of c.children) if (k.visible !== false && k.width < c.width - 2 && k.height >= 120 && (!dl || k.width * k.height > dl.width * dl.height)) dl = k;
+      if (!dl) continue;
+      const dO = origOf.get(dl.id), l = dl.x, r = c.width - dl.x - dl.width;
+      if (/drawer|sheet|panel/i.test(dl.name)) { if (r > (dO ? screen.width - dO.x - dO.width : 0) + TOL) add("resp-overlay", dO || o, `drawer left the right edge (${R(r)} px gap)`); }
+      else if (Math.abs(l - r) > TOL) add("resp-overlay", dO || o, `dialog not centred: ${R(l)} / ${R(r)}`);
+    }
+    return { id: screen.id, name: screen.name, w0: R(screen.width), edge, counts, findings };
+  } finally { if (!clone.removed) clone.remove(); }
+}
+// <<< responsive
