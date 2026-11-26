@@ -33,7 +33,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire", "#retragere", "#contestatie"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire", "#retragere", "#contestatie", "#digitalizare"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -57,6 +57,8 @@
     const frontOfficeWithdrawScreen = document.querySelector("[data-fo-screen='withdraw']");
     /* US-418 „Contestarea deciziei” (con-v1) */
     const frontOfficeAppealScreen = document.querySelector("[data-fo-screen='appeal']");
+    /* US-415 „Digitalizarea actului emis pe hârtie” (dig-v1) */
+    const frontOfficeDigScreen = document.querySelector("[data-fo-screen='digitize']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -4408,6 +4410,7 @@
         supplement: frontOfficeSupplementScreen,
         withdraw: frontOfficeWithdrawScreen,
         appeal: frontOfficeAppealScreen,
+        digitize: frontOfficeDigScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -4419,13 +4422,13 @@
          (same "keep the stepper on the left" treatment as the real wizard),
          so it needs the same full-width, top-aligned chrome — not the
          centered-card chrome auth/choice use. */
-      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal";
+      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal" || screen === "digitize";
       frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
       frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         /* the intent screen already has an identity, so the header shows it */
-        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal";
+        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement" || screen === "withdraw" || screen === "appeal" || screen === "digitize";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -4462,6 +4465,9 @@
       }
       if (screen === "appeal") {
         frontOfficeAppealScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "digitize") {
+        frontOfficeDigScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -4918,7 +4924,8 @@
     function setGuestFieldError(input, message) {
       const field = input?.closest(".e-permits-fo-field");
       if (!field) return;
-      const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-phone--editable, .search-input.e-permits-workplace__search");
+      /* dig-v1: an FO select gets the same red frame + message (its `.is-error` look already exists) */
+      const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-select, .e-permits-fo-phone--editable, .search-input.e-permits-workplace__search");
       /* also the Form Builder fields (registry lookups, Preview „Validează”) */
       const hint = field.querySelector("[data-fo-guest-hint], [data-fo-field-hint]") || field.querySelector(":scope > .e-permits-fo-field__hint");
       let error = field.querySelector(`[${GUEST_ERROR_ATTR}]`);
@@ -5696,7 +5703,8 @@
         frontOfficeIntentConfig()
         && subject
         && subject.scenario !== "notarial-proxy"
-        && intentActs(subject).length > 0
+        /* dig-v1 (US-415 AC-03): with «Digitalizare permisă» there is a choice even without issued acts */
+        && (intentActs(subject).length > 0 || Boolean(window.GEAPDigitalizare?.allowed(intentServiceCode())))
       );
     }
 
@@ -5723,7 +5731,9 @@
     }
 
     function intentAllActs(subject, config = frontOfficeIntentConfig()) {
-      return (config?.acts?.[subject?.id] || [])
+      /* dig-v1 (US-417 AC-13, demo ?dig-cerere=confirmata): the digitized act can start the service's post-processes */
+      const digAct = subject?.id === "pj-global-trader" ? window.GEAPDigitalizare?.demoAct?.() : null;
+      return [...(digAct ? [digAct] : []), ...(config?.acts?.[subject?.id] || [])]
         .map((act) => ({ ...act, postProcesses: availablePostprocesses(act, config) }));
     }
 
@@ -5752,12 +5762,12 @@
        moved out of this file byte-identical (scratch rowtest: 78 inputs, 0 differences) */
     const foActRowHtml = (act, opts) => window.GEAPActRow.html(act, opts);
     /* „Solicitare nouă”: a link-like card (arrow) — choosing it starts the request at once */
-    function foIntentNewHtml({ title = "Solicitare nouă", text = "Depui o cerere pentru un act nou", attrs = "data-fo-intent-new" } = {}) {
+    function foIntentNewHtml({ title = "Solicitare nouă", text = "Depui o cerere pentru un act nou", attrs = "data-fo-intent-new", icon = "plus-small" } = {}) {
       const esc = escapeFrontOfficeHtml;
       return `
         <button class="e-permits-fo-intent-new" type="button" ${attrs}>
           <span class="avatar avatar--sm avatar--icon e-permits-fo-intent-new__avatar" aria-hidden="true">
-            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-${esc(icon)}"></use></svg>
           </span>
           <span class="e-permits-fo-intent-new__copy">
             <span class="e-permits-fo-intent-new__title">${esc(title)}</span>
@@ -5769,7 +5779,7 @@
     /* the whole „Ce vrei să soliciți?” screen body — FO #intent and the Ghișeu request window (2026-10-15):
        header (title + „<label> <name> · Schimbă”), optional notice, „Solicitare nouă”, „sau”, the acts list
        (rows from foActRowHtml) or the shared empty state */
-    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Nu ai acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty", listHeadHtml = "" } = {}) {
+    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Nu ai acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty", listHeadHtml = "", digitize = null } = {}) {
       const esc = escapeFrontOfficeHtml;
       return `
         <header class="e-permits-fo-intent__header">
@@ -5785,7 +5795,10 @@
           </p>
         </header>
         ${noticeHtml}
-        ${foIntentNewHtml({ title: newRequest.title || "Solicitare nouă", text: newRequest.text || "", attrs: newAttrs })}
+        ${digitize
+          /* dig-v1 (US-415 AC-03 / US-416 AC-03): „Digitalizează un act istoric” next to „Solicitare nouă”, the same card */
+          ? `<div class="e-permits-fo-intent__new-group">${foIntentNewHtml({ title: newRequest.title || "Solicitare nouă", text: newRequest.text || "", attrs: newAttrs })}${foIntentNewHtml({ title: digitize.title, text: digitize.text, attrs: digitize.attrs, icon: "scan" })}</div>`
+          : foIntentNewHtml({ title: newRequest.title || "Solicitare nouă", text: newRequest.text || "", attrs: newAttrs })}
         <div class="e-permits-fo-intent__separator" role="separator"><span>${esc(separator)}</span></div>
         <section class="e-permits-fo-intent__acts" aria-labelledby="${esc(actsId)}">
           <p class="e-permits-fo-intent__acts-title" id="${esc(actsId)}">${esc(actsTitle)}</p>
@@ -5826,7 +5839,8 @@
         separator: config.separator || "sau",
         actsTitle: config.actsTitle,
         rowsHtml: acts.map(intentActHtml).join(""),
-        emptyTitle: config.emptyText || "Nu ai acte emise pentru serviciul dat."
+        emptyTitle: config.emptyText || "Nu ai acte emise pentru serviciul dat.",
+        digitize: window.GEAPDigitalizare?.allowed(intentServiceCode(config)) ? { title: window.GEAPDigitalizare.ACTION, text: "Înscrie în registru un act primit pe hârtie, ca să nu mai atașezi copia", attrs: "data-fo-intent-digitize" } : null
       });
     }
 
@@ -6805,6 +6819,324 @@
       }
     });
 
+    /* ===================================================================
+       US-415 (Azure 97578) „Digitalizarea actului emis pe hârtie” in the Front Office (dig-v1, 2026-11-26; Feature 97576;
+       PO: EVO Cabinet only shows and links). Entries: EVO Cabinet › Acte permisive › „Digitalizează un act istoric”
+       (?digitalizare=1 → the service choice, AC-02) · „Ce vrei să soliciți?” of a service with «Digitalizare permisă»
+       (?digitalizare=<code>, AC-03 / AC-04). The S4 column (as the appeal / the withdrawal), phases:
+         auth     ?dig-auth=0 — the form opens only after MPass (AC-01)
+         service  the choice among the services with «Digitalizare permisă» (AC-02)
+         form     Serviciul + Autoritatea emitentă read-only (AC-05 / AC-06) · the act's data (subdivision list or read-only
+                  when single, the service's act types — AC-07 / AC-08) · the holder from MConnect read-only (AC-12) ·
+                  the scanned copy (required, AC-13) + the annexes (optional, AC-14) · errors AC-10 / AC-11
+         sign     „Verificare și semnare”: the request, its documents, the generated request, MSign (AC-15); ?msign=eroare
+         done     „Dosarul a fost depus cu succes.” (AC-16) → „Mergi la Solicitările mele” (AC-17, ?digitalizat=…)
+       A service without «Digitalizare permisă» (unticked, US-414 AC-05) = the S4 alert card. Rule: GEAPDigitalizare.
+       =================================================================== */
+    const frontOfficeDigParam = new URLSearchParams(location.search).get("digitalizare") || "";
+    const frontOfficeDig = { phase: "", service: null, values: {}, files: { "dig-copie": "", "dig-anexe": "" }, notice: "", msignFailed: false, authed: false, nr: "" };
+    const digRule = () => window.GEAPDigitalizare;
+    function digPrefix() { return "dig"; }
+    function digHeaderHtml(title, lead = "") {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="fo-dig-title" tabindex="-1">${esc(title)}</h1>
+          ${frontOfficeSelectedSubject?.name ? `<p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Titular</span><span class="e-permits-fo-intent__subject-name">${esc(frontOfficeSelectedSubject.name)}</span></p>` : ""}
+        </header>${lead}`;
+    }
+    const digSection = (id, title, inner) => `
+        <section class="e-permits-fo-pp-request" aria-labelledby="${id}">
+          <h2 class="e-permits-dosar-profil__section-title" id="${id}">${escapeFrontOfficeHtml(title)}</h2>
+          ${inner}
+        </section>`;
+    function digCabinetUrl(extra = {}, hash = "") {
+      const query = new URLSearchParams({ view: "acte" });
+      const solicitant = suppParam("solicitant");
+      if (solicitant) query.set("as", solicitant);
+      if (suppParam("dig-permisa")) query.set("dig-permisa", suppParam("dig-permisa"));
+      Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
+      return `cabinet-evo/index.html?${query.toString()}${hash}`;
+    }
+    /* the holder (MConnect, read-only — AC-12) and the representative (MPower, AC-09) */
+    /* the form's groups = the FO request step sections (section header + 12-column body), as „Detalii serviciu” */
+    const digFormSection = (id, title, inner) => `
+        <section class="e-permits-fo-form__section" aria-labelledby="${id}">
+          <div class="e-permits-fo-section-header"><h2 id="${id}">${escapeFrontOfficeHtml(title)}</h2></div>
+          ${inner}
+        </section>`;
+    function digHolderHtml() {
+      const subject = frontOfficeSelectedSubject || {};
+      const rep = subject.representative;
+      const read = (id, label, value, span) => readonlyFieldHtml({ id, label, value, span });
+      return `<div class="e-permits-fo-form__section-body">
+        ${read("fo-dig-holder-id", subject.idLabel || (subject.type === "PJ" ? "IDNO" : "IDNP"), subject.idValue || "—", 6)}
+        ${read("fo-dig-holder-name", subject.type === "PJ" ? "Denumire" : "Nume și prenume", subject.name || "—", 6)}
+        ${rep ? read("fo-dig-rep", "Reprezentantul", `${rep.name} · împuternicire MPower valabilă`, 12) : ""}
+      </div>`;
+    }
+    const digDocField = (doc) => postprocessDocFieldHtml({ id: doc.id, label: doc.label, description: doc.description, required: doc.required, filesHtml: frontOfficeDig.files[doc.id] || "" })
+      .replace(`data-fo-doc-field="${doc.id}"`, `data-fo-doc-field="${doc.id}"${doc.maxFiles ? ` data-fo-doc-max="${doc.maxFiles}"` : ""}`)
+      .replace('class="e-permits-fo-doc-field__desc"', 'class="e-permits-fo-doc-field__desc" data-fo-guest-hint');
+    const digKeepFiles = () => {
+      ["dig-copie", "dig-anexe"].forEach((id) => {
+        const box = frontOfficeDigScreen?.querySelector(`[data-fo-doc-field="${id}"] [data-fo-doc-field-files]`);
+        if (box) frontOfficeDig.files[id] = box.innerHTML;
+      });
+    };
+    const digFileNames = (id) => {
+      const box = document.createElement("div");
+      box.innerHTML = frontOfficeDig.files[id] || "";
+      return [...box.querySelectorAll(".e-permits-fo-file-item[data-fo-doc]")].map((item) => { try { return JSON.parse(item.dataset.foDoc).fisier; } catch { return ""; } }).filter(Boolean);
+    };
+    /* the values back from the DOM (FO select = the selected option; date = the picker input dd/mm/yyyy) */
+    function digReadValues(body) {
+      const DG = digRule();
+      const out = {};
+      Object.entries(DG.KEYS).forEach(([key, suffix]) => {
+        const el = body.querySelector(`#fo-dig-${suffix}`);
+        if (!el) return;
+        if (el.matches(".e-permits-fo-select__button")) out[key] = el.closest("[data-fo-select]")?.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
+        else if (el.closest("[data-date-picker]")) out[key] = DG.isoOf(el.value);
+        else out[key] = el.value.trim();
+      });
+      return out;
+    }
+    function renderFrontOfficeDig() {
+      const body = frontOfficeDigScreen?.querySelector("[data-fo-dig-body]");
+      const DG = digRule();
+      if (!body || !DG) return;
+      const esc = escapeFrontOfficeHtml;
+      const card = (tone, title, text) => window.GEAPAlertCard?.html({ tone, title, text, role: "alert", id: "fo-dig-alert", sprite: "assets/icons/sprite.svg", className: "e-permits-fo-supp-alert" }) || "";
+      const backFooter = foStepFooterHtml({ customHtml: `<a class="btn btn-primary e-permits-fo-finish__cta" href="${esc(digCabinetUrl())}" data-fo-dig-cabinet><span>Mergi la Acte permisive</span></a>` });
+      const phase = frontOfficeDig.phase;
+      /* AC-01: MPass first */
+      if (phase === "auth") {
+        body.innerHTML = `${digHeaderHtml(DG.ACTION)}
+          ${card("info", "Autentifică-te ca să continui", "Cererea de digitalizare se depune doar după autentificarea prin MPass. Datele tale se preiau automat din registrele de stat.")}
+          <div class="e-permits-fo-dig__auth">
+            <button class="btn btn-badge btn-badge--primary btn-badge--mpass" type="button" data-fo-dig-auth>
+              <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-pass.svg" alt=""></span>
+              <span class="btn-badge__label">Autentifică-te prin mpass</span>
+            </button>
+          </div>`;
+        return;
+      }
+      if (phase === "closed") {
+        body.innerHTML = `${digHeaderHtml(DG.ACTION)}${card("warning", "Serviciul nu permite digitalizarea", "Pentru acest serviciu nu se mai pot depune cereri noi de digitalizare. Atașează copia actului la operațiunile ulterioare sau contactează autoritatea emitentă.")}${backFooter}`;
+        return;
+      }
+      if (phase === "none") {
+        body.innerHTML = `${digHeaderHtml(DG.ACTION)}${card("info", "Niciun serviciu nu permite digitalizarea", "Autoritățile nu au activat încă digitalizarea actelor emise pe hârtie. Atașează copia actului la operațiunile ulterioare.")}${backFooter}`;
+        return;
+      }
+      /* AC-02: the choice among the services with «Digitalizare permisă» */
+      if (phase === "service") {
+        const list = DG.allowedServices();
+        body.innerHTML = `${digHeaderHtml(DG.ACTION, foUi().renderNotice?.("info", "<strong>Înscrie în Registrul actelor permisive un act primit pe hârtie.</strong> Declari datele de pe act și atașezi copia scanată; autoritatea emitentă verifică actul. După înscriere nu mai atașezi copia la operațiunile ulterioare.") || "")}
+          <div class="e-permits-fo-form__section-body">
+            ${stepFieldHtml({ id: "dig-serviciu", type: "select", label: "Serviciul prin care a fost emis actul", required: true, value: frontOfficeDig.service?.title || "", options: list.map((s) => s.title), placeholder: "Alege serviciul", hint: "Doar serviciile care permit digitalizarea actelor." })}
+          </div>
+          ${foStepFooterHtml({ backAttrs: "data-fo-dig-back", backLabel: "Înapoi la Acte permisive", nextLabel: "Continuă", nextAttrs: "data-fo-dig-service-next" })}`;
+        window.GEAPFormRender?.bind(body);
+        return;
+      }
+      const service = frontOfficeDig.service;
+      if (phase === "sign") {
+        const signer = frontOfficeSelectedSubject?.representative?.name || frontOfficeSchema?.authenticatedUser?.name || "";
+        const formDoc = { sursa: "generat", tip: "Cererea de digitalizare a actului", fisier: `cerere-digitalizare-${String(frontOfficeDig.values.numar || "act").replace(/[^\w-]+/g, "-")}.pdf`, size: "68 KB", verb: "Generat", at: foDocStampNow(), de: "", semnat: false };
+        const rowsHtml = DG.summaryRows(service, frontOfficeDig.values).map(([label, value]) => `<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(label)}</span><span class="e-permits-dosar-profil__row-value">${esc(value)}</span></div>`).join("");
+        const files = ["dig-copie", "dig-anexe"].map((id) => frontOfficeDig.files[id]).join("");
+        const notes = frontOfficeDig.notice === "msign-error"
+          ? foUi().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost depusă; datele ei rămân neschimbate. Încearcă din nou.", { role: "alert" }) || "" : "";
+        body.innerHTML = `
+          ${digHeaderHtml("Verificare și semnare")}
+          ${digSection("fo-dig-review-title", "Cererea de digitalizare", `<div class="e-permits-dosar-profil__card">${rowsHtml}</div>`)}
+          ${digSection("fo-dig-review-docs-title", "Documente însoțitoare", `<div class="e-permits-fo-doc-field" data-fo-doc-field="dig-review"><div class="e-permits-fo-doc-field__files">${files}</div></div>`)}
+          ${digSection("fo-dig-review-doc-title", "Cererea de semnat", `<div class="e-permits-fo-summary-docs"><div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--system" data-fo-doc="${esc(JSON.stringify(formDoc))}">${foDocIconHtml(formDoc, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(formDoc, { open: true })}</div></div>`)}
+          ${notes ? `<div class="e-permits-fo-supp-status" data-fo-dig-status>${notes}</div>` : ""}
+          <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
+            <div class="e-permits-fo-form__actions">
+              <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
+                <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la datele actului" data-fo-dig-prev>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+                </button>
+                <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-dig-sign${signer ? ` aria-description="${esc(`Semnează ca ${signer}`)}"` : ""}>
+                  <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
+                  <span class="btn-badge__label">Semnează prin msign</span>
+                </button>
+              </div>
+            </div>
+          </footer>`;
+        body.querySelectorAll("[data-fo-doc-field='dig-review'] .e-permits-fo-doc-attached-item__remove").forEach((el) => el.remove());
+        return;
+      }
+      /* form (AC-05…AC-14) */
+      const read = (id, label, value) => readonlyFieldHtml({ id, label, value, span: 6 });
+      body.innerHTML = `
+        ${digHeaderHtml("Digitalizarea actului emis pe hârtie", foUi().renderNotice?.("info", "<strong>Declară datele exact cum apar pe actul de hârtie.</strong> Temeiul legal și datele specifice ale actului le completează autoritatea la examinare. Actul pe hârtie rămâne valabil.") || "")}
+        ${digFormSection("fo-dig-service-title", "Serviciul", `<div class="e-permits-fo-form__section-body">${read("fo-dig-svc", "Serviciul", service.title)}${read("fo-dig-auth-name", "Autoritatea emitentă", service.authorityName)}</div>`)}
+        ${digFormSection("fo-dig-act-title", "Datele actului", `<div class="e-permits-fo-form__section-body">${DG.fields(service, frontOfficeDig.values, { prefix: digPrefix() }).map(stepFieldHtml).join("")}</div>`)}
+        ${digFormSection("fo-dig-holder-title", "Titularul", digHolderHtml())}
+        ${DG.DOCS.map(digDocField).join("")}
+        ${foStepFooterHtml({ backAttrs: "data-fo-dig-back", backLabel: frontOfficeDigParam === "1" ? "Înapoi la alegerea serviciului" : "Înapoi", nextLabel: "Continuă", nextAttrs: "data-fo-dig-next" })}`;
+      window.GEAPFormRender?.bind(body);
+    }
+    /* done (AC-16): the FO Finalizare in this column — the new dossier, channel Online */
+    function renderFrontOfficeDigFinish() {
+      const body = frontOfficeDigScreen?.querySelector("[data-fo-dig-body]");
+      const DG = digRule();
+      const service = frontOfficeDig.service;
+      const v = frontOfficeDig.values;
+      const nr = frontOfficeDig.nr;
+      const href = digCabinetUrl({ view: "solicitari", digitalizat: nr, "dig-serviciu": service.codes[0], "dig-tip": v.tip, "dig-numar": v.numar, "dig-subdiviziune": v.subdiviziune || service.subdivisions[0] }, "#dosar/d-dig-nou");
+      body.innerHTML = '<div class="e-permits-fo-finish"><div class="e-permits-fo-finish__body" data-fo-dig-finish></div></div>';
+      renderFrontOfficeStep7FromSchema({ steps: [{
+        id: "finish",
+        title: "Dosarul a fost depus cu succes.",
+        returnHref: href,
+        lead: { text: `Cererea de digitalizare nr. ${nr} a fost transmisă autorității emitente. O urmărești în EVO Cabinet →`, link: "Solicitările mele" },
+        action: { label: "Mergi la Solicitările mele", href },
+        tracker: [{ label: "Depusă", state: "done" }, { label: "Examinare", state: "todo" }, { label: "Înscriere în registru", state: "todo" }],
+        summary: { rows: [
+          { label: "Numărul dosarului", value: nr, copy: true },
+          ...DG.summaryRows(service, v).map(([label, value]) => ({ label, value })),
+          { label: "Canalul depunerii", value: "Online" },
+          { label: "Documente însoțitoare", value: [...digFileNames("dig-copie"), ...digFileNames("dig-anexe")].join(", ") || "—" }
+        ] },
+        timeline: { title: "Statutul dosarului", items: [
+          { title: "Cerere depusă", text: "Semnată prin MSign", state: "done" },
+          { title: "Examinare", text: "Autoritatea verifică actul după copia scanată", state: "todo" },
+          { title: "Înscriere în registru", text: "La confirmare, actul apare în „Actele mele permisive”; primești notificarea prin MNotify", state: "todo" }
+        ] }
+      }] }, { target: body.querySelector("[data-fo-dig-finish]"), titleId: "fo-dig-title" });
+    }
+    function digStartPhase() {
+      const DG = digRule();
+      if (suppParam("dig-auth") === "0" && !frontOfficeDig.authed) return "auth";
+      if (frontOfficeDigParam && frontOfficeDigParam !== "1") {
+        frontOfficeDig.service = DG.serviceOf(frontOfficeDigParam);
+        return frontOfficeDig.service && DG.allowed(frontOfficeDigParam) ? "form" : "closed";
+      }
+      if (frontOfficeDig.service) return "form";
+      return DG.allowedServices().length ? "service" : "none";
+    }
+    async function showFrontOfficeDig({ focus = true } = {}) {
+      if (!frontOfficeDigScreen || !digRule()) return;
+      frontOfficeDig.phase = digStartPhase();
+      const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+      if (title) setFoServiceTitle(title, frontOfficeDig.service?.title || digRule().ACTION);
+      document.title = `${digRule().ACTION} — EVO`;
+      renderFrontOfficeDig();
+      if (window.location.hash !== "#digitalizare") history.replaceState(null, "", "#digitalizare");
+      setFrontOfficeScreen("digitize", { focus });
+    }
+    function focusFrontOfficeDig(selector = "h1") {
+      frontOfficeDigScreen?.querySelector(selector)?.focus({ preventScroll: true });
+      scrollFrontOfficeStepToTop();
+    }
+    /* AC-10 / AC-11 / AC-13: the errors under each field, the first one focused; nothing moves on */
+    function digShowErrors(body, errors) {
+      const DG = digRule();
+      Object.values(DG.KEYS).forEach((suffix) => { const el = body.querySelector(`#fo-dig-${suffix}`); if (el) setGuestFieldError(el, ""); });
+      setGuestDocError(body.querySelector('[data-fo-doc-field="dig-copie"]'), "");
+      let first = null;
+      errors.forEach(({ key, msg }) => {
+        if (key === "scan") {
+          const field = body.querySelector('[data-fo-doc-field="dig-copie"]');
+          setGuestDocError(field, msg);
+          first ||= field?.querySelector("[data-fo-open-doc-modal]");
+          return;
+        }
+        const el = body.querySelector(`#fo-dig-${DG.KEYS[key]}`);
+        if (!el) return;
+        setGuestFieldError(el, msg);
+        first ||= el;
+      });
+      first?.focus({ preventScroll: true });
+      first?.scrollIntoView({ block: "center" });
+    }
+    frontOfficeDigScreen?.addEventListener("click", (event) => {
+      const body = frontOfficeDigScreen.querySelector("[data-fo-dig-body]");
+      const DG = digRule();
+      const remove = event.target.closest("[data-fo-doc-field^='dig-'] .e-permits-fo-doc-attached-item__remove");
+      if (remove && frontOfficeDig.phase === "form") {
+        const field = remove.closest("[data-fo-doc-field]");
+        remove.closest(".e-permits-fo-file-item")?.remove();
+        field?.classList.remove("is-full");
+        field?.querySelector(".e-permits-fo-doc-field__add")?.focus();
+        return;
+      }
+      if (event.target.closest("[data-fo-dig-auth]")) {
+        frontOfficeDig.authed = true;
+        frontOfficeDig.phase = digStartPhase();
+        renderFrontOfficeDig();
+        focusFrontOfficeDig();
+        return;
+      }
+      if (event.target.closest("[data-fo-dig-back]")) {
+        if (frontOfficeDig.phase === "form" && frontOfficeDigParam === "1") {
+          digKeepFiles();
+          frontOfficeDig.values = { ...frontOfficeDig.values, ...digReadValues(body) };
+          frontOfficeDig.phase = "service";
+          renderFrontOfficeDig();
+          focusFrontOfficeDig();
+          return;
+        }
+        window.location.href = digCabinetUrl();
+        return;
+      }
+      if (event.target.closest("[data-fo-dig-service-next]")) {
+        const btn = body.querySelector("#fo-dig-serviciu");
+        const chosen = btn?.closest("[data-fo-select]")?.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
+        if (!chosen) { setGuestFieldError(btn, DG.REQUIRED); btn?.focus(); return; }
+        const service = DG.SERVICES.find((s) => s.title === chosen);
+        if (service !== frontOfficeDig.service) frontOfficeDig.values = {};
+        frontOfficeDig.service = service;
+        frontOfficeDig.phase = "form";
+        const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+        if (title) setFoServiceTitle(title, service.title);
+        renderFrontOfficeDig();
+        focusFrontOfficeDig();
+        return;
+      }
+      if (event.target.closest("[data-fo-dig-next]")) {
+        digKeepFiles();
+        const values = digReadValues(body);
+        frontOfficeDig.values = values;
+        const scan = digFileNames("dig-copie").length > 0;
+        const errors = DG.validate(values, { scan, service: frontOfficeDig.service });
+        if (errors.length) { digShowErrors(body, errors); return; }
+        frontOfficeDig.phase = "sign";
+        frontOfficeDig.notice = "";
+        renderFrontOfficeDig();
+        focusFrontOfficeDig();
+        return;
+      }
+      if (event.target.closest("[data-fo-dig-prev]")) {
+        frontOfficeDig.phase = "form";
+        frontOfficeDig.notice = "";
+        renderFrontOfficeDig();
+        focusFrontOfficeDig();
+        return;
+      }
+      /* MSign (AC-15): ?msign=eroare fails once; signed = the dossier is created (AC-16) → Finalizare */
+      if (event.target.closest("[data-fo-dig-sign]")) {
+        if (suppParam("msign") === "eroare" && !frontOfficeDig.msignFailed) {
+          frontOfficeDig.msignFailed = true;
+          frontOfficeDig.notice = "msign-error";
+          renderFrontOfficeDig();
+          frontOfficeDigScreen.querySelector("[data-fo-dig-sign]")?.focus({ preventScroll: true });
+          frontOfficeDigScreen.querySelector("[data-fo-dig-status]")?.scrollIntoView({ block: "center" });
+          return;
+        }
+        frontOfficeDig.phase = "done";
+        frontOfficeDig.nr = DG.newNumber(String(frontOfficeDig.values.numar || "").length * 7);
+        renderFrontOfficeDigFinish();
+        focusFrontOfficeDig();
+      }
+    });
+
     function closeFrontOfficeIntentMenus(except = null) {
       frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
         const menu = document.getElementById(trigger.getAttribute("aria-controls"));
@@ -7384,6 +7716,14 @@
 
 
     frontOfficeIntentScreen?.addEventListener("click", (event) => {
+      /* dig-v1 (US-415 AC-04): the digitization request with „Serviciul” prefilled */
+      if (event.target.closest("[data-fo-intent-digitize]")) {
+        const query = new URLSearchParams(location.search);
+        query.set("digitalizare", intentServiceCode());
+        query.set("solicitant", frontOfficeSelectedSubject?.id || query.get("solicitant") || "");
+        window.location.href = `${location.pathname}?${query.toString()}#digitalizare`;
+        return;
+      }
       if (event.target.closest("[data-fo-intent-new]")) {
         stopFrontOfficePostprocess();
         history.replaceState(null, "", "#request");
@@ -7612,7 +7952,11 @@
     /* US-25: a „Suplinire informații” landing shows S4 before the form (once per request and tab) */
     let supplementSeen = "";
     try { supplementSeen = sessionStorage.getItem(SUPPLEMENT_SEEN) || ""; } catch { supplementSeen = ""; }
-    if (frontOfficeAppealNr) {
+    if (frontOfficeDigParam) {
+      /* US-415 (dig-v1): the digitization request, from EVO Cabinet › Acte permisive or „Ce vrei să soliciți?” */
+      history.replaceState(null, "", "#digitalizare");
+      frontOfficeSchemaLoadPromise.then(() => showFrontOfficeDig({ focus: false }));
+    } else if (frontOfficeAppealNr) {
       /* US-418 (con-v1): the appeal of a decision, from EVO Cabinet › Solicitările mele › „Depune contestație” */
       history.replaceState(null, "", "#contestatie");
       frontOfficeSchemaLoadPromise.then(() => showFrontOfficeAppeal({ focus: false }));

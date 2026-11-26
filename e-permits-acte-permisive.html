@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="css/date-picker-views.css?v=dp-select-v1">
   <link rel="stylesheet" href="css/drawer.css?v=notif-drawer-v3">
   <link rel="stylesheet" href="css/notif-drawer.css?v=notif-drawer-v4">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=fo-note-compact-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=dig-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-canvas-fill-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -89,7 +89,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=con-v1"></script>
+  <script src="js/demo-states.js?v=dig-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -115,20 +115,22 @@
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=con-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=dig-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=adr-grid-v1" defer></script>
   <!-- Constructor grilă (gb-v1): registers before the builder's DOMContentLoaded attaches it -->
   <script src="js/grid-builder.js?v=adr-grid-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-prod-v1" defer></script>
-  <script src="js/ghiseu.js?v=con-v1" defer></script>
+  <script src="js/ghiseu.js?v=dig-v1" defer></script>
   <script src="js/arhivare.js?v=card-tab-icons-v1" defer></script>
   <script src="js/retragere.js?v=rtr-fo-v1" defer></script>
   <script src="js/contestatie.js?v=con-v1" defer></script>
+  <!-- dig-v1: Digitalizarea actelor emise pe hârtie (Feature 97576) — before registre.js / ghiseu.js users at runtime -->
+  <script src="js/digitalizare.js?v=dig-v1" defer></script>
   <!-- red-rad-v1: Redeschiderea + Radierea dosarului (Features 97301 / 97414) — before registre.js -->
   <script src="js/dosar-cereri.js?v=con-v1" defer></script>
-  <script src="js/registre.js?v=status-profile-v1" defer></script>
+  <script src="js/registre.js?v=dig-v1" defer></script>
   <script src="js/registre-admin.js?v=coding-rules-v1" defer></script>
   <script src="js/view-switch.js?v=calendar-views-v3" defer></script>
   <script src="js/calendar-admin.js?v=hover-surface-v1" defer></script>
@@ -1100,6 +1102,12 @@
            the contested decision + „Motivele contestației” + documents → MSign → Finalizare, in the S4 column (con-v1) -->
       <section class="e-permits-fo-intent e-permits-fo-supplement" aria-labelledby="fo-appeal-title" data-fo-screen="appeal" hidden>
         <div class="e-permits-fo-intent__inner" data-fo-appeal-body></div>
+      </section>
+
+      <!-- US-415 „Digitalizarea actului emis pe hârtie” (EVO Cabinet › Acte permisive › „Digitalizează un act istoric”,
+           ?digitalizare=1 | <service>; or „Ce vrei să soliciți?”): service → act data + copy → MSign → Finalizare (dig-v1) -->
+      <section class="e-permits-fo-intent e-permits-fo-supplement" aria-labelledby="fo-dig-title" data-fo-screen="digitize" hidden>
+        <div class="e-permits-fo-intent__inner" data-fo-dig-body></div>
       </section>
 
       <section class="e-permits-fo-request" aria-labelledby="fo-request-title" data-fo-screen="request" hidden>
@@ -3696,11 +3704,11 @@
   <script src="core/service-passport.js?v=copy-tu-v2"></script>
   <script src="core/classifiers.js?v=action-icons-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
-  <script src="core/case-flow.js?v=con-v1"></script>
+  <script src="core/case-flow.js?v=dig-v1"></script>
   <script src="js/facet-filter.js?v=dsh-feature-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=doc-viewer-tabs-v1"></script>
-  <script src="js/e-permits-shell.js?v=con-v1"></script>
+  <script src="js/e-permits-shell.js?v=dig-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

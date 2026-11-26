@@ -303,6 +303,12 @@
   /* the contested dossier of a decision (the decision's own dossier number) */
   const appealDossierOf = (act) => act.dosar || `D-2026-0${String(act.nr).replace(/\D/g, "").slice(-5)}`;
   const isAppealDraft = (d) => d.requestType === "Contestație" && Boolean(d.act);
+  /* dig-v1 (US-416, Feature 97576): „Digitalizarea actului emis pe hârtie” — a process of its own, chosen next to „Solicitare
+     nouă” (only with «Digitalizare permisă», AC-03); the act's data + the scanned copy, no MSign (AC-10) */
+  const DG = () => window.GEAPDigitalizare;
+  const isDigDraft = (d) => d?.process === "digitalizare";
+  const digAllowed = (code) => { const service = serviceOf(code); const cfg = service && A().serviceConfig ? A().serviceConfig(service) : {}; return Boolean(DG()?.allowed(code, typeof cfg.digitization === "boolean" ? cfg.digitization : undefined)); };
+  const digService = (d) => DG()?.serviceOf(d.service) || null;
   function postprocessesOf(d, act) {
     const desk = deskOf(d.service) || {};
     if (act.kind === "decizie") {
@@ -338,7 +344,10 @@
     return lines;
   }
   const hasFee = (d) => feeLines(d).length > 0;
-  const visibleSteps = (d) => (isSup(d) ? STEPS.filter((s) => SUP_STEPS.includes(s.id)) : STEPS.filter((s) => s.id !== "plata" || hasFee(d) || (d.payment && d.payment.status === "Achitată")));
+  const visibleSteps = (d) => (isSup(d) ? STEPS.filter((s) => SUP_STEPS.includes(s.id))
+    /* dig-v1: nothing is delivered and no fee is configured for the digitization (Feature 93591 open) */
+    : isDigDraft(d) ? STEPS.filter((s) => !["livrare", "plata"].includes(s.id))
+    : STEPS.filter((s) => s.id !== "plata" || hasFee(d) || (d.payment && d.payment.status === "Achitată")));
   const nextStepIndex = (d, i) => { const ids = visibleSteps(d).map((s) => STEP_INDEX[s.id]); return ids.find((x) => x > i) ?? i; };
   const prevStepIndex = (d, i) => { const ids = visibleSteps(d).map((s) => STEP_INDEX[s.id]); return [...ids].reverse().find((x) => x < i) ?? 0; };
 
@@ -441,7 +450,12 @@
       const c = mn[holderCode(d)] || mn[d.applicant.idnp] || {};
       d.contact = { phone: c.phone || "", email: c.email || "", phoneSrc: c.phone ? "mnotify" : "", emailSrc: c.email ? "mnotify" : "" };
     }
-    if (upTo > STEP_INDEX.detalii && !d.details.values.obiect) {
+    /* dig-v1: the act's data as on the paper act (demo prefill) */
+    if (isDigDraft(d) && upTo > STEP_INDEX.detalii && !d.details.dig?.numar) {
+      const svc = digService(d);
+      d.details.dig = { subdiviziune: svc?.subdivisions[0] || "", tip: svc?.types[0] || "", serie: "AS", numar: "ASF-0218/2019", dataEmiterii: "2019-09-16", valabilPana: "2026-12-31" };
+    }
+    if (!isDigDraft(d) && upTo > STEP_INDEX.detalii && !d.details.values.obiect) {
       const act = d.act ? actById(d, d.act) : null;
       if (desk.form === "biocid") d.details.values = { obiect: act?.object?.name || "Dezinfectant „AquaPur 1L”", tipProdus: "TP2 · Dezinfectante pentru suprafețe", substanta: "Clorură de benzalconiu" };
       else {
@@ -457,6 +471,7 @@
       docsOf(d).filter((doc) => doc.required && doc.id !== SUP_DOC_ID && !(d.docs[doc.id] || []).length).forEach((doc, i) => {
         d.docs[doc.id] = [doc.id === "state-registry-extract"
           ? { sursa: "mdocs", tip: doc.label, fisier: `extras-registru-${d.company.idno}.pdf`, size: "310 KB", at: "12 martie 2026, 10:14", verb: "Emis", de: "ASP", semnat: true }
+          : isDigDraft(d) ? { sursa: "upload", tip: doc.label, fisier: "copia-actului-ASF-0218-2019.pdf", size: "2.4 MB", at, verb: "Încărcat" }
           : { sursa: "upload", tip: doc.label, fisier: ["contract-locatiune-scan.pdf", "planul-incaperilor.pdf", "procura-scan.pdf", "fisa-tehnica.pdf", "fisa-securitate.pdf"][i % 5], size: ["1.8 MB", "2.7 MB", "640 KB", "1.1 MB", "820 KB"][i % 5], at, verb: "Încărcat" }];
       });
     }
@@ -477,6 +492,8 @@
     /* US-251 data model: „Documente suplimentare” = what the Specialist asked for — required when the suspension is
        about documents (conditional); the documents filed with the request follow, as filed and replaceable */
     /* con-v1 (US-419 AC-07): an appeal asks only for the optional supporting documents (US-20) */
+    /* dig-v1 (US-416 AC-09): the scanned copy (required) + the annexes (optional), US-20 */
+    if (isDigDraft(d)) return [...(DG()?.DOCS || []).map((doc) => ({ ...doc })), ...(d.procura ? [PROCURA_DOC] : [])];
     if (isAppealDraft(d)) return [{ id: "justificative", label: "Documente justificative", description: "Documentele care susțin motivele contestației. JPG, PNG, PDF · maximum 60 MB.", required: false }, ...(d.procura ? [PROCURA_DOC] : [])];
     if (isSup(d)) return [{ id: SUP_DOC_ID, label: "Documentele solicitate de Specialist", description: "Documentele cerute în mesajul Specialistului. JPG, PNG, PDF · maximum 60 MB.", required: Boolean(d.sup?.docRequired) }, ...list];
     return d.procura ? [PROCURA_DOC, ...list] : list;
@@ -1485,7 +1502,10 @@
       summaryRow("Autoritatea", [esc(authority)]),
       summaryRow("Tipul solicitării", [esc(d.requestType)])
     ].join("");
-    const request = isAppealDraft(d) && act ? [
+    const request = isDigDraft(d) ? [
+      ...(DG()?.summaryRows(digService(d), d.details.dig || {}) || []).map(([label, value]) => summaryRow(label, [esc(value)])),
+      summaryRow("Canalul depunerii", ["Ghișeu"])
+    ].join("") : isAppealDraft(d) && act ? [
       summaryRow("Dosar contestat", [esc(appealDossierOf(act))]),
       summaryRow("Decizia contestată", [esc(`${act.decizie || "Decizie"} nr. ${act.nr}`)]),
       summaryRow("Tip solicitare", ["Contestație"]),
@@ -2240,6 +2260,8 @@
           noticeHtml: S.actCleared ? U().renderNotice?.("info", "Serviciul sau solicitantul s-a schimbat: procesul ales anterior a fost anulat. Alege din nou.") || "" : "",
           newRequest: { title: "Solicitare nouă", text: "Cerere pentru un act permisiv nou (emitere primară)" },
           newAttrs: "data-gh-intent-new",
+          /* dig-v1 (US-416 AC-03): only with «Digitalizare permisă» */
+          digitize: digAllowed(d.service) ? { title: DG().PROCESS, text: "Înscrierea în registru a unui act emis pe hârtie, după copia lui scanată", attrs: "data-gh-intent-digitize" } : null,
           actsTitle: "Acte emise pentru acest serviciu",
           actsId: "gh-acts-title",
           listHeadHtml: searchable ? actsSearchHtml(S.actsQuery || "") : "",
@@ -2569,6 +2591,20 @@
       ${footerHtml(d)}`;
     }
     const exam = section("Examinare", `<div class="e-permits-fo-form__section-body">${subdivisionBlockHtml(d)}${termBlockHtml(d)}${(desk.subdiviziuni || []).length <= 1 && termsOf(d).length <= 1 ? `<div class="e-permits-fo-field e-permits-fo-field--span-12">${U().renderInfoNote?.(`Serviciul se examinează de ${esc(desk.subdiviziuni?.[0]?.name || "subdiviziunea autorității")}, în termenul unic de ${esc(termsOf(d)[0]?.label || "—")}.`) || ""}</div>` : ""}</div>`, { id: "gh-exam-title" });
+    /* dig-v1 (US-416 AC-04 / AC-05): the service + authority read-only, the act's data (the service's act types; one
+       subdivision = prefilled, read-only) — the holder was identified on „Date solicitant” (AC-06 / AC-08) */
+    if (isDigDraft(d)) {
+      const svc = digService(d);
+      return `
+      ${stepHeader("Detalii serviciu")}
+      ${U().renderInfoNote?.("Introdu datele exact cum apar pe actul de hârtie prezentat de solicitant. Temeiul legal și datele specifice le completează specialistul la examinare.") || ""}
+      ${section("Actul emis pe hârtie", `<div class="e-permits-fo-form__section-body">
+        ${readonlyField({ id: "gh-dig-svc", label: "Serviciul", value: svc?.title || d.serviceTitle || "", span: 6 })}
+        ${readonlyField({ id: "gh-dig-aut", label: "Autoritatea emitentă", value: svc?.authorityName || "", span: 6 })}
+        ${(DG()?.fields(svc, d.details.dig || {}, { prefix: "gh-dig" }) || []).map((f) => R().fieldHtml(f)).join("")}
+      </div>`, { id: "gh-dig-title" })}
+      ${footerHtml(d)}`;
+    }
     /* con-v1 (US-419 AC-04…06): the appeal = the contested dossier + decision and the type, read-only, then the required
        „Motivele contestației” (instead of the service's object form) */
     if (isAppealDraft(d) && act) {
@@ -2641,6 +2677,19 @@
     const d = S.cur;
     if (isOfc(d)) { collectDetaliiOfc(); return; }
     const form = formOf(d);
+    /* dig-v1: the act's fields (select = the chosen option, date = dd/mm/yyyy → ISO) */
+    if (isDigDraft(d)) {
+      const out = { ...(d.details.dig || {}) };
+      Object.entries(DG()?.KEYS || {}).forEach(([key, suffix]) => {
+        const el = S.page.querySelector(`#fo-gh-dig-${suffix}`);
+        if (!el) return;
+        if (el.matches(".e-permits-fo-select__button")) out[key] = el.closest("[data-fo-select]")?.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
+        else if (el.closest("[data-date-picker]")) out[key] = DG().isoOf(el.value);
+        else out[key] = el.value.trim();
+      });
+      d.details.dig = out;
+      return;
+    }
     const conReason = S.page.querySelector("#fo-gh-con-reason");
     if (conReason) d.details.appealReason = conReason.value.trim();
     if (!isAppealDraft(d)) form.fields.forEach((f) => {
@@ -2671,6 +2720,11 @@
     if (isOfc(d)) return checkDetaliiOfc(d);
     const errs = [];
     const form = formOf(d);
+    /* dig-v1 (US-416 AC-07): „Câmpul este obligatoriu.” / „Data nu poate fi anterioară datei emiterii.” */
+    if (isDigDraft(d)) {
+      const keys = DG()?.KEYS || {};
+      return (DG()?.validate(d.details.dig || {}) || []).map((e) => ({ input: `#fo-gh-dig-${keys[e.key]}`, select: e.key === "tip" || e.key === "subdiviziune", msg: e.msg, step: STEP_INDEX.detalii }));
+    }
     /* con-v1 (US-419 AC-06): „Câmpul este obligatoriu.” under „Motivele contestației” */
     if (isAppealDraft(d)) {
       if (!d.details.appealReason) errs.push({ input: "#fo-gh-con-reason", msg: REQUIRED, step: STEP_INDEX.detalii });
@@ -2833,7 +2887,8 @@
       summaryRow("Numărul cererii", [esc(d.nr || "—")]),
       summaryRow("Serviciul", [esc(svc?.title || "")]),
       summaryRow("Autoritatea", [esc(authority)]),
-      summaryRow("Subdiviziunea de procesare", [esc(d.details.subdivision || subdivisionFor(d) || "—")]),
+      /* dig-v1: the digitization goes to the issuing authority by the act's type — no processing subdivision chosen */
+      isDigDraft(d) ? "" : summaryRow("Subdiviziunea de procesare", [esc(d.details.subdivision || subdivisionFor(d) || "—")]),
       summaryRow("Tipul solicitării", [esc(d.requestType), act ? esc(`pe ${act.nr}`) : ""].filter(Boolean)),
       summaryRow("Termen de examinare", [esc(termOf(d)?.label || "—")])
     ].join("");
@@ -2850,7 +2905,7 @@
       summaryRow("Date de contact pentru notificări", [esc(d.contact.phone ? `+373 ${formatPhone(d.contact.phone)}` : "—"), esc(d.contact.email || "fără email")])
     ].join("");
     const form = formOf(d);
-    const request = [
+    const request = isDigDraft(d) ? (DG()?.summaryRows(digService(d), d.details.dig || {}) || []).slice(2).map(([label, value]) => summaryRow(label, [esc(value)])).join("") : [
       ...form.fields.map((f) => summaryRow(f.label, [esc(d.details.values[f.key] || "—")])),
       form.address ? summaryRow("Adresa obiectului", [esc(addressText(d.details.address) || "—")]) : "",
       reductionsOf(d).length ? summaryRow("Reduceri aplicate", d.details.reductions.length ? reductionsOf(d).filter((r) => d.details.reductions.includes(r.id)).map((r) => esc(r.label)) : ["Fără reduceri"]) : ""
@@ -2881,7 +2936,8 @@
         ${ofcReviewHtml(d)}
         ${footerHtml(d)}`;
     }
-    const st = settingsOf(d.service);
+    /* dig-v1 (US-416 AC-10): confirmed by the user's MPass session, no MSign */
+    const st = isDigDraft(d) ? { ...settingsOf(d.service), msign: false } : settingsOf(d.service);
     const voided = d.review.voided || [];
     const notices = [
       voided.includes("sign") ? U().renderNotice?.("warning", "Semnătura a fost anulată. Semnează din nou cererea pentru a continua.") : "",
@@ -2969,7 +3025,7 @@
   }
   function checkVerificare(d) {
     if (isOfc(d)) return [];
-    const st = settingsOf(d.service);
+    const st = isDigDraft(d) ? { ...settingsOf(d.service), msign: false } : settingsOf(d.service);
     const errs = [];
     if (!d.review.paper) errs.push({ key: "paper", focus: "[data-gh-paper]", msg: isSup(d) ? "Generează cererea actualizată." : "Generează cererea pe hârtie: solicitantul o semnează olograf." });
     if (st.olograf && !d.review.olograf) errs.push({ key: "olograf", focus: "[data-gh-olograf] [data-fo-open-doc-modal]", msg: REQUIRED, field: "[data-gh-olograf]" });
@@ -3108,7 +3164,7 @@
 
   /* ================================================================ step 8 · Confirmarea depunerii (US-238) */
   function readiness(d) {
-    const st = settingsOf(d.service);
+    const st = isDigDraft(d) ? { ...settingsOf(d.service), msign: false } : settingsOf(d.service);
     const all = STEPS.filter((s, i) => i < STEP_INDEX.verificare).flatMap((s) => CHECKS[s.id](d));
     /* din oficiu (US-246 AC-02/03): straight from Livrare to the confirmation — no MSign, no payment note */
     if (isOfc(d)) return [{ label: "Datele dosarului sunt validate", ok: !all.length }, { label: "Fără semnarea cererii prin MSign", ok: true }, { label: "Fără notă de plată", ok: true }];
@@ -3123,6 +3179,7 @@
       { label: "Datele cererii sunt validate", ok: !all.length },
       st.olograf ? { label: "Cererea semnată olograf este atașată", ok: Boolean(d.review.olograf) } : null,
       st.msign ? { label: "Cererea este semnată prin MSign", ok: Boolean(d.review.signed) } : null,
+      isDigDraft(d) ? { label: "Fără semnarea cererii prin MSign: confirmată prin sesiunea ta MPass", ok: true } : null,
       hasFee(d) || d.payment ? { label: "Nota de plată este achitată", ok: isPaid(d) } : { label: "Fără notă de plată", ok: true }
     ].filter(Boolean);
   }
@@ -3142,11 +3199,11 @@
         detailRow("Numărul cererii", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul cererii ${d.nr}` }) || esc(d.nr)),
         detailRow(isOfc(d) ? "Titular" : "Solicitant", esc(holderName(d))),
         detailRow("Tipul solicitării", esc(isOfc(d) ? `${d.requestType} · ${ofcActOf(d)?.nr || ""}` : d.requestType)),
-        detailRow("Livrare", esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])),
+        isDigDraft(d) ? detailRow("Actul", esc(`${d.details.dig?.tip || ""} nr. ${d.details.dig?.numar || ""}`)) : detailRow("Livrare", esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])),
         detailRow("Termen de examinare", esc(isOfc(d) ? ofcTermLabel(d) : termOf(d)?.label || "—"))
       ].join(""))}
       </div>
-      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncearcă" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
+      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncearcă" : isDigDraft(d) ? "Depune" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
   function confirmedHtml(d) {
     if (isOfc(d)) return ofcConfirmedHtml(d);
@@ -3165,6 +3222,7 @@
             ${detailRow("Termen de examinare", `${esc(longDate(d.examDeadline))}${termOf(d)?.label ? ` (${esc(termOf(d).label)})` : ""}`)}
             ${detailRow("Statut", `${tagHtml("În procesare", "info")}${tagHtml("Spre distribuire", "info")}`)}
             ${detailRow("Canal de depunere", "Ghișeu")}
+            ${isDigDraft(d) ? detailRow("Tip solicitare", esc(DG()?.PROCESS || "")) : ""}
             ${isAppealDraft(d) && actById(d, d.act) ? detailRow("Dosar contestat", `${esc(appealDossierOf(actById(d, d.act)))} <span class="e-permits-dosar-profil__termen-meta">statutul nu se schimbă</span>`) : ""}
           </section>
           ${U().renderNotice?.("info", "<strong>Dosarul a fost trimis la distribuire.</strong> Apare în „Dosare noi” › „Dosare nedistribuite”; evenimentul depunerii a fost publicat în MConnect Event Bus.") || ""}
@@ -3192,7 +3250,9 @@
     d.step = STEP_INDEX.confirmare; d.maxStep = d.step;
     d.certError = settingsOf(d.service).certificat && params.get("certerr") === "1";
     /* con-v1 (US-419 AC-13): the user, the channel, the contested dossier, the appeal dossier number, the time (audit stamps) */
-    if (isAppealDraft(d)) audit("Depunere contestație", d, `Dosar de contestație ${d.nr} · canal Ghișeu · dosar contestat ${appealDossierOf(actById(d, d.act) || {})} · statutul acestuia nu se schimbă · trimis la distribuire`);
+    /* dig-v1 (US-416 AC-12): the user, the holder, the act number, the time — personal data event */
+    if (isDigDraft(d)) audit("Depunere cerere de digitalizare", d, `Dosar ${d.nr} · canal Ghișeu · titular ${holderName(d)} · actul ${d.details.dig?.tip || ""} nr. ${d.details.dig?.numar || ""} · confirmată prin MPass, fără MSign · eveniment cu date cu caracter personal · trimis la distribuire`);
+    else if (isAppealDraft(d)) audit("Depunere contestație", d, `Dosar de contestație ${d.nr} · canal Ghișeu · dosar contestat ${appealDossierOf(actById(d, d.act) || {})} · statutul acestuia nu se schimbă · trimis la distribuire`);
     else audit("Depunere cerere", d, `Dosar ${d.nr} · canal Ghișeu · trimis la distribuire`);
     audit("Publicare eveniment MConnect Event Bus", d, "cerere.depusa", { system: true });
     audit("Notificare MNotify: depunere", d, `Identificator ${d.nr}, termen ${longDate(d.examDeadline)}`, { system: true });
@@ -3871,6 +3931,7 @@
     if (ppItem) { choosePostprocess(ppItem); return; }
     if (!t.closest(".e-permits-fo-intent-menu")) closeIntentMenus();
     if (t.closest("[data-gh-intent-new]")) { startProcess("primar"); return; }
+    if (t.closest("[data-gh-intent-digitize]")) { startProcess("digitalizare", null, DG()?.PROCESS || "Digitalizarea actului emis pe hârtie"); return; }
     if (t.closest("[data-gh-change-process]")) { closeMenus(); changeProcess(); return; }
     if (t.closest("[data-gh-start-next]")) { continueStart(); return; }
     if (t.closest("[data-gh-start-cancel]")) { closeStart(); return; }

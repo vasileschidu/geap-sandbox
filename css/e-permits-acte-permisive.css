@@ -16846,6 +16846,18 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   padding: 0;
 }
 
+/* dig-v1 (2026-11-26): „Solicitare nouă” + „Digitalizează un act istoric” = two of the same cards, 8 apart */
+.e-permits-fo-intent__new-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+/* dig-v1: the MPass button under the „Autentifică-te” alert of the digitization screen */
+.e-permits-fo-dig__auth {
+  display: flex;
+}
+
 /* ---- new request card ---- */
 .e-permits-fo-intent-new {
   align-items: center;
@@ -25904,5 +25916,31 @@ body:has(.e-permits-fo-doc-modal-overlay:not([hidden])) #fo-certificate-modal {
   .e-permits-change-flash {
     animation: none;
     box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  }
+}
+
+/* msign-button-v1 (user 2026-11-26): the MSign badge button in a modal footer is round like the modal's other buttons
+   (`.btn-rounded`); the library badge (main.css .btn-badge, later in the cascade) is square r8 — the modal overrides it */
+.btn-badge.btn-rounded {
+  border-radius: var(--border-radius-full, 9999px);
+}
+
+/* desktop modal footers are Medium 40 (feedback: modal footer Medium) — the MSign badge there takes the Medium
+   button geometry: 40 high, logo 20, label 14/20, padding 12 · 16 (phones keep the 48 badge) */
+@media (min-width: 761px) {
+  .btn-badge.btn-rounded {
+    min-height: var(--spacing-40, 40px);
+    padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
+  }
+
+  .btn-badge.btn-rounded .btn-badge__logo {
+    flex-basis: var(--spacing-20, 20px);
+    height: var(--spacing-20, 20px);
+    width: var(--spacing-20, 20px);
+  }
+
+  .btn-badge.btn-rounded .btn-badge__label {
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
   }
 }

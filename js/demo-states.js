@@ -4878,6 +4878,7 @@
        07 respingere · 08 fără permisiune */
     ...crqDemoStates(),
     ...conDemoStates(),
+    ...digDemoStates(),
 
     /* ---- Registre — the register builder in the AdminPortal, phase 2 (Feature 94523, js/registre-admin.js,
        registre-v2 2026-10-24): reg-a01 listă · a02 creare · a03 profil · a04 editare · a05 coloane · a06 filtru ·
@@ -6865,6 +6866,162 @@
      D-2026-004729) · D-2026-004647 spre semnare, aprobare (contestă D-2026-004726) · D-2026-004631 spre semnare, respingere
      (contestă D-2026-004722) · D-2026-004474 depus, spre distribuire (contestă D-2026-004716) · D-2026-004693 finalizat,
      aprobat (contestă D-2026-004734 → the reopen S-2026-000415 in „Sarcinile mele”). ---- */
+  /* ---- Digitalizarea actelor emise pe hârtie (dig-v1, 2026-11-26; Feature 97576: US-414 97577 · US-415 97578 · US-416 97579
+     · US-417 97580; js/digitalizare.js + core/case-flow.js digitizationFlow). Seeds (CSP Chișinău, BO): D-2026-004468 depus ·
+     D-2026-004560 în examinare (Elena Caragia, subdivision not declared) · D-2026-004542 the act is already in the register ·
+     D-2026-004653 confirmed → act ASF-1187/2022 (act-dig-001) · D-2026-004691 rejected. Switches: dig-permisa=0|<codes> ·
+     dig-auth=0 (FO before MPass) · dig-cerere=depusa|respinsa|confirmata (Cabinet / FO intent). ---- */
+  function digDemoStates() {
+    const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", GH = "ansp-ghiseu-chisinau";
+    const NEW = "D-2026-004468", EXAM = "D-2026-004560", DUP = "D-2026-004542", OK = "D-2026-004653", NO = "D-2026-004691";
+    const PROFILE = ".e-permits-trajectory, .e-permits-dosar-profil__section, .e-permits-empty";
+    const MODAL = "#case-action-modal.is-active";
+    const DRAWER = "[data-case-drawer]:not([hidden])";
+    const prof = (id, as, tab = "general", run, params) => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, params, ready: PROFILE, run });
+    const action = (id) => async (h) => {
+      const sel = `[data-case-action='${id}']`;
+      await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); await h.click(`#case-actions-menu ${sel}`);
+      await h.find(`${MODAL}, ${DRAWER}`); await h.wait(400);
+    };
+    const submitDrawer = async (h) => { await h.click(`${DRAWER} [data-case-submit]`); await h.wait(500); };
+    const submitModal = async (h) => { await h.click(`${MODAL} [data-case-submit]`); await h.wait(500); };
+    const pickCase = (key, value) => async (h) => { await h.click(`#case-${key}`); await h.wait(150); const opt = [...document.querySelectorAll(`#case-${key}-list [role=option], [aria-labelledby="case-${key}"] [role=option]`)].find((o) => o.textContent.trim() === value); opt?.click(); await h.wait(200); };
+    const LEGAL = "Legea nr. 10/2009 privind supravegherea de stat a sănătății publice, art. 21";
+    const confirmFilled = async (h) => { await action("confirmaDigitalizarea")(h); await pickCase("subdiviziune", "CSP Chișinău")(h); await h.fill("#case-temei", LEGAL, { leave: false }); await h.fill("#case-sp-activitate", "Producerea produselor de cofetărie", { leave: false }); };
+    /* FO */
+    const fo = (dig, run, params = {}) => ({ page: PP_FO, flow: "full", hash: "#digitalizare", params: { solicitant: "pj-global-trader", digitalizare: dig, ...params }, ready: "#fo-dig-title", run: async (h) => { await clearToasts(h); await h.wait(400); if (run) await run(h); } });
+    const foPick = (id, value) => async (h) => { await h.click(`#fo-${id}`); await h.wait(150); const opt = [...document.querySelectorAll(`#fo-${id}-list [role=option]`)].find((o) => o.textContent.trim() === value); opt?.click(); await h.wait(200); };
+    const foDate = (id, ddmmyyyy) => async (h) => { await h.fill(`#fo-${id}`, ddmmyyyy, { leave: true }); await h.wait(150); document.querySelectorAll(".date-picker-panel:not([hidden])").forEach((p) => { p.hidden = true; }); };
+    const foUpload = (field, name) => async (h) => {
+      await h.click(`[data-fo-doc-field="${field}"] [data-fo-open-doc-modal]`); await h.wait(300);
+      const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+      if (tab && !tab.closest("[hidden]")) { tab.click(); await h.wait(300); }
+      const input = document.querySelector("[data-fo-doc-file-input]");
+      const files = new DataTransfer();
+      files.items.add(new File([new Uint8Array(1900000)], name, { type: "application/pdf" }));
+      input.files = files.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+      await h.wait(1200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(500);
+      document.activeElement?.blur?.();
+    };
+    const foFill = async (h) => {
+      await foPick("dig-subdiviziune", "CSP Chișinău")(h); await foPick("dig-tip", "Autorizație sanitară de funcționare")(h);
+      await h.fill("#fo-dig-serie", "AS", { leave: false }); await h.fill("#fo-dig-numar", "ASF-0315/2020", { leave: false });
+      await foDate("dig-emitere", "18/05/2020")(h); await foDate("dig-valabil", "17/12/2026")(h);
+    };
+    const foNext = async (h) => { await h.click("[data-fo-dig-next]"); await h.wait(400); };
+    const toSign = async (h) => { await foFill(h); await foUpload("dig-copie", "copia-ASF-0315-2020.pdf")(h); await foNext(h); await h.find("[data-fo-dig-sign]"); };
+    const sign = async (h) => { await toSign(h); await h.click("[data-fo-dig-sign]"); await h.find("[data-fo-dig-finish] h1"); await h.wait(300); };
+    /* Cabinet */
+    const settle = async (h) => { await h.find("[data-sm-profile] [data-cab-profile-header]"); await h.wait(400); };
+    /* Ghișeu */
+    const READY = "#gh-start-modal.is-active [data-gh-panel], #gh-start-modal.is-active .e-permits-empty, #gh-request-modal.is-active [data-gh-panel]";
+    const gh = (run, params) => ({ flow: "back-office", as: GH, hash: "#ghiseu/nou", params, ready: READY, run: async (h) => { await h.wait(300); if (run) await run(h); } });
+    const down = (el) => el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    const service = (code) => async (h) => { await h.click("#fo-gh-serviciu"); down(await h.find(`.e-permits-fo-caem__option[data-code="${code}"]`)); await h.wait(400); };
+    const type = (v) => async (h) => { await h.wait(200); if (document.querySelector("[data-gh-type]")) await h.click(`[data-gh-type] .segment-item[data-value="${v}"]`); };
+    const code = (kind, value) => async (h) => { await h.fill(`[data-gh-code="${kind}"]`, value, { leave: false }); await h.wait(100); await h.click(`[data-gh-search="${kind}"]`); await h.wait(1300); };
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const pjAdmin = seq(type("PJ"), code("company", "1012600000002"), code("applicant", "2002005006007"));
+    const cont = async (h) => { await h.click("[data-gh-start-next]"); await h.find('#gh-request-modal.is-active [data-gh-panel="intent"]'); await h.wait(400); };
+    const ghNext = async (h) => { await h.click("[data-gh-next]"); await h.wait(500); };
+    const panel = (name) => async (h) => { for (let i = 0; i < 6 && !document.querySelector(`#gh-request-modal.is-active [data-gh-panel="${name}"]`); i += 1) await ghNext(h); await h.find(`#gh-request-modal.is-active [data-gh-panel="${name}"]`); await h.wait(300); };
+    const digitize = (svcCode = "003000118") => seq(service(svcCode), pjAdmin, cont, async (h) => { await h.click("[data-gh-intent-digitize]"); await h.find('#gh-request-modal.is-active [data-gh-panel="identificare"]'); await h.wait(300); });
+    const ghPaper = async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); };
+    /* the paper request signed by the holder (US-236), scanned — the digitization has no MSign (US-416 AC-10) */
+    const ghOlograf = async (h) => {
+      await h.click("[data-gh-olograf] [data-fo-open-doc-modal]"); await h.wait(300);
+      const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+      if (tab && !tab.closest("[hidden]")) { tab.click(); await h.wait(300); }
+      const input = document.querySelector("[data-fo-doc-file-input]");
+      const files = new DataTransfer();
+      files.items.add(new File([new Uint8Array(900000)], "cerere-digitalizare-semnata.pdf", { type: "application/pdf" }));
+      input.files = files.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+      await h.wait(300); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(500);
+    };
+    return {
+      /* US-414: Setări › «Digitalizarea actelor» — 01 ticked (seed) · 01a unticked by default (AC-03) · 01b ticked = save bar ·
+         01c saved (toast, after publication — AC-07) · 01d the service journal (AC-08) · 01e no right = denial (AC-01) */
+      "dig-01": svc("settings", cfgNav("digitization"), "003000118"),
+      "dig-01a": svc("settings", cfgNav("digitization"), SVC),
+      "dig-01b": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(400); }, SVC),
+      "dig-01c": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.find(".toast"); await h.wait(300); }, SVC),
+      "dig-01d": svc("settings", async (h) => { await cfgNav("digitization")(h); await h.click('[data-cfg-flag="digitization"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(600); window.location.hash = `#serviciu/${SVC}/events`; await h.wait(900); }, SVC),
+      "dig-01e": { flow: "back-office", as: "ansp-local-admin", hash: "#serviciu/003000118/settings", ready: ".e-permits-empty, .permits-profile", run: null },
+      /* US-415 EVO Cabinet: 10 „Digitalizează un act istoric” next to the acts list (AC-02) · 10a no service allows it = no action */
+      "dig-10": { page: CAB, params: { view: "acte" }, ready: "[data-cab-card], [data-cab-digitize]", run: async (h) => { await h.wait(500); } },
+      "dig-10a": { page: CAB, params: { view: "acte", ["dig-permisa"]: "0" }, ready: "[data-cab-card]", run: async (h) => { await h.wait(500); } },
+      /* US-415 FrontOffice: 11 the service choice (AC-02) · 11a none chosen · 11b before MPass (AC-01) · 12 the form, service
+         prefilled (AC-04…08, AC-12) · 12a one subdivision = read-only (AC-07) · 12b required + copy missing (AC-10 / AC-13) ·
+         12c „Valabil până la” before „Data emiterii” (AC-11) · 12d filled + the copy (AC-14) · 13 Verificare și semnare
+         (AC-15) · 13a MSign error · 14 „Dosarul a fost depus cu succes.” (AC-16) · 15 the service does not allow it
+         (US-414 AC-05) · 16 „Ce vrei să soliciți?” = „Digitalizează un act istoric” next to „Solicitare nouă” (AC-03) ·
+         16a no «Digitalizare permisă» = only „Solicitare nouă” */
+      "dig-11": fo("1"),
+      "dig-11a": fo("1", async (h) => { await h.click("[data-fo-dig-service-next]"); await h.wait(300); }),
+      "dig-11b": fo("1", null, { ["dig-auth"]: "0" }),
+      "dig-12": fo("09"),
+      "dig-12a": fo("10"),
+      "dig-12b": fo("09", foNext),
+      "dig-12c": fo("09", async (h) => { await foFill(h); await foDate("dig-valabil", "01/01/2019")(h); await foUpload("dig-copie", "copia-ASF-0315-2020.pdf")(h); await foNext(h); }),
+      "dig-12d": fo("09", async (h) => { await foFill(h); await foUpload("dig-copie", "copia-ASF-0315-2020.pdf")(h); await foUpload("dig-anexe", "anexa-1-planul-incaperilor.pdf")(h); }),
+      "dig-13": fo("09", toSign),
+      "dig-13a": fo("09", async (h) => { await toSign(h); await h.click("[data-fo-dig-sign]"); await h.find("[data-fo-dig-status]"); await h.wait(200); }, { msign: "eroare" }),
+      "dig-14": fo("09", sign),
+      "dig-15": fo("618"),
+      "dig-16": { ...ppIntent(), params: { solicitant: "pj-global-trader" } },
+      "dig-16a": { ...ppIntent(), params: { solicitant: "pj-global-trader", ["dig-permisa"]: "0" } },
+      /* US-415 AC-17 / US-417 AC-18 / AC-22 in EVO Cabinet: 17 back from the FO = the request first, toast · 18 rejected =
+         the reason + „Depune o cerere nouă” (AC-21) · 18a confirmed · 19 the digitized act's profile (source) · 19a the act in
+         „Ce vrei să soliciți?” with its post-processes (AC-13) */
+      "dig-17": sm(null, { digitalizat: "GEAP-2026-009-04893", ["dig-serviciu"]: "09", ["dig-tip"]: "Autorizație sanitară de funcționare", ["dig-numar"]: "ASF-0315/2020" }),
+      "dig-18": smDosar("d-dig-respinsa", settle, { ["dig-cerere"]: "respinsa" }),
+      "dig-18a": smDosar("d-dig-confirmata", settle, { ["dig-cerere"]: "confirmata" }),
+      "dig-18b": sm(null, { ["dig-cerere"]: "toate" }),
+      "dig-19": { page: CAB, params: { act: "act-dig-dulce", ["dig-cerere"]: "confirmata" }, ready: "#cab-act-title", run: async (h) => { await h.wait(400); } },
+      "dig-19a": { ...ppIntent(), params: { solicitant: "pj-global-trader", ["dig-cerere"]: "confirmata" } },
+      /* US-416 Ghișeu: 20 „Ce se solicită?” = the process next to „Solicitare nouă” (AC-03) · 20a not allowed · 21 Detalii
+         (AC-04 / AC-05) · 21a one subdivision = read-only (AC-05) · 21b required (AC-07) · 22 Acte necesare = copy + annexes
+         (AC-09) · 23 Verificare without MSign (AC-10) · 24 Confirmare „Depune” · 24a submitted (AC-11 / AC-12) · 25 no right */
+      "dig-20": gh(seq(service("003000118"), pjAdmin, cont)),
+      "dig-20a": gh(seq(service("003000118"), pjAdmin, cont), { ["dig-permisa"]: "0" }),
+      "dig-21": gh(seq(digitize(), panel("detalii"))),
+      "dig-21a": gh(seq(digitize("003000519"), panel("detalii"))),
+      "dig-21b": gh(seq(digitize(), panel("detalii"), ghNext), { prefill: "0" }),
+      "dig-22": gh(seq(digitize(), panel("documente"))),
+      "dig-23": gh(seq(digitize(), panel("verificare"))),
+      "dig-24": gh(seq(digitize(), panel("verificare"), ghPaper, ghOlograf, panel("confirmare"))),
+      "dig-24a": gh(seq(digitize(), panel("verificare"), ghPaper, ghOlograf, panel("confirmare"), async (h) => { await h.click("[data-gh-submit]"); await h.wait(700); })),
+      "dig-25": { flow: "back-office", as: SPEC, hash: "#ghiseu/nou", ready: ".e-permits-empty, #gh-start-modal.is-active", run: null },
+      /* US-417 BackOffice: 30 spre distribuire (AC-02 / AC-03) · 30a the distribution · 31 under examination = „Actul declarat”
+         + register check (AC-04) · 31a the step's actions (AC-05) · 31b Detalii solicitare = copy + annexes · 32 „Confirmă
+         digitalizarea” prefilled (AC-06…08) · 32a required (AC-07) · 32b confirmed = success toast, „Dosar finalizat” (AC-12 /
+         AC-23) · 32c the journal (AC-24) · 32d the act in the register card (AC-15…17) · 33 „Respinge” · 33a reason required
+         (AC-10) · 33b rejected = info toast (AC-20) · 34 suspension for clarifications (AC-09) · 35 the act already in the
+         register · 35a confirm blocked · 36 confirmed seed · 36a its act card · 37 rejected seed · 38 another specialist
+         (AC-01) */
+      "dig-30": prof(NEW, SUP),
+      "dig-30a": prof(NEW, SUP, "general", async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); await h.click("[data-case-action='distribuie']"); await h.find(MODAL); await h.wait(300); }),
+      "dig-31": prof(EXAM, SPEC),
+      "dig-31a": prof(EXAM, SPEC, "general", async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); await h.wait(200); }),
+      "dig-31b": prof(EXAM, SPEC, "solicitare"),
+      "dig-32": prof(EXAM, SPEC, "general", action("confirmaDigitalizarea")),
+      "dig-32a": prof(EXAM, SPEC, "general", async (h) => { await action("confirmaDigitalizarea")(h); await submitDrawer(h); }),
+      "dig-32b": prof(EXAM, SPEC, "general", async (h) => { await confirmFilled(h); await submitDrawer(h); await h.find(".toast"); await h.wait(300); }),
+      "dig-32c": prof(EXAM, SPEC, "general", async (h) => { await confirmFilled(h); await submitDrawer(h); await h.wait(600); window.location.hash = `#dosar/${EXAM}/jurnal`; await h.wait(900); }),
+      "dig-32d": prof(EXAM, SPEC, "general", async (h) => { await confirmFilled(h); await submitDrawer(h); await h.wait(600); window.location.hash = "#registru/reg-acte/act-dig-101/generale"; await h.wait(1400); }),
+      "dig-33": prof(EXAM, SPEC, "general", action("respingeDigitalizarea")),
+      "dig-33a": prof(EXAM, SPEC, "general", async (h) => { await action("respingeDigitalizarea")(h); await submitModal(h); }),
+      "dig-33b": prof(EXAM, SPEC, "general", async (h) => { await action("respingeDigitalizarea")(h); await h.fill("#case-motiv", "Copia scanată nu conține pagina a doua a actului; numărul nu se poate verifica.", { leave: false }); await submitModal(h); await h.find(".toast"); await h.wait(300); }),
+      "dig-34": prof(EXAM, SPEC, "general", action("suspendare")),
+      "dig-35": prof(DUP, SPEC),
+      "dig-35a": prof(DUP, SPEC, "general", async (h) => { await action("confirmaDigitalizarea")(h); await h.fill("#case-temei", LEGAL, { leave: false }); await submitDrawer(h); }),
+      "dig-36": prof(OK, SPEC),
+      "dig-36a": { flow: "back-office", as: SPEC, hash: "#registru/reg-acte/act-dig-001/generale", ready: "#reg-panel .e-permits-dosar-profil__section, #reg-panel .e-permits-empty", run: async (h) => { await h.wait(400); } },
+      "dig-37": prof(NO, SPEC),
+      "dig-38": prof(EXAM, "ansp-specialist-balti")
+    };
+  }
+
   function conDemoStates() {
     const ADMIN = "ansp-central-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau";
     const EXAM = "D-2026-004598", OK = "D-2026-004647", NO = "D-2026-004631", NEW = "D-2026-004474", DONE = "D-2026-004693";

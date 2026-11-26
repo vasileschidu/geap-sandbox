@@ -179,6 +179,12 @@
       ["con-contestabil", "con-decizii", "con-tipuri", "con-zile", "con-in-procesare"].forEach((key) => { if (params.get(key)) query.set(key, params.get(key)); });
       return `${FO}?${query.toString()}#contestatie`;
     }
+    /* dig-v1 (US-417 AC-21): a new digitization request for the same service (the FO in a new tab) */
+    if (kind === "digitize") {
+      query.set("digitalizare", dosar.service || "1");
+      if (params.get("dig-permisa")) query.set("dig-permisa", params.get("dig-permisa"));
+      return `${FO}?${query.toString()}#digitalizare`;
+    }
     /* rtr-fo-v1 (2026-11-26, PO: the Cabinet only shows, every action happens in the Front Office): the FO withdrawal
        flow of this request (summary, consequences, reason, MSign, confirmation) */
     if (kind === "withdraw") {
@@ -295,7 +301,8 @@
          „Profilul actului ↗” in a new tab (a request never shows the act), no download from a row */
       items.push({ action: "act", label: "Profilul actului", href: cabUrl("acte", { act: dosar.actId }), newTab: true });
     }
-    if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia" });
+    /* dig-v1: a digitization ends without a signed decision — nothing to download */
+    if (dosar.status === "finalizat" && dosar.result === "respins" && !dosar.digitalizare) items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
     /* con-v1 (AC-11): blocked = the disabled item + its reason (as a blocked „Retrage cererea”) */
     else if (appealPending(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", reason: appealState(dosar).reason });
@@ -819,6 +826,10 @@
       }
       case "finalizat": {
         /* con-v1 (US-418 AC-10 / AC-11): the appeal filed = its own dossier; this request keeps its status */
+        /* dig-v1 (US-417 AC-18 / AC-22): the result of a digitization request — the reason, or the act in „Actele mele permisive” */
+        if (dosar.digitalizare) return dosar.result === "respins"
+          ? notice("danger", "icon-circle-error-filled", "Digitalizarea a fost respinsă", `Motivul respingerii: ${escape(dosar.decision?.reason || "—")}`)
+          : notice("success", "icon-circle-checkmark-filled", `Actul a fost înscris în Registrul actelor permisive pe ${date(dosar.finalized)}`, "Îl găsești în „Actele mele permisive”, cu termenul de valabilitate de pe actul de hârtie.");
         if (appealPending(dosar)) return notice("info", "icon-time-filled", `Contestația ${escape(appealPending(dosar))} este în examinare`, "Decizia contestată rămâne în vigoare până la soluționarea contestației. O nouă contestație nu se poate depune cât timp aceasta este în procesare.");
         if (dosar.result === "respins") {
           const why = dosar.decision?.reason ? `Motivul refuzului: ${escape(dosar.decision.reason)}` : "Motivul refuzului este în fila Decizie.";
@@ -975,10 +986,12 @@
     }
     if (dosar.status === "finalizat") {
       const rejected = dosar.result === "respins";
-      events.push(done(dosar.finalized, rejected ? "Solicitare respinsă" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", {
+      const dig = Boolean(dosar.digitalizare);
+      events.push(done(dosar.finalized, rejected ? (dig ? "Digitalizare respinsă" : "Solicitare respinsă") : dig ? "Act înscris în registru" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", {
         ...authority,
         ...(rejected ? { tone: "danger", statusTag: false } : {}),
-        detail: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis.",
+        detail: dig ? (rejected ? "Motivul respingerii a fost comunicat prin MNotify." : "Actul a fost înscris în Registrul actelor permisive; notificare prin MNotify.")
+          : rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis.",
       }));
       /* con-v1 (US-418 AC-10 / AC-13): the appeal = a new dossier linked to this one; this request keeps its status */
       const appealNr = appealPending(dosar);
@@ -1041,7 +1054,9 @@
            tab), first; then „Descarcă decizia” for a refusal / a decision-only request. The alert keeps only
            „Depune contestație” (the urgent one). header-max-two-v1: max 2 visible + „⋯” (C.watchHeaderActions). */
         if (dosar.actId) buttons.push(newTabLink("btn-neutral", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"'));
-        if (dosar.result === "respins" || dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
+        /* dig-v1 (US-417 AC-21): no decision document; after a rejection a new request for the same act */
+        if (dosar.digitalizare && dosar.result === "respins") buttons.push(newTabLink("btn-secondary", foUrl(dosar, "digitize"), "Depune o cerere nouă", 'data-sm-action="new-request"'));
+        else if (dosar.result === "respins" || dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
         break;
       case "retras":
         /* US-413 AC-21: a new request for the same service is still possible (the FO in a new tab, as „Depune contestație”) */
@@ -1255,6 +1270,22 @@
     const service = serviceOf(dosar);
     const beneficiary = state.subject ? `${state.subject.name} · ${state.subject.idLabel} ${state.subject.idValue}` : "";
     const downloadButton = (kind, label) => `<div class="cab-detail__actions"><button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button></div>`;
+    /* dig-v1 (US-417 AC-16 / AC-22): the result of a digitization — the reason, or the act with its paper dates */
+    if (dosar.digitalizare) {
+      const g = dosar.digitalizare;
+      const act = state.acts.find((item) => item.id === dosar.actId);
+      return section("act", dosar.result === "respins" ? "Rezultatul examinării" : "Act permisiv", rows([
+        row("Rezultatul", dosar.result === "respins" ? "Digitalizare respinsă" : "Digitalizare confirmată"),
+        dosar.result === "respins" ? row("Motivul respingerii", escape(dosar.decision?.reason || "—")) : "",
+        row("Tipul actului", escape(g.tip || "—")),
+        row("Numărul actului", dosar.result === "respins" ? escape(g.numar || "—") : copyValue(g.numar, `Copiază numărul actului ${g.numar}`)),
+        act ? row("Data emiterii", escape(longDate(act.issued))) : "",
+        act ? row("Valabil până la", escape(longDate(act.validUntil))) : "",
+        dosar.result === "respins" ? "" : row("Sursa înregistrării", escape(window.GEAPDigitalizare?.SOURCE || "")),
+        row("Data deciziei", escape(longDate(dosar.finalized))),
+        row("Subdiviziunea de examinare", escape(dosar.subdivision)),
+      ]) + (dosar.actId ? `<div class="cab-detail__actions">${newTabLink("btn-neutral btn-rounded", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"')}</div>` : ""), { scope: true });
+    }
     /* US-161 AC-31…35: a refusal shows the Decizie instead of the Act */
     if (dosar.result === "respins" || dosar.decisionOnly) {
       const decision = dosar.decision || {};
@@ -1305,7 +1336,8 @@
   ];
   function profileTabsOf(dosar, panels) {
     return PROFILE_TABS.filter((tab) => panels[tab.id])
-      .map((tab) => (tab.id === "act" && (dosar.result === "respins" || dosar.decisionOnly) ? { ...tab, label: "Decizie" } : tab));
+      .map((tab) => (tab.id === "act" && dosar.digitalizare && dosar.result === "respins" ? { ...tab, label: "Rezultat" }
+        : tab.id === "act" && (dosar.result === "respins" || dosar.decisionOnly) ? { ...tab, label: "Decizie" } : tab));
   }
   function profileTabsHtml(dosar, panels) {
     const tabs = profileTabsOf(dosar, panels);
@@ -1890,6 +1922,18 @@
       const dosar = state.dosare.find((item) => item.id === id && item.status === "finalizat" && item.result === "aprobat");
       if (dosar) dosar.tacit = true;
     });
+    /* dig-v1 (US-415 AC-17 / US-417 AC-22, demo ?dig-cerere=depusa|respinsa|confirmata|toate): the holder's digitization
+       requests (js/digitalizare.js), added on top — never seed rows */
+    if (C.SUBJECT === "pj-global-trader") (window.GEAPDigitalizare?.demoRequests?.(TODAY) || []).reverse().forEach((dosar) => { if (!state.dosare.some((item) => item.id === dosar.id)) state.dosare.unshift(normalize({ ...dosar })); });
+    /* dig-v1 (US-415 AC-16 / AC-17): back from the FO (?digitalizat=<nr>&dig-tip=…&dig-numar=…) — the request is first in the
+       list, „În derulare”; the library success toast (a filed confirmation, return-toast-v1) */
+    const digNr = params.get("digitalizat");
+    if (digNr && !state.dosare.some((dosar) => dosar.nr === digNr)) {
+      state.dosare.unshift(normalize({ id: "d-dig-nou", nr: digNr, service: params.get("dig-serviciu") || "09", tip: "Digitalizare", pp: "digitalizare", object: "",
+        subdivision: params.get("dig-subdiviziune") || "CSP Chișinău", status: "derulare", submitted: `${TODAY}T14:20`, examTerm: addWorkdays(TODAY, 10), justAdded: true,
+        digitalizare: { numar: params.get("dig-numar") || "", tip: params.get("dig-tip") || "" } }));
+      state.toast = `Dosarul a fost depus cu succes. Cererea de digitalizare ${digNr} este prima în listă, cu statutul „În derulare”.`;
+    }
     if (filed && !state.dosare.some((dosar) => dosar.nr === filed)) {
       const submitted = `${TODAY}T13:50`;
       state.dosare.unshift({

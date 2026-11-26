@@ -196,7 +196,30 @@
     return f;
   }
 
-  var FLOWS = { complex: complexFlow(), simplified: simplifiedFlow(), appeal: appealFlow() };
+  /* dig-v1 (Feature 97576, US-417 „Examinarea cererii de digitalizare”): the shortened flow of a digitization dossier —
+     distribution (US-155 / US-114), the examination with the suspension for clarifications (US-116) and the result:
+     „Confirmă digitalizarea” (the act is entered in the Registrul actelor permisive) or „Respinge” (the reason is sent to
+     the holder) — no fees, no avize, no decision project, no signature; the end = „Dosar finalizat” */
+  function digitizationFlow() {
+    var f = complexFlow();
+    var n = f.nodes;
+    f.id = "digitization";
+    f.name = "Proces_DigitalizareAct";
+    n.node6 = {
+      kind: "human", lane: "lane5", statusId: 2, us: "US-417", name: "Examinarea cererii de digitalizare", bpmn: "Verifică autenticitatea actului",
+      transitions: [
+        { id: "confirmaDigitalizarea", label: "Confirmă digitalizarea", target: "end", kind: "advance", category: "examinare", form: "digConfirmare", icon: "checkmark-large", blockable: true, decision: "confirmare" },
+        { id: "respingeDigitalizarea", label: "Respinge", target: "end", kind: "advance", category: "examinare", form: "digRespingere", icon: "circle-x", blockable: true, decision: "respingere", danger: true },
+        { id: "suspendare", label: "Suspendare termen", target: "node8", kind: "branch", category: "suspendare", form: "suspendare", icon: "pause" }
+      ]
+    };
+    f.order = ["node5", "node6", "node8", "RecordState1", "node10"];
+    ["node12", "node9", "node15", "RecordState5", "node16", "node14", "node17", "RecordState8", "RecordState2", "node18", "node19", "node20", "node21"].forEach(function (id) { delete n[id]; });
+    n.end = { kind: "terminal", statusId: 9, name: "Dosar finalizat" };
+    return f;
+  }
+
+  var FLOWS = { complex: complexFlow(), simplified: simplifiedFlow(), appeal: appealFlow(), digitization: digitizationFlow() };
 
   function getFlow(id) { return FLOWS[id] || FLOWS.complex; }
 
@@ -260,7 +283,7 @@
         if (banned(ctx.role, t.category)) return;
         /* US-116: no suspension button while the case is already suspended */
         if (t.id === "suspendare" && state.suspended) return;
-        var item = { id: t.id, label: t.label, kind: t.kind, icon: t.icon, form: t.form || node.form || null, disabled: false, reason: "", patched: !!t.patched };
+        var item = { id: t.id, label: t.label, kind: t.kind, icon: t.icon, form: t.form || node.form || null, disabled: false, reason: "", patched: !!t.patched, danger: !!t.danger };
         item.target = describeTarget(flow, t, ctx.vars);
         if (t.blockable) {
           /* §7 — advancing is blocked, never hidden */
@@ -316,6 +339,8 @@
     next.stateId = r.stateId;
     if (r.suspended) next.suspended = true;
     if (t.target === "node12") next.decision = opts.choice === "respingere" ? "respingere" : "aprobare";
+    /* dig-v1: a transition that IS the result (Confirmă digitalizarea / Respinge) carries its decision */
+    if (t.decision) next.decision = t.decision;
     return next;
   }
 
@@ -345,7 +370,7 @@
 
   /* the list's coarse status for a resting node (keeps the registry in step) */
   function listStatus(flow, state) {
-    if (state.stateId === "end") return flow.id === "appeal" ? "finalizat" : state.decision === "respingere" ? "respins" : "semnat";
+    if (state.stateId === "end") return flow.id === "appeal" || flow.id === "digitization" ? "finalizat" : state.decision === "respingere" ? "respins" : "semnat";
     if (state.stateId === "node5") return "depus";
     if (state.stateId === "RecordState2") return "spreCoordonare";
     /* fees issued, waiting for MPay — public status 4 (Achitare) */

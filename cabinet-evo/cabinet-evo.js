@@ -611,6 +611,18 @@
 
   }
 
+  /* dig-v1 (US-415 AC-02, PO: the Cabinet only shows and links): „Digitalizează un act istoric” next to the acts list =
+     a new-tab link to the FO request, which opens on the choice among the services with «Digitalizare permisă» */
+  function digitizeLink() {
+    const intro = document.querySelector('[data-cab-view="acte"] > .cab-intro');
+    const DG = window.GEAPDigitalizare;
+    if (!intro || !DG || intro.querySelector("[data-cab-digitize]") || state.restriction || !DG.allowedServices().length) return;
+    const query = new URLSearchParams({ flow: "full", solicitant: SUBJECT, digitalizare: "1" });
+    if (params.get("dig-permisa")) query.set("dig-permisa", params.get("dig-permisa"));
+    intro.classList.add("cab-intro--action");
+    intro.insertAdjacentHTML("beforeend", `<a class="btn btn-neutral btn-md" href="../e-permits-acte-permisive.html?${escape(query.toString())}#digitalizare"${newTabAttrs(DG.ACTION)} data-cab-digitize><span>${escape(DG.ACTION)}</span>${icon("icon-external-link")}</a>`);
+  }
+
   /* ---------- GEAP acts (post-processes) ---------- */
 
   const PENDING_TEXT = (label, dossier) => `${label} în curs · dosar ${dossier}. Poți iniția un alt postproces după finalizarea acestuia.`;
@@ -623,7 +635,9 @@
     const config = data.frontOfficeFlows?.[0]?.intent || {};
     const subjectId = SUBJECT;
     /* demo only (?acte=multe): the subject's acts + numbered copies, so the list paginates (> 10) */
-    const own = (config.acts?.[subjectId] || []).map(withScenario);
+    /* dig-v1 (US-417 AC-18, demo ?dig-cerere=confirmata): the act entered by digitization is the holder's act like any other */
+    const digAct = subjectId === "pj-global-trader" ? window.GEAPDigitalizare?.demoAct?.() : null;
+    const own = [...(digAct ? [digAct] : []), ...(config.acts?.[subjectId] || [])].map(withScenario);
     const source = params.get("acte") === "multe"
       ? [...own, ...own.flatMap((act, round) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, number: `${act.number}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null, ...(round + n) % 3 ? {} : { status: "expirat", statusLabel: "Expirat" } })))]
       : own;
@@ -1143,6 +1157,8 @@
       profile.printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(profile.printedDocumentNumber)) : "",
       tacit ? detailRow("Data aprobării tacite", escape(longDate(profile.tacitApprovalDate))) : "",
       detailRow("Data emiterii", escape(longDate(act.issued))),
+      /* dig-v1 (US-417 AC-15): an act entered from its paper copy says so */
+      act.digitized ? detailRow("Sursa înregistrării", escape(act.source)) : "",
       validFrom ? detailRow("Valabil din", escape(longDate(validFrom))) : "",
       !["valabil", "expirat"].includes(act.status) && act.validUntil ? detailRow("Valabil până la", escape(longDate(act.validUntil))) : "",
       act.status === "suspendat" && profile.suspensionDate ? detailRow("Data suspendării", escape(longDate(profile.suspensionDate))) : "",
@@ -1901,6 +1917,7 @@
       });
     } catch { /* the act profile simply has no link */ }
     if (state.restriction) state.permits = [];
+    digitizeLink();
 
     if (data.user && els.name && els.role) {
       els.name.textContent = data.user.name;

@@ -94,6 +94,8 @@
       S.loading = Promise.all([fetch(DATA_URL, { cache: "no-store" }).then((r) => r.json()), Promise.resolve(X()?.load?.()).catch(() => null)]).then(([data]) => {
         if (params.get("registre") === "gol") { data.acts = []; data.notes = []; data.avize = []; }
         S.data = data;
+        /* dig-v1 (Feature 97576, US-417 AC-12…17): the acts entered by digitization join the register (js/digitalizare.js) */
+        window.GEAPDigitalizare?.attach?.(data);
         S.seedRegisters = data.registers;
         readStore();
         applyCatalog();
@@ -1535,6 +1537,7 @@
           ["Autoritatea emitentă", val(authorityOf(s.authority).name)],
           ["Subdiviziunea emitentă", val(s.subdivision)],
           ["Serviciul", val(s.service || s.name)],
+          s.source && s.series ? ["Seria actului", val(s.series)] : null,
           ["Numărul actului", copy(s.nr)],
           ["Numărul dosarului", dossierLink(s.dossier)],
           ["Data emiterii", val(longDate(s.issued))],
@@ -1543,7 +1546,11 @@
           ["Statut", tag(row.status, ACT_TONE[row.status])],
           ["Aprobare tacită", s.tacit ? "Da" : "Nu"],
           s.printed?.series ? ["Seria documentului tipărit", val(s.printed.series)] : null,
-          s.printed?.number ? ["Numărul documentului tipărit", val(s.printed.number)] : null
+          s.printed?.number ? ["Numărul documentului tipărit", val(s.printed.number)] : null,
+          /* dig-v1 (US-417 AC-15): the source of the record + the scanned copy of the paper act */
+          s.source ? ["Sursa înregistrării", val(s.source)] : null,
+          s.legal ? ["Temeiul legal", val(s.legal)] : null,
+          s.scan ? ["Copia scanată a actului", val(`${s.scan.fisier} · ${Math.round(s.scan.kb / 100) / 10} MB`)] : null
         ])}
         ${card("Beneficiar", [
           [b.kind === "PJ" ? "IDNO" : "IDNP", copy(b.idno || b.idnp)],
