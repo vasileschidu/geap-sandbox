@@ -1620,9 +1620,10 @@
   /* ---------------------------------------------------------------- the record card of a dossier */
   const card = (title, rows) => A().renderInfoCard?.(title, rows.filter(Boolean)) || "";
   const v = (x) => (x === null || x === undefined || x === "" ? "—" : esc(x));
-  function meta(row) {
-    if (row.arhStare === undefined) return [];
-    return [["Starea înregistrării", tag(row.arhStare, STARE_TONE[row.arhStare])]];
+  /* header meta: none (2026-11-26, PO Alexandr Pascalov on rtr-12: the header shows only the dossier status, e.g. „Retras”;
+     „Starea înregistrării” Activ / Arhivat lives in the „Arhivare” card and the registry column, header-no-arh-stare-v1) */
+  function meta() {
+    return [];
   }
   function details(def, row) {
     if (row.arhStare === undefined) return null;
