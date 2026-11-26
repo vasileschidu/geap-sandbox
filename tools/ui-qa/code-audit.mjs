@@ -91,7 +91,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
     /* inert content (an editor's preview of a form: grid builder row card, canvas cards) is not interactive */
     if (!vis(b) || b.closest("[inert]")) continue;
     /* `link` = the library Link on a <button> (main.css styles `.link:disabled`) — e.g. the document name (doc-name-open-v1) */
-    const lib = b.classList.contains("link") || /\b(btn|chip|chip__label|chip__close|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger|e-permits-fo-subgen-chip__remove|e-permits-cfg-num-token|copy-value__button|select-control|cab-hub__tile)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
+    const lib = b.classList.contains("link") || /\b(btn|chip|chip__label|chip__close|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger|e-permits-fo-subgen-chip__remove|e-permits-cfg-num-token|copy-value__button|select-control)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
     if (!lib) add("button-not-library", b, b.className.slice(0, 80));
     // the label = the text next to the icon in its own group (a „Mai mult ⌄” part inside a bigger button), else the button's
     const icon = b.querySelector("svg"); const group = icon && icon.parentElement !== b && [...icon.parentElement.childNodes].some((n) => n !== icon && n.textContent.trim()) ? icon.parentElement : b;

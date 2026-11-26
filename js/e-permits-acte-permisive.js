@@ -160,7 +160,7 @@
        US-21 / US-29): the filed dosar on top as „În derulare”, a saved draft as „Schiță” at the
        step it was left on. The cabinet reads depus / schita / pas / obiect / pp / act. */
     function frontOfficeSolicitariUrl(extra = {}) {
-      const query = new URLSearchParams({ view: "solicitari", lista: "geap" }); /* cab-hub-v1: the GEAP list, not the hub */
+      const query = new URLSearchParams({ view: "solicitari" });
       Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
       const ctx = typeof frontOfficePostprocess === "undefined" ? null : frontOfficePostprocess;
       if (ctx?.pp?.id && ctx?.act?.id) { query.set("pp", ctx.pp.id); query.set("act", ctx.act.id); }
@@ -5907,7 +5907,7 @@
       return Math.round((new Date(`${dosar.info.until}T00:00:00Z`) - new Date(`${today}T00:00:00Z`)) / 86400000);
     }
     function supplementCabinetUrl(extra = {}) {
-      const query = new URLSearchParams({ view: "solicitari", lista: "geap" }); /* cab-hub-v1: the GEAP list, not the hub */
+      const query = new URLSearchParams({ view: "solicitari" });
       const solicitant = suppParam("solicitant");
       if (solicitant) query.set("as", solicitant);
       Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
@@ -6363,7 +6363,7 @@
       return rule.reason ? "blocked" : "open";
     }
     function withdrawCabinetUrl(extra = {}, hash = "") {
-      const query = new URLSearchParams({ view: "solicitari", lista: "geap" }); /* cab-hub-v1: the GEAP list, not the hub */
+      const query = new URLSearchParams({ view: "solicitari" });
       const solicitant = suppParam("solicitant");
       if (solicitant) query.set("as", solicitant);
       Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
@@ -6601,7 +6601,7 @@
       return rule.reason ? "blocked" : "open";
     }
     function appealCabinetUrl(extra = {}, hash = "") {
-      const query = new URLSearchParams({ view: "solicitari", lista: "geap" }); /* cab-hub-v1: the GEAP list, not the hub */
+      const query = new URLSearchParams({ view: "solicitari" });
       const solicitant = suppParam("solicitant");
       if (solicitant) query.set("as", solicitant);
       ["con-contestabil", "con-decizii", "con-tipuri", "con-zile", "con-in-procesare"].forEach((key) => { if (suppParam(key)) query.set(key, suppParam(key)); });
@@ -6989,7 +6989,7 @@
       const service = frontOfficeDig.service;
       const v = frontOfficeDig.values;
       const nr = frontOfficeDig.nr;
-      const href = digCabinetUrl({ view: "solicitari", lista: "geap", digitalizat: nr, "dig-serviciu": service.codes[0], "dig-tip": v.tip, "dig-numar": v.numar, "dig-subdiviziune": v.subdiviziune || service.subdivisions[0] }, "#dosar/d-dig-nou");
+      const href = digCabinetUrl({ view: "solicitari", digitalizat: nr, "dig-serviciu": service.codes[0], "dig-tip": v.tip, "dig-numar": v.numar, "dig-subdiviziune": v.subdiviziune || service.subdivisions[0] }, "#dosar/d-dig-nou");
       body.innerHTML = '<div class="e-permits-fo-finish"><div class="e-permits-fo-finish__body" data-fo-dig-finish></div></div>';
       renderFrontOfficeStep7FromSchema({ steps: [{
         id: "finish",

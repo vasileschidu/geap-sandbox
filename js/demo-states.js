@@ -466,9 +466,7 @@
      ?as=<subject> = perspective, other params = returns from FOD2 / MPay and error demos */
   const CAB = "cabinet-evo/index.html";
   const SM_READY = "[data-sm-card], [data-sm-profile], .cab-state";
-  /* cab-hub-v1: ?view=solicitari alone = the „Solicitările mele” hub; the GEAP request list = &lista=geap */
-  const sm = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "solicitari", lista: "geap", ...params }, hash, ready: SM_READY, run });
-  const cabHub = (run, params = {}) => ({ page: CAB, params: { view: "solicitari", ...params }, ready: "[data-cab-hub]", run });
+  const sm = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "solicitari", ...params }, hash, ready: SM_READY, run });
   const smDosar = (id, run, params = {}) => sm(run, params, `#dosar/${id}`);
   /* a request row may sit on page 2+ (19 requests since 2026-10-20): page on until it is there, then scroll to it */
   const smFind = async (h, id) => {
@@ -3784,12 +3782,6 @@
     "cab2-p01": cab2S({}, cab2Notes),
     "cab2-p02": cab2S({ as: "pf-ion-nou" }, cab2Notes),
     "cab2-p03": cab2S({ as: "pj-global-trader" }, cab2Notes),
-    /* cab-hub-v1 (2026-11-26): „Solicitările mele” = the EVO hub of service tiles; „Cereri din GEAP” → the GEAP list.
-       01 the hub (desktop 3 columns · ≤1100 2 · phones 2 — capture at 375 for the phone screen); 02 an EVO stand-in tile
-       hovered → its hint „Serviciu EVO — în afara prototipului”; 03 the list reached from the tile (breadcrumb back) */
-    "cab-hub-01": cabHub(),
-    "cab-hub-02": cabHub(async (h) => { await h.hover("[data-cab-hub-inert]"); await h.wait(300); }),
-    "cab-hub-03": sm(),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */

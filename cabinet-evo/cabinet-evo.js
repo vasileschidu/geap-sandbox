@@ -1227,7 +1227,7 @@
       <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
           <div class="e-permits-page-header__top">
-            <div class="e-permits-page-header__heading">${window.GEAPBreadcrumbs?.html([].concat(back, { label: title }), { truncate: true, parentsOnly: true }) || ""}</div>
+            <div class="e-permits-page-header__heading">${window.GEAPBreadcrumbs?.html([back, { label: title }], { truncate: true, parentsOnly: true }) || ""}</div>
           </div>
         </div>
       </header>
@@ -1552,7 +1552,7 @@
     return `
       <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
-          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [].concat(back, { label: title }), title, titleId, subtitleHtml, wrap: true, actions, actionsPlacement: "below", phoneTitle: "compact" })}</div>
+          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [back, { label: title }], title, titleId, subtitleHtml, wrap: true, actions, actionsPlacement: "below", phoneTitle: "compact" })}</div>
           ${meta.filter(Boolean).length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${window.GEAPPageHeader.meta(meta)}</div>` : ""}
         </div>
       </header>`;
