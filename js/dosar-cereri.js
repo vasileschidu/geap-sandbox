@@ -295,7 +295,7 @@
       subtitle: row.serviciu,
       body: `<p class="e-permits-passport__lead">${lead}</p>
         ${W()?.reasonFieldHtml({ id: "crq-reject-reason", label: "Motivul respingerii", placeholder: "De ex. motivul nu justifică o procedură excepțională" }) || ""}`,
-      footer: footer(`${btn("Anulează", "data-case-close")}${btn("Respinge", "data-crq-reject-final", "btn-primary")}`)
+      footer: footer(`${btn("Anulează", "data-case-close")}${btn("Respinge", "data-crq-reject-final", "btn-destructive")}`)
     });
     W()?.bindReason(modal());
   }
