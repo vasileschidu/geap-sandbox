@@ -1027,7 +1027,7 @@
   const newTabLink = (variant, href, label, attrs = "") => `<a class="btn ${variant} btn-md" href="${escape(href)}"${C.newTabAttrs(label)} ${attrs}><span>${escape(label)}</span>${icon("icon-external-link")}</a>`;
   function headerActions(dosar) {
     const buttons = [];
-    const download = (kind, label) => `<button class="btn btn-neutral btn-md" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
+    const download = (kind, label) => `<button class="btn btn-secondary btn-md" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
     switch (dosar.status) {
       case "schita":
         /* alert-actions-v1: „Continuă schița” is the alert card's primary */

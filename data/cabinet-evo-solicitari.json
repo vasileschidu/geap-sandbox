@@ -18,6 +18,7 @@
   ],
   "services": {
     "09": { "title": "Autorizația sanitară de funcționare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare", "validityYears": 3, "withdrawal": { "_note": "rtr-v1: the passport block „Retragerea cererii” (US-413)", "active": true, "limit": "semnare", "reason": "obligatoriu", "fee": "restituire", "notify": true } },
+    "11": {"title": "Autorizația sanitară de funcționare pentru unitățile de alimentație publică și comerț cu produse alimentare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare pentru alimentație publică", "validityYears": 3, "withdrawal": {"_note": "rtr-v1: the passport block „Retragerea cererii” (US-413)", "active": true, "limit": "semnare", "reason": "obligatoriu", "fee": "restituire", "notify": true}},
     "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5, "withdrawal": { "active": true, "limit": "semnare", "reason": "optional", "fee": "fara", "notify": true } },
     "618": { "_note": "type-first-v1 (2026-10-21): a service WITHOUT an object / location (licence for an activity) — the request row has no line 2", "title": "Licența pentru transportul rutier de mărfuri", "authority": "ANTA", "authorityName": "Agenția Națională Transport Auto", "termDays": 15, "fee": 300, "actTitle": "Licență pentru transportul rutier de mărfuri", "validityYears": 5, "withdrawal": { "active": false } }
   },
@@ -95,7 +96,7 @@
           "payment": { "nr": "NP-20260901-4310", "amount": 500, "status": "Achitat", "created": "2026-09-01T13:48", "paid": "2026-09-01T13:49" }
         },
         {
-          "id": "d-nota", "nr": "GEAP-2026-009-04254", "service": "09", "tip": "Eliberare",
+          "id": "d-nota", "nr": "GEAP-2026-009-04254", "service": "11", "tip": "Eliberare",
           "object": "Bar „Nota”, or. Orhei", "address": "or. Orhei, str. Vasile Lupu 21", "caem": "I 56.30 Baruri",
           "subdivision": "CSP Orhei", "status": "finalizat", "result": "respins", "submitted": "2026-08-20T10:00", "examTerm": "2026-09-10", "finalized": "2026-09-25",
           "decision": {
