@@ -2916,6 +2916,7 @@
 /* × = the library banner close (`.banner__close`, padding 8 around a 16 icon, rgba hover, press scale; audit-fix-v4):
    only its place is ours — vertically centred, 8 from the right edge (the icon stays at 16) */
 .e-permits-fo-auth__beta-banner > .banner__close {
+  border-radius: var(--border-radius-8, 8px); /* hover + focus ring rounded (user, 2026-11-26, beta-close-radius-v1) */
   color: var(--color-icon-base-default, #121212);
   right: var(--spacing-8, 8px);
   top: calc(50% - var(--spacing-16, 16px));
