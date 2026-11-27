@@ -2448,6 +2448,16 @@ body {
   background: var(--color-background-base-secondary-hover, #e7e7e7);
 }
 
+/* row-selected-v1 (2026-11-27, user: „for selected do a more visible row bg”): a row whose select box is checked =
+   light-blue band in every selectable workplace list (all cells incl. pinned ones); hover on it = one step darker */
+.e-permits-workplace .e-permits-workplace__table.e-permits-workplace__table.e-permits-workplace__table tbody tr:has(.e-permits-workplace__select-cell .checkbox-input:checked) > td {
+  background: var(--color-background-brand-secondary);
+}
+
+.e-permits-workplace .e-permits-workplace__table.e-permits-workplace__table.e-permits-workplace__table tbody tr:has(.e-permits-workplace__select-cell .checkbox-input:checked):hover > td {
+  background: var(--color-background-brand-secondary-hover);
+}
+
 /* no-continue-btn-v1 (2026-10-21): a registry row that IS the action (product `rowLabel`, no „Continuă” / „Detalii”
    button) — pointer, the hover band on keyboard focus too, and the focus ring drawn inside the cells (the pinned
    sticky cells would paint over an outline on the tr) */
