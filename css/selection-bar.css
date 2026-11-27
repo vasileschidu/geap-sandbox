@@ -104,7 +104,10 @@
 /* selection-bar-sticky-v1 (2026-11-27, user: „should be sticky so if I scroll down I always see the black bar”): while
    rows are selected the registry header (selection bar + tabs) sticks to the top of the scrolling canvas, above the
    table; nothing selected = the header scrolls away as before */
-.e-permits-workplace__header.is-selecting {
+/* registry-header-sticky-v1 (2026-11-27, user: „when nothing is selected still keep the tabs sticky, as a rule”): EVERY BO
+   list keeps its registry header (toolbar or selection bar + tabs) pinned at the top of the canvas, selected rows or not */
+.e-permits-workplace__header {
+  background: var(--color-background-base-default, #fff);
   position: sticky;
   top: 0;
   z-index: 10; /* above the pinned cells / sticky head (≤ 9), below the shell top bar (30), menus and modals */

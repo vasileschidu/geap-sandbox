@@ -28,7 +28,9 @@
     const label = bar.querySelector("[data-selection-count]");
     if (label && label.textContent !== text) label.textContent = text;
     bar.hidden = !on;
-    header?.classList.toggle("is-selecting", on);
+    /* selection-bar-v3: several hosts (env-sync, arhivare) may each keep a bar in the same registry header — the header is
+       „selecting” while ANY of its bars shows, so one host hiding its own bar never un-hides the toolbar under another's */
+    header?.classList.toggle("is-selecting", !!header.querySelector(":scope > [data-selection-bar]:not([hidden])"));
     if (on && !was) {
       bar.classList.remove("is-entering");
       void bar.offsetWidth;

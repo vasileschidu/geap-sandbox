@@ -13755,6 +13755,11 @@ change; the host clears the selection on `[data-selection-clear]` and on Esc (no
 is open) and focuses `[data-workplace-select-all]`. The count line is a polite live region. Never a second toolbar
 row, never a floating bottom bar. Values in the inventory row; first host: Sincronizarea mediilor (sync-01g, sync-01i).
 
+**Sticky registry header — rule (registry-header-sticky-v1, 2026-11-27, user):** every BO list's `.e-permits-workplace__header`
+(toolbar or selection bar + tabs) is `position: sticky; top: 0` on the canvas (white background, z-index 10), with or without
+selected rows. Several hosts may keep a bar in the same header (env-sync + arhivare): `set()` keeps `.is-selecting` while ANY
+bar in the header shows (selection-bar-v3), so a host hiding its own bar never brings the toolbar back over another's.
+
 ### Arhivare (arh-v1, 2026-11-23; Feature 97300 „Arhivarea, restaurarea și păstrarea dosarelor”, US-395…408)
 
 Code only, BO desktop. Every piece is an existing component; `css/arhivare.css` is page glue. All copy speaks „tu”
